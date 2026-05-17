@@ -1,26 +1,73 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useSimulationStore from '../store/useSimulationStore';
+import { Loader } from 'lucide-react';
 
-const MOCK_ASSETS = [
-  { symbol: 'RELIANCE.NS', name: 'Reliance Industries', price: 1245.50, change: 5.2 },
-  { symbol: 'TCS.NS', name: 'Tata Consultancy Services', price: 3450.20, change: -1.4 },
-  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank', price: 1670.00, change: 2.8 },
-  { symbol: 'INFY.NS', name: 'Infosys', price: 1540.80, change: 8.5 },
-  { symbol: 'ICICIBANK.NS', name: 'ICICI Bank', price: 1045.25, change: -0.5 },
-  { symbol: 'SBIN.NS', name: 'State Bank of India', price: 620.10, change: 12.3 },
+const POPULAR_ASSETS = [
+  { symbol: 'RELIANCE', name: 'Reliance Industries' },
+  { symbol: 'TCS', name: 'Tata Consultancy Services' },
+  { symbol: 'HDFCBANK', name: 'HDFC Bank' },
+  { symbol: 'INFY', name: 'Infosys' },
+  { symbol: 'ICICIBANK', name: 'ICICI Bank' },
+  { symbol: 'SBIN', name: 'State Bank of India' },
 ];
 
 export default function Market() {
   const navigate = useNavigate();
+  const currentSimulatedDate = useSimulationStore(state => state.currentSimulatedDate);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAssetData = async () => {
+      try {
+        const promises = POPULAR_ASSETS.map(async (asset) => {
+          // Fetch real data from our time-machine backend
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/${asset.symbol}?date=${currentSimulatedDate}`);
+          const data = await res.json();
+          return {
+            ...asset,
+            price: data.currentPrice || 0,
+            change: data.twoMonthChangePct || 0
+          };
+        });
+
+        const resolvedAssets = await Promise.all(promises);
+        setAssets(resolvedAssets);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch market overview:", err);
+        setLoading(false);
+      }
+    };
+
+    fetchAssetData();
+  }, [currentSimulatedDate]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Loader size={48} className="spin" color="var(--accent-primary)" />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h2 style={{ marginBottom: '8px' }}>Market Discovery</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        Select a company to view detailed historical charts and execute trades.
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
+        <div>
+          <h2 style={{ marginBottom: '8px' }}>Market Discovery</h2>
+          <p style={{ color: 'var(--text-muted)' }}>
+            Select a company to view detailed historical charts and execute trades.
+          </p>
+        </div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          Date: <span style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>{new Date(currentSimulatedDate).toLocaleDateString()}</span>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-        {MOCK_ASSETS.map((asset) => (
+        {assets.map((asset) => (
           <div 
             key={asset.symbol}
             onClick={() => navigate(`/market/${asset.symbol}`)}
@@ -72,7 +119,7 @@ export default function Market() {
                 fontWeight: '600',
                 fontSize: '0.85rem'
               }}>
-                {asset.change >= 0 ? '+' : ''}{asset.change}% (2M)
+                {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}% (2M)
               </div>
             </div>
           </div>
