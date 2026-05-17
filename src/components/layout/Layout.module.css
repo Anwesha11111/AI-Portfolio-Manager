@@ -1,0 +1,151 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.navbar {
+  height: 70px;
+  background-color: rgba(10, 10, 10, 0.95);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  backdrop-filter: var(--glass-blur);
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent-primary), #60a5fa);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: white;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.logo h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.accent {
+  color: var(--accent-primary);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.link:hover {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+}
+
+.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--accent-primary);
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(circle at top, rgba(30, 41, 59, 0.3), transparent 60%);
+}
+
+.timeMachineStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--bg-card);
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.clockIcon {
+  color: var(--accent-primary);
+}
+
+.currentDate {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.simToggleBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnPlay {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+.btnPlay:hover {
+  background-color: #2563eb;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btnStop {
+  background-color: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.btnStop:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.pageWrapper {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
