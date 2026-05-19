@@ -38,8 +38,8 @@ export default function Landing() {
 
       {/* Top Navigation */}
       <header className="glass-panel" style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 40px', position: 'sticky', top: 0, zIndex: 50, borderTop: 'none', borderLeft: 'none', borderRight: 'none'
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+        padding: '16px clamp(16px, 4vw, 40px)', position: 'sticky', top: 0, zIndex: 50, borderTop: 'none', borderLeft: 'none', borderRight: 'none'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
           <div style={{
@@ -56,21 +56,21 @@ export default function Landing() {
           </h2>
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', alignItems: 'center' }}>
           <button onClick={() => navigate('/auth', { state: { isLogin: true } })} style={{
-            padding: '10px 20px', background: 'transparent', color: '#e2e8f0',
-            border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: '0.95rem'
+            padding: '8px clamp(8px, 2vw, 16px)', background: 'transparent', color: '#e2e8f0',
+            border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: '0.95rem', whiteSpace: 'nowrap'
           }} onMouseOver={(e) => e.target.style.color = 'white'} onMouseOut={(e) => e.target.style.color = '#e2e8f0'}>
             Log In
           </button>
           
           <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
-            padding: '10px 24px',
+            padding: '8px clamp(12px, 3vw, 24px)',
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white',
             border: 'none', borderRadius: '8px', cursor: 'pointer',
             fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem',
-            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)', whiteSpace: 'nowrap'
           }}>
             Get Started
           </button>
@@ -78,10 +78,10 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 20px 60px', position: 'relative', zIndex: 10 }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 20px 60px', position: 'relative', zIndex: 10 }}>
         <h1 className="animate-fade-in-up delay-100 text-gradient" style={{ 
-          fontSize: 'clamp(2.8rem, 7vw, 4.5rem)', fontWeight: '800', textAlign: 'center', 
-          marginBottom: '24px', letterSpacing: '-0.04em', maxWidth: '900px', lineHeight: '1.1' 
+          fontSize: 'clamp(2.2rem, 8vw, 4.5rem)', fontWeight: '800', textAlign: 'center', 
+          marginBottom: '24px', letterSpacing: '-0.04em', maxWidth: '900px', lineHeight: '1.2' 
         }}>
           Learn to Invest.<br/>
           <span className="text-gradient-accent">Without Risking a Rupee.</span>
