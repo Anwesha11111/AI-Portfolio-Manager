@@ -20,12 +20,11 @@ export default function Onboarding() {
   const [tolerance, setTolerance] = useState('medium');
   const [objective, setObjective] = useState('growth');
 
-  // Calculate investable amount: savings + 6 months of surplus income
+  // Starting capital = savings. Monthly surplus will be credited each sim month.
   const income = Number(monthlyIncome) || 0;
   const expenses = Number(monthlyExpenses) || 0;
   const savings = Number(totalSavings) || 0;
   const monthlySurplus = Math.max(0, income - expenses);
-  const investableAmount = Math.max(savings + (monthlySurplus * 6), 100000); // minimum ₹1 Lakh
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +38,7 @@ export default function Onboarding() {
             monthly_income: income,
             monthly_expenses: expenses,
             total_savings: savings,
-            virtual_balance: investableAmount,
+            virtual_balance: savings,
             time_horizon: horizon,
             drawdown_tolerance: tolerance,
             primary_objective: objective
@@ -140,17 +139,16 @@ export default function Onboarding() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Monthly Surplus</span>
                 <span style={{ fontWeight: 'bold', color: monthlySurplus > 0 ? 'var(--success)' : 'var(--danger)' }}>
-                  ₹{monthlySurplus.toLocaleString('en-IN')}
+                  ₹{monthlySurplus.toLocaleString('en-IN')}/mo
                 </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>6-Month Surplus Buffer</span>
-                <span style={{ fontWeight: 'bold' }}>₹{(monthlySurplus * 6).toLocaleString('en-IN')}</span>
-              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: '1.4' }}>
+                This surplus will be automatically credited to your account every simulated month.
+              </p>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Your Virtual Capital</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Starting Capital</span>
                 <span style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--success)' }}>
-                  ₹{investableAmount.toLocaleString('en-IN')}
+                  ₹{savings.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>

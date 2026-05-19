@@ -18,6 +18,8 @@ create table public.users (
   monthly_income numeric default 0,
   monthly_expenses numeric default 0,
   total_savings numeric default 0,
+  last_income_credited_date bigint default 0,
+  last_ai_recommendation_date bigint default 0,
   time_horizon text default 'long', -- 'short', 'medium', 'long'
   drawdown_tolerance text default 'medium', -- 'low', 'medium', 'high'
   primary_objective text default 'growth', -- 'income', 'growth', 'preservation'

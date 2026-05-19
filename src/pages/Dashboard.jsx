@@ -76,14 +76,6 @@ export default function Dashboard() {
 
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <Wallet size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Cash Balance</span>
-          </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Available to invest</span>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
             <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Market Value</span>
           </div>
           <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>

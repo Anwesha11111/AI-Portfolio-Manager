@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
+import { supabase } from '../../lib/supabase';
 import SettingsModal from './SettingsModal';
 import ProfileModal from './ProfileModal';
 
 export default function Layout() {
-  const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate } = useSimulationStore();
+  const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate, currentSimulatedDate } = useSimulationStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const lastCreditedMonth = useRef(null);
   
   // Load saved simulation date on mount
   useEffect(() => {
@@ -30,6 +32,38 @@ export default function Layout() {
     window.addEventListener('beforeunload', handleUnload);
     return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
+
+  // Monthly Income Accrual — credit surplus when simulation crosses a month boundary
+  useEffect(() => {
+    const simDate = new Date(currentSimulatedDate);
+    const monthKey = `${simDate.getFullYear()}-${simDate.getMonth()}`;
+    
+    if (lastCreditedMonth.current === null) {
+      // First render, just set the ref without crediting
+      lastCreditedMonth.current = monthKey;
+      return;
+    }
+
+    if (monthKey !== lastCreditedMonth.current) {
+      lastCreditedMonth.current = monthKey;
+      // Credit monthly surplus
+      (async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { data: userData } = await supabase.from('users').select('virtual_balance, monthly_income, monthly_expenses').eq('id', user.id).maybeSingle();
+          if (!userData) return;
+          const surplus = Math.max(0, (userData.monthly_income || 0) - (userData.monthly_expenses || 0));
+          if (surplus > 0) {
+            const newBalance = Number(userData.virtual_balance) + surplus;
+            await supabase.from('users').update({ virtual_balance: newBalance }).eq('id', user.id);
+          }
+        } catch (err) {
+          console.error('Monthly accrual failed:', err);
+        }
+      })();
+    }
+  }, [currentSimulatedDate]);
 
   // The Core Time Engine Loop
   useEffect(() => {

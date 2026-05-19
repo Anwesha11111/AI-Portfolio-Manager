@@ -16,7 +16,6 @@ export default function Market() {
   
   // AI Panel States
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
-  const [aiAmount, setAiAmount] = useState(100000);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [isTrading, setIsTrading] = useState(false);
@@ -58,14 +57,20 @@ export default function Market() {
     setAiLoading(true);
     setAiRecommendations(null);
     try {
-      let profileParams = { time_horizon: 'long', drawdown_tolerance: 'medium', primary_objective: 'growth' };
-      
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from('users').select('time_horizon, drawdown_tolerance, primary_objective').eq('id', user.id).maybeSingle();
-        if (data) {
-          profileParams = data;
-        }
+      if (!user) { setAiLoading(false); return; }
+
+      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+      if (!userData) { setAiLoading(false); return; }
+
+      // Once-per-month check
+      const lastRecommDate = userData.last_ai_recommendation_date || 0;
+      const lastMonth = new Date(lastRecommDate).getMonth() + '-' + new Date(lastRecommDate).getFullYear();
+      const currentMonth = new Date(currentSimulatedDate).getMonth() + '-' + new Date(currentSimulatedDate).getFullYear();
+      if (lastRecommDate > 0 && lastMonth === currentMonth) {
+        alert('You can only get AI recommendations once per simulated month. Wait for the next month.');
+        setAiLoading(false);
+        return;
       }
 
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/recommend`, {
@@ -73,15 +78,22 @@ export default function Market() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: currentSimulatedDate,
-          timeHorizon: profileParams.time_horizon,
-          drawdownTolerance: profileParams.drawdown_tolerance,
-          primaryObjective: profileParams.primary_objective,
-          investmentAmount: aiAmount
+          timeHorizon: userData.time_horizon,
+          drawdownTolerance: userData.drawdown_tolerance,
+          primaryObjective: userData.primary_objective,
+          profile: {
+            monthly_income: userData.monthly_income,
+            monthly_expenses: userData.monthly_expenses,
+            total_savings: userData.total_savings,
+            virtual_balance: userData.virtual_balance,
+          }
         })
       });
       const data = await res.json();
-      // the endpoint now returns an array
       setAiRecommendations(data);
+
+      // Mark this month as used
+      await supabase.from('users').update({ last_ai_recommendation_date: currentSimulatedDate }).eq('id', user.id);
     } catch (err) {
       console.error('Failed to get AI recommendation:', err);
     }
@@ -136,8 +148,9 @@ export default function Market() {
   };
 
   const handleBuyAll = async () => {
-    if (!Array.isArray(aiRecommendations)) return;
-    for (const rec of aiRecommendations) {
+    const recs = aiRecommendations?.recommendations;
+    if (!Array.isArray(recs)) return;
+    for (const rec of recs) {
       const asset = assets.find(a => a.symbol === rec.symbol);
       if (asset && asset.price > 0) {
         const qty = Math.floor((rec.allocation || 0) / asset.price);
@@ -224,29 +237,18 @@ export default function Market() {
 
           {!aiRecommendations && !aiLoading && (
             <div style={{ maxWidth: '600px' }}>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.6' }}>
-                Specify your capital deployment. Gemini AI will analyze the market based on your risk profile and build a diversified allocation plan. You can execute these trades with a single click.
+              <p style={{ color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
+                Gemini AI will analyze the current market conditions against your financial profile and determine how much to invest this month and in which stocks.
               </p>
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Investment Amount (₹)</label>
-                <input 
-                  type="number" 
-                  value={aiAmount}
-                  onChange={(e) => setAiAmount(Number(e.target.value))}
-                  style={{ width: '100%', padding: '16px', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-color)', color: 'white', fontSize: '1.2rem' }}
-                />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                  <button onClick={() => setAiAmount(50000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹50k</button>
-                  <button onClick={() => setAiAmount(100000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹1 Lakh</button>
-                  <button onClick={() => setAiAmount(500000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹5 Lakh</button>
-                </div>
-              </div>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                ⏳ You can use this once per simulated month. The AI considers your income, savings, risk appetite, and market conditions.
+              </p>
               
               <button 
                 onClick={fetchAiRecommendation}
                 style={{ padding: '16px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
-                <BrainCircuit size={20} /> Generate Portfolio
+                <BrainCircuit size={20} /> Get Monthly AI Plan
               </button>
             </div>
           )}
@@ -260,19 +262,18 @@ export default function Market() {
 
           {aiRecommendations && !aiLoading && (
             <div className="animate-fade-in-up">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.5rem' }}>Recommended Allocation</h3>
-                  <span style={{ color: 'var(--text-muted)' }}>Based on ₹{aiAmount.toLocaleString()} investment</span>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.5rem' }}>Monthly Investment Plan</h3>
+                  <span style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                    AI recommends investing ₹{(aiRecommendations?.investable_amount || 0).toLocaleString()}
+                  </span>
+                  {aiRecommendations?.reasoning_for_amount && (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>{aiRecommendations.reasoning_for_amount}</p>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={() => setAiRecommendations(null)}
-                    style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    Recalculate
-                  </button>
-                  {Array.isArray(aiRecommendations) && (
+                  {Array.isArray(aiRecommendations?.recommendations) && (
                     <button 
                       onClick={handleBuyAll}
                       disabled={isTrading}
@@ -285,7 +286,7 @@ export default function Market() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-                {Array.isArray(aiRecommendations) ? aiRecommendations.map((rec, i) => {
+                {Array.isArray(aiRecommendations?.recommendations) ? aiRecommendations.recommendations.map((rec, i) => {
                   const asset = assets.find(a => a.symbol === rec.symbol);
                   const price = asset?.price || 0;
                   const alloc = rec.allocation || 0;
