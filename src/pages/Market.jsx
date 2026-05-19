@@ -11,8 +11,8 @@ export default function Market() {
   
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('gainers');
-  const [timeframe, setTimeframe] = useState('6M');
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
+  const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '6M');
   
   // AI Panel States
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
@@ -180,7 +180,7 @@ export default function Market() {
 
           <select 
             value={timeframe} 
-            onChange={(e) => setTimeframe(e.target.value)}
+            onChange={(e) => { setTimeframe(e.target.value); localStorage.setItem('market_timeframe', e.target.value); }}
             className="glass-panel"
             style={{
               padding: '10px 16px', borderRadius: '8px', color: 'white', border: '1px solid var(--border-color)',
@@ -196,7 +196,7 @@ export default function Market() {
 
           <select 
             value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e) => { setSortBy(e.target.value); localStorage.setItem('market_sortBy', e.target.value); }}
             className="glass-panel"
             style={{
               padding: '10px 16px', borderRadius: '8px', color: 'white', border: '1px solid var(--border-color)',
