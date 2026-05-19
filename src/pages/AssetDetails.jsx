@@ -102,6 +102,7 @@ export default function AssetDetails() {
     const cutoffTimestamp = currentSimulatedDate - (tfMap[timeframe] || tfMap['6M']);
 
     // Format and filter data for lightweight-charts
+    const seenTimes = new Set();
     const chartData = assetData.history
       .filter(d => d.rawTimestamp >= cutoffTimestamp)
       .map(d => ({
@@ -110,7 +111,13 @@ export default function AssetDetails() {
         high: d.high,
         low: d.low,
         close: d.close
-      }));
+      }))
+      .sort((a, b) => a.time - b.time)
+      .filter(d => {
+        if (seenTimes.has(d.time)) return false;
+        seenTimes.add(d.time);
+        return true;
+      });
 
     candlestickSeries.setData(chartData);
     chart.timeScale().fitContent();
@@ -243,7 +250,7 @@ export default function AssetDetails() {
             <span style={{ display: getLogoUrl(symbol) ? 'none' : 'block' }}>{symbol[0]}</span>
           </div>
           <div>
-            <h2 className="text-gradient" style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em' }}>{symbol}</h2>
+            <h2 className="text-gradient" style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em' }}>{symbol.replace(/_/g, ' ')}</h2>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString()}</span>
           </div>
         </div>
