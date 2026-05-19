@@ -1,4 +1,8 @@
-export const ASSET_DOMAINS = {
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const ASSET_DOMAINS = {
   'ADANI_ENTERPRISES': 'adanienterprises.com',
   'ADANI_PORTS': 'adaniports.com',
   'APOLLO HOSPITALS': 'apollohospitals.com',
@@ -48,18 +52,48 @@ export const ASSET_DOMAINS = {
   'WIPRO': 'wipro.com'
 };
 
-export function getLogoUrl(symbol) {
-  const domain = ASSET_DOMAINS[symbol];
-  if (!domain) return null;
-  return `/logos/${symbol}.png`;
+const LOGO_DIR = path.join(__dirname, '..', 'public', 'logos');
+
+if (!fs.existsSync(LOGO_DIR)) {
+  fs.mkdirSync(LOGO_DIR, { recursive: true });
 }
 
-export function getGradientForSymbol(symbol) {
-  let hash = 0;
-  for (let i = 0; i < symbol.length; i++) {
-    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const h1 = Math.abs(hash) % 360;
-  const h2 = (h1 + 40) % 360;
-  return `linear-gradient(135deg, hsl(${h1}, 70%, 40%), hsl(${h2}, 70%, 20%))`;
+async function downloadLogo(symbol, domain) {
+  return new Promise((resolve) => {
+    if (!domain) {
+      console.log(`Skipping ${symbol} (No domain)`);
+      return resolve();
+    }
+    
+    const url = `https://icon.horse/icon/${domain}`;
+    const dest = path.join(LOGO_DIR, `${symbol}.png`);
+    
+    https.get(url, (res) => {
+      if (res.statusCode === 200) {
+        const file = fs.createWriteStream(dest);
+        res.pipe(file);
+        file.on('finish', () => {
+          file.close();
+          console.log(`Downloaded: ${symbol}.png`);
+          resolve();
+        });
+      } else {
+        console.log(`Failed to download ${symbol} from ${domain} (Status: ${res.statusCode})`);
+        resolve();
+      }
+    }).on('error', (err) => {
+      console.log(`Error downloading ${symbol}: ${err.message}`);
+      resolve();
+    });
+  });
 }
+
+async function main() {
+  console.log('Starting logo downloads...');
+  for (const [symbol, domain] of Object.entries(ASSET_DOMAINS)) {
+    await downloadLogo(symbol, domain);
+  }
+  console.log('Finished downloading logos.');
+}
+
+main();
