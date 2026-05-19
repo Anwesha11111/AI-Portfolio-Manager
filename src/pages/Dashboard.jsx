@@ -110,14 +110,14 @@ export default function Dashboard() {
       {/* Sector Allocation & Top Movers */}
       {holdings.length > 0 && (() => {
         const SECTOR_MAP = {
-          'Banking': ['HDFC_BANK','ICICI_BANK','KOTAK_BANK','AXIS_BANK','SBI','BAJAJ_FINANCE','BAJAJ_FINSERV','HDFC_LIFE','SBI_LIFE','INDUS_INDUSTRIES'],
-          'IT': ['INFOSYS','TCS','WIPRO','TECH_MAHINDRA','HCL_TECH','LTIMINDTREE'],
-          'Auto': ['TATA_MOTORS','MARUTI','MAHINDRA','BAJAJ_AUTO','EICHER_MOTORS','HERO_MOTO'],
-          'Pharma': ['CIPLA','DIVIS_LABS','DRREDDYS','APOLLO_HOSPITALS','SUN_PHARMA'],
-          'Consumer': ['HINDUSTAN_UNILEVER','ITC','ASIAN_PAINTS','TITAN','NESTLE','BRITANNIA'],
-          'Energy': ['RELIANCE','NTPC','POWERGRID','ONGC','ADANI_PORTS','ADANI_ENTERPRISES','COAL_INDIA','ULTRATECH','JSW_STEEL','TATA_STEEL','GRASIM','HINDALCO']
+          'Banking': ['HDFC_BANK', 'ICICI_BANK', 'KOTAK_MAHINDRA', 'AXIS_BANK', 'SBI_BANK', 'BAJAJ_FINANCE', 'BAJAJ_FINSERV', 'HDFC_LIFE', 'SBI_LIFE', 'INDUS INDUSTRIES'],
+          'IT': ['INFOSYS', 'TATA CONSULTANCY SERVICES', 'WIPRO', 'TECH_MAHINDRA', 'HCL_TECHNOLOIES'],
+          'Auto': ['TATA MOTORS', 'MARUTI SUZUKI', 'BAJAJ AUTO', 'EICHER MOTOTRS', 'HERO MOTOCORP'],
+          'Pharma': ['CIPLA', 'DIVIS LAB', 'APOLLO HOSPITALS', 'SUN_PHARMA'],
+          'Consumer': ['HINDUSTAN UNILEVER', 'ITC', 'ASIAN PAINTS', 'TITAN', 'NESTLE', 'BRITANNIA', 'TATA CONSUMER PRODUCTS'],
+          'Energy': ['RELIANCE', 'NTPC', 'POWERGRID', 'ONGC', 'ADANI_PORTS', 'ADANI_ENTERPRISES', 'COAL INDIA', 'ULTRATECH CEMENT', 'JSW STEEL', 'TATA STEEL', 'GRASIM', 'HINDALCO']
         };
-        const SECTOR_COLORS = { Banking: '#3b82f6', IT: '#8b5cf6', Auto: '#f59e0b', Pharma: '#10b981', Consumer: '#ec4899', Energy: '#f97316' };
+        const SECTOR_COLORS = { Banking: '#3b82f6', IT: '#8b5cf6', Auto: '#f59e0b', Pharma: '#10b981', Consumer: '#ec4899', Energy: '#f97316', Other: '#6b7280' };
 
         const sectorAlloc = {};
         holdings.forEach(h => {
