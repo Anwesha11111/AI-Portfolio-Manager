@@ -144,5 +144,34 @@ export const LESSONS = [
       ### Dividend Reinvestment Programs (DRIP)
       When a company pays you a dividend, you have a choice: spend it on a nice dinner, or use it to buy more shares of that company. Reinvesting your dividends accelerates the compounding process drastically because you are constantly increasing the base number of shares that will generate future dividends. Over a multi-decade period, reinvested dividends can account for more than 50% of a portfolio's total return.
     `
+  },
+  {
+    id: 'candlestick-charts',
+    icon: BarChart3,
+    title: 'Reading Technicals: Candlestick Charts',
+    readTime: '5 min read',
+    content: `
+      ### The Anatomy of a Candlestick
+      While fundamental analysis tells you *what* to buy, technical analysis and charts tell you *when* to buy. The most common and powerful way to view stock price action is through a **Japanese Candlestick Chart**.
+      
+      Unlike a simple line graph that only shows the closing price, a single candlestick packs four critical pieces of information for a given timeframe (like one day): the **Open, High, Low,** and **Close** (OHLC).
+
+      ![Candlestick Anatomy](/images/candlestick_anatomy.png)
+
+      ### The Real Body
+      The thick, colored part of the candle is called the **Real Body**. It represents the price difference between the opening and closing bell of the market.
+      
+      - **Bullish Candle (Green):** If the closing price is *higher* than the opening price, the bulls (buyers) won the day. The bottom of the body is the Open, and the top is the Close.
+      - **Bearish Candle (Red):** If the closing price is *lower* than the opening price, the bears (sellers) won the day. The top of the body is the Open, and the bottom is the Close.
+
+      ### The Wicks (Shadows)
+      The thin lines extending above and below the body are called **Wicks** or **Shadows**. They show the extreme highs and lows the price reached during that day, regardless of where it eventually closed.
+      
+      - A long upper wick indicates that buyers pushed the price incredibly high, but sellers overwhelmed them and forced the price back down before the close.
+      - A long lower wick indicates that sellers hammered the price down, but strong buyers stepped in at the bottom to rescue the stock, pushing it back up.
+
+      ### Why Candlesticks Matter
+      Candlesticks visualize the battle between buyers and sellers. By looking at the size of the body and the length of the wicks over consecutive days, experienced traders can identify momentum shifts, panic selling, or aggressive institutional buying before the fundamentals even change.
+    `
   }
 ];
