@@ -64,21 +64,21 @@ export default function LessonView() {
     return blocks.map((block, idx) => {
       const b = block.trim();
       if (b.startsWith('### ')) {
-        return <h3 key={idx} style={{ marginTop: '32px', marginBottom: '16px', color: '#e2e8f0', fontSize: '1.4rem' }}>{b.replace('### ', '')}</h3>;
+        return <h3 key={idx} style={{ marginTop: '40px', marginBottom: '20px', color: 'white', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>{b.replace('### ', '')}</h3>;
       }
       
       if (b.startsWith('- ')) {
         const items = b.split('\n').map(i => i.replace('- ', '').trim());
         return (
-          <ul key={idx} style={{ paddingLeft: '24px', marginBottom: '24px', color: 'var(--text-muted)', lineHeight: '1.8' }}>
+          <ul key={idx} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {items.map((item, i) => {
               // Parse **bold**
               const parts = item.split(/(\*\*.*?\*\*)/g);
               return (
-                <li key={i} style={{ marginBottom: '8px' }}>
+                <li key={i} style={{ marginBottom: '12px' }}>
                   {parts.map((part, j) => 
                     part.startsWith('**') && part.endsWith('**') 
-                      ? <strong key={j} style={{ color: 'var(--text-main)' }}>{part.slice(2, -2)}</strong>
+                      ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
                       : part
                   )}
                 </li>
@@ -91,10 +91,10 @@ export default function LessonView() {
       // Normal paragraph (handle inline bold)
       const parts = b.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={idx} style={{ marginBottom: '24px', color: 'var(--text-muted)', lineHeight: '1.8', fontSize: '1.1rem' }}>
+        <p key={idx} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem', letterSpacing: '0.01em' }}>
           {parts.map((part, j) => 
             part.startsWith('**') && part.endsWith('**') 
-              ? <strong key={j} style={{ color: 'var(--text-main)' }}>{part.slice(2, -2)}</strong>
+              ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
               : part
           )}
         </p>

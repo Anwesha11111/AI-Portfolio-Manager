@@ -5,116 +5,144 @@ export const LESSONS = [
     id: 'stock-market-basics',
     icon: Landmark,
     title: 'The Stock Market Ecosystem',
-    readTime: '4 min read',
+    readTime: '6 min read',
     content: `
-      ### The Core Concept
-      At its most basic level, the stock market is simply a marketplace where ownership in businesses is bought and sold. When you buy a "share" or "stock," you are literally buying a fractional piece of a real, operating business like Reliance Industries or HDFC Bank.
+      ### The Core Concept of Equities
+      At its most basic level, the stock market is a marketplace where ownership in businesses is bought and sold. When you buy a "share" or "stock," you are not just trading a ticker symbol on a screen—you are buying a fractional piece of a real, operating business. If you own 1 share of Reliance Industries, you own a tiny percentage of its refineries, telecom towers, and retail stores.
 
-      ### Why Do Companies Issue Stock?
-      When a business wants to expand—build a new factory, hire thousands of engineers, or acquire a competitor—it needs capital. Instead of borrowing money from a bank (which requires paying high interest), the founders can sell a portion of their ownership to the public. This process is called an Initial Public Offering (IPO). Once public, those shares trade freely among investors on an exchange like the NSE (National Stock Exchange).
+      ### The Mechanics of an IPO
+      Why do companies issue stock in the first place? When a private business wants to expand aggressively—perhaps to build a massive new factory or acquire a global competitor—it needs capital. The founders could borrow money from a bank, but that requires paying high, rigid interest rates. 
+      
+      Instead, they can sell a portion of their ownership to the public in an **Initial Public Offering (IPO)**. They surrender some control and future profits, but in exchange, they receive a massive influx of debt-free cash. Once public, those shares trade freely among investors on an exchange like the **NSE (National Stock Exchange)** or **BSE (Bombay Stock Exchange)**.
 
-      ### How Do You Make Money?
+      ### Two Avenues of Wealth Creation
       There are two primary ways investors make money from stocks:
-      1. **Capital Appreciation:** You buy a share for ₹100. Over 5 years, the company grows its profits significantly. The market recognizes this growth, and other investors are now willing to pay ₹250 for that same share. You sell it, making a ₹150 profit.
-      2. **Dividends:** Profitable companies often take a portion of their net income and distribute it directly to shareholders as cash. This is called a dividend. It provides a steady stream of passive income regardless of what the stock price is doing.
+      
+      - **Capital Appreciation:** You buy a share for ₹1,000. Over 5 years, the company grows its profits significantly. The market recognizes this growth, and other investors are now willing to pay ₹2,500 for that same share. You sell it, making a ₹1,500 profit.
+      - **Dividends:** Highly profitable, mature companies (like ITC or Coal India) often generate more cash than they know what to do with. Instead of hoarding it, they distribute a portion of their net income directly to shareholders as cash. This is called a dividend. It provides a steady stream of passive income regardless of market volatility.
 
-      ### The Golden Rule
-      In the short term, the stock market is a "voting machine" driven by human emotion, news, and fear. But in the long term, it is a "weighing machine" driven entirely by corporate profits. If a company consistently grows its earnings, its stock price will eventually follow.
+      ### Voting Machine vs. Weighing Machine
+      Benjamin Graham, the father of value investing, famously stated: *"In the short run, the market is a voting machine but in the long run, it is a weighing machine."*
+      
+      On any given day, a stock's price is driven by human emotion, news headlines, fear, and greed. But over a 10-year period, the stock's price is driven almost entirely by the company's ability to generate cash and grow its earnings. Your job as an investor is to ignore the voting and focus on the weighing.
     `
   },
   {
     id: 'fundamental-analysis',
     icon: BookOpen,
     title: 'Valuing a Business (Fundamentals)',
-    readTime: '6 min read',
+    readTime: '8 min read',
     content: `
       ### Price vs Value
-      Warren Buffett famously said, "Price is what you pay. Value is what you get." Just because a stock's price is going up doesn't mean it's a good investment. You must understand the underlying business fundamentals to determine if the stock is cheap or expensive.
+      Warren Buffett's golden rule is simple: *"Price is what you pay. Value is what you get."* Just because a stock's price is going up rapidly does not mean it is a good investment. You must understand the underlying business fundamentals to determine if you are buying a ₹100 bill for ₹80, or a ₹50 bill for ₹120.
 
-      ### Key Metrics to Know
-      - **P/E Ratio (Price-to-Earnings):** This tells you how much you are paying for ₹1 of the company's profit. If a stock trades at ₹100 and earns ₹5 per share, its P/E is 20. A very high P/E (like 100) means the stock is expensive, and the market expects massive future growth. A low P/E (like 10) might mean the stock is cheap, or the business is failing.
-      - **ROE (Return on Equity):** This measures how efficiently management uses shareholders' money. If a company has an ROE of 20%, it generates ₹20 of profit for every ₹100 invested in it. Consistently high ROE is a hallmark of a great business.
-      - **Debt-to-Equity:** This measures financial risk. A company with massive debt might go bankrupt during an economic downturn. Look for companies with low debt relative to their equity.
+      ### Core Valuation Metrics
+      To analyze a company, you must look at its financial statements (Income Statement, Balance Sheet, Cash Flow Statement). Here are the most critical metrics:
+      
+      - **P/E Ratio (Price-to-Earnings):** This ratio tells you how much you are paying for ₹1 of the company's profit. Calculated as: \`Current Stock Price / Earnings Per Share\`. If a stock trades at ₹1,000 and earns ₹50 per share, its P/E is 20. A very high P/E (like 100) means the market expects massive future growth. A low P/E (like 10) might indicate a bargain, or a business in severe decline.
+      - **ROE (Return on Equity):** This measures how efficiently management uses shareholders' capital to generate profit. Calculated as: \`Net Income / Shareholder's Equity\`. If a company has an ROE of 20%, it generates ₹20 of profit for every ₹100 invested in it. Consistently high ROE (15%+) without excessive debt is a hallmark of an elite business.
+      - **Debt-to-Equity Ratio:** This measures financial risk and leverage. A company with massive debt might go bankrupt during an economic downturn because it cannot meet its interest payments. Look for companies with a D/E ratio of less than 1.0.
+      - **Free Cash Flow (FCF):** Net income can be manipulated by accounting tricks. Free Cash Flow is the actual, hard cash left over after a company has paid all its expenses and capital expenditures (like buying new equipment). It is the truest measure of profitability.
 
-      ### The Moat Concept
-      A fundamental investor looks for an "economic moat"—a competitive advantage that protects a company's profits from competitors. Moats can be brand power (Apple), network effects (Visa), or switching costs (Microsoft). A business with a strong moat can raise prices without losing customers.
+      ### The Economic Moat
+      A fundamental investor looks for an **"economic moat"**—a structural competitive advantage that protects a company's profits from competitors. 
+      
+      Moats come in several forms:
+      - **Brand Power:** People willingly pay a premium for an Apple iPhone over an Android with similar specs.
+      - **Network Effects:** A credit card network like Visa becomes more valuable to merchants as more consumers use it, and vice versa.
+      - **Switching Costs:** Once an enterprise integrates Microsoft Azure or AWS into its infrastructure, the cost and headache of switching to a competitor is astronomically high.
 
-      ### Putting it Together
-      Before buying a stock, you should be able to answer: How does this company make money? Is revenue growing? Is debt manageable? Is the valuation reasonable? If you cannot answer these questions, you are gambling, not investing.
+      Before buying a stock, ask yourself: *Does this company have a moat? Is revenue growing? Is debt manageable? Is the P/E ratio reasonable compared to its peers?* If you cannot answer these questions, you are gambling, not investing.
     `
   },
   {
     id: 'portfolio-diversification',
     icon: PieChart,
     title: 'Diversification & Risk Management',
-    readTime: '5 min read',
+    readTime: '7 min read',
     content: `
       ### The Only Free Lunch in Finance
-      Investing heavily in a single stock is incredibly risky. If you put all your capital into a hot tech startup and it fails, your wealth is destroyed. Diversification is the strategy of spreading your capital across different assets to minimize the impact of any single failure.
+      Investing heavily in a single stock is incredibly risky. If you put all your capital into a highly touted tech startup and it goes bankrupt, your wealth is permanently destroyed. **Diversification** is the strategy of spreading your capital across different, uncorrelated assets to minimize the impact of any single failure.
 
-      ### How to Diversify Properly
-      True diversification isn't just owning 20 stocks; it's owning stocks that behave differently from one another. 
-      - **Sector Diversification:** Don't buy 5 IT companies. Buy an IT company, a bank, a pharmaceutical firm, and a consumer goods manufacturer. If the tech sector crashes, your consumer goods stocks might hold steady.
-      - **Size Diversification:** Mix large-cap companies (stable, slow growth) with mid-cap and small-cap companies (volatile, high growth).
+      ### Modern Portfolio Theory
+      True diversification isn't just owning 20 different stocks; it's owning stocks that behave differently from one another under the same economic conditions. 
+      
+      - **Sector Diversification:** Do not fill your portfolio exclusively with IT companies. If global tech spending slows down, your entire portfolio will crash. Instead, balance an IT company with a major Bank, a Pharmaceutical firm, and a fast-moving consumer goods (FMCG) manufacturer. 
+      - **Market Cap Diversification:** Mix large-cap companies (stable, slow growth, dividend-paying) with mid-cap and small-cap companies (volatile, high potential growth).
+      - **Asset Class Diversification:** Equities (stocks) should be balanced with fixed-income assets like Government Bonds or Gold. When stocks crash, bonds and gold typically rise or hold steady, cushioning your fall.
 
       ### The Risk vs Reward Tradeoff
-      The fundamental law of investing is that higher potential returns require taking on higher risk. Government bonds are virtually risk-free but offer low returns (~7%). Small-cap stocks can double your money in a year but can also drop 60%. 
+      The fundamental law of investing is that **higher potential returns require taking on higher risk.** 
       
-      Your portfolio should match your "risk tolerance." If you are 25 years old with a stable job, you can afford to be aggressive because you have decades to recover from a crash. If you are 60 and retiring soon, your portfolio should prioritize capital preservation.
+      Government bonds are virtually risk-free but offer low returns (~7% annually), barely beating inflation. Small-cap stocks can double your money in a year, but they can also drop 60% in a month. 
+      
+      Your portfolio construction must match your **"risk tolerance."** 
+      - If you are a 25-year-old with a stable job, you can afford a 90% Equity / 10% Debt portfolio. You have decades to ride out market crashes.
+      - If you are 60 and retiring in two years, a market crash would wipe out your retirement fund. Your portfolio should be much more conservative, prioritizing capital preservation (e.g., 40% Equity / 60% Debt).
 
-      ### Avoid Over-Diversification
-      While diversification is crucial, owning 100 different stocks means you will likely just match the market average. A highly concentrated portfolio (5-10 stocks) maximizes returns but is incredibly risky. A balanced portfolio usually contains 15-25 carefully selected companies.
+      ### The Danger of Over-Diversification
+      While diversification is crucial, *"diworsification"* is a real threat. Owning 100 different stocks means you are essentially just buying the entire market, guaranteeing average returns while paying higher transaction fees. A balanced, actively managed portfolio usually contains 15-25 carefully selected, high-conviction companies.
     `
   },
   {
     id: 'market-cycles',
     icon: BarChart3,
     title: 'Market Cycles: Bulls and Bears',
-    readTime: '5 min read',
+    readTime: '6 min read',
     content: `
       ### The Inevitable Rhythm
-      The stock market does not move in a straight line. It moves in cycles driven by economic conditions and human psychology. Understanding these cycles prevents you from panicking at the worst possible times.
+      The stock market does not move in a straight line. It moves in cyclical waves driven by macroeconomic conditions, central bank policies, and extreme human psychology. Understanding these cycles is the only way to prevent yourself from panicking at the worst possible times.
 
       ### The Bull Market
-      A bull market occurs when the economy is strong, unemployment is low, and corporate profits are rising. Investor confidence is high, and stock prices trend upward for years. During the late stages of a bull market, greed takes over. People start buying stocks purely because prices are rising, leading to a "bubble."
-
-      ### The Bear Market
-      Eventually, the bubble bursts. A bear market is defined as a 20% or greater decline from recent highs. It is often triggered by rising interest rates, inflation, or a recession. Fear dominates, and investors sell stocks indiscriminately. 
-
-      ### The Psychology of Cycles
-      The greatest wealth is built during bear markets. When everyone else is panicking and selling, high-quality businesses go on "sale." As Baron Rothschild famously said, "Buy when there is blood in the streets." 
+      A **bull market** occurs when the economy is strong, unemployment is low, and corporate profits are rising. Investor confidence is incredibly high, and stock prices trend upward for years. 
       
-      Unfortunately, human nature makes us do the opposite: we buy at the peak of a bull market out of FOMO (Fear Of Missing Out) and sell at the bottom of a bear market out of panic. 
+      During the late stages of a bull market, euphoria and greed take over. People begin buying terrible companies purely because the prices are rising. Valuations stretch to absurd levels, creating a "bubble."
+
+      ### The Bear Market & Recessions
+      Eventually, the bubble bursts. A **bear market** is defined as a 20% or greater decline in major indices from their recent highs. It is often triggered by a catalyst: a spike in interest rates, runaway inflation, or a global crisis (like the 2008 Financial Crisis or the 2020 Pandemic).
+      
+      Fear completely dominates the market. Investors sell their stocks indiscriminately, regardless of whether the underlying company is actually struggling or not. 
+
+      ### The Psychology of Wealth Creation
+      The greatest generational wealth is built during severe bear markets. When everyone else is panicking and selling, high-quality, elite businesses go on a massive "sale." 
+      
+      As Baron Rothschild famously advised in the 18th century: *"Buy when there is blood in the streets, even if the blood is your own."* 
+      
+      Unfortunately, human nature makes us do the exact opposite: we buy at the absolute peak of a bull market out of FOMO (Fear Of Missing Out), and we sell at the rock bottom of a bear market out of terror. 
 
       ### Your Strategy
-      Expect the market to crash by 30-50% a few times during your investing lifetime. It is a mathematical certainty. Your goal is not to predict the crash, but to survive it without selling your assets.
+      Expect the market to crash by 30-50% at least 3 to 4 times during your investing lifetime. It is a mathematical certainty. Your goal is not to predict when the crash will happen, but to survive it without selling your assets, and ideally, having cash reserves ready to deploy when prices bottom out.
     `
   },
   {
     id: 'compounding',
     icon: TrendingUp,
     title: 'The Math of Wealth: Compounding',
-    readTime: '4 min read',
+    readTime: '5 min read',
     content: `
-      ### The Eighth Wonder
-      Albert Einstein supposedly called compound interest "the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."
+      ### The Eighth Wonder of the World
+      Albert Einstein supposedly called compound interest *"the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."*
       
-      Compounding happens when the returns on your investments start generating their own returns. 
+      Simple interest pays you returns only on your principal amount. **Compounding** happens when the returns on your investments start generating their own returns. It is the snowball effect applied to money.
 
-      ### How It Works
-      If you invest ₹1,00,000 at a 15% annual return:
-      - **Year 1:** You make ₹15,000. Your total is ₹1,15,000.
-      - **Year 2:** You don't just make 15% on your initial ₹1L. You make 15% on the ₹1.15L. That's ₹17,250 in profit.
+      ### The Exponential Curve
+      Let's look at the math. If you invest a lump sum of ₹1,00,000 at a realistic 15% annual return:
+      
+      - **Year 1:** You make ₹15,000 in profit. Your total portfolio is now ₹1,15,000.
+      - **Year 2:** You don't just make 15% on your initial ₹1 Lakh. You make 15% on the new ₹1.15 Lakh. That's ₹17,250 in profit. Your total is ₹1,32,250.
       - **Year 10:** Your investment is worth ₹4,04,555.
       - **Year 20:** Your investment is worth ₹16,36,653.
+      - **Year 30:** Your investment is worth ₹66,21,177.
       
-      Notice the exponential curve. The vast majority of wealth is generated in the later years of compounding.
+      Notice the exponential nature of the curve. It took 10 years to make the first ₹3 Lakh in profit, but between Year 20 and Year 30, the portfolio grew by nearly ₹50 Lakhs doing absolutely nothing new. The vast majority of wealth is generated in the later years of compounding.
 
-      ### The Importance of Time
-      Because compounding is exponential, time is the most powerful weapon an investor has. A 25-year-old investing ₹10,000 a month will end up with significantly more wealth than a 40-year-old investing ₹30,000 a month by the time they both reach 60.
+      ### The Ultimate Weapon: Time
+      Because compounding is an exponential function, **time** is the most powerful weapon an investor possesses—far more powerful than a high salary. 
+      
+      A 25-year-old investing just ₹5,000 a month will end up with significantly more wealth by age 60 than a 40-year-old investing ₹25,000 a month, assuming identical returns. The 40-year-old can never buy back those 15 lost years of compounding.
 
-      ### Dividend Reinvestment
-      When a company pays you a dividend, you can either spend it or reinvest it by buying more shares. Reinvesting dividends accelerates the compounding process drastically. Over a 30-year period, reinvested dividends can account for more than half of a portfolio's total return.
+      ### Dividend Reinvestment Programs (DRIP)
+      When a company pays you a dividend, you have a choice: spend it on a nice dinner, or use it to buy more shares of that company. Reinvesting your dividends accelerates the compounding process drastically because you are constantly increasing the base number of shares that will generate future dividends. Over a multi-decade period, reinvested dividends can account for more than 50% of a portfolio's total return.
     `
   }
 ];
