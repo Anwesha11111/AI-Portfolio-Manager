@@ -7,16 +7,36 @@ import SettingsModal from './SettingsModal';
 import ProfileModal from './ProfileModal';
 
 export default function Layout() {
-  const { isRunning, simulationSpeedMs, advanceTime } = useSimulationStore();
+  const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate } = useSimulationStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
+  // Load saved simulation date on mount
+  useEffect(() => {
+    loadSavedDate();
+  }, []);
+
+  // Auto-save the simulation date every 30 seconds
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      saveDate();
+    }, 30000);
+    return () => clearInterval(saveInterval);
+  }, []);
+
+  // Save on page unload too
+  useEffect(() => {
+    const handleUnload = () => saveDate();
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, []);
+
   // The Core Time Engine Loop
   useEffect(() => {
     let interval;
     if (isRunning) {
       interval = setInterval(() => {
-        advanceTime(1); // Advance by 1 day every tick
+        advanceTime(1);
       }, simulationSpeedMs);
     }
     return () => clearInterval(interval);

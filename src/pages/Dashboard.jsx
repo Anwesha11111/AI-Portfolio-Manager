@@ -102,7 +102,105 @@ export default function Dashboard() {
             {totalPandLPct.toFixed(2)}%
           </span>
         </div>
+
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+            <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Holdings</span>
+          </div>
+          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{holdings.length}</h3>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Active positions</span>
+        </div>
       </div>
+
+      {/* Sector Allocation & Top Movers */}
+      {holdings.length > 0 && (() => {
+        const SECTOR_MAP = {
+          'Banking': ['HDFC_BANK','ICICI_BANK','KOTAK_BANK','AXIS_BANK','SBI','BAJAJ_FINANCE','BAJAJ_FINSERV','HDFC_LIFE','SBI_LIFE','INDUS_INDUSTRIES'],
+          'IT': ['INFOSYS','TCS','WIPRO','TECH_MAHINDRA','HCL_TECH','LTIMINDTREE'],
+          'Auto': ['TATA_MOTORS','MARUTI','MAHINDRA','BAJAJ_AUTO','EICHER_MOTORS','HERO_MOTO'],
+          'Pharma': ['CIPLA','DIVIS_LABS','DRREDDYS','APOLLO_HOSPITALS','SUN_PHARMA'],
+          'Consumer': ['HINDUSTAN_UNILEVER','ITC','ASIAN_PAINTS','TITAN','NESTLE','BRITANNIA'],
+          'Energy': ['RELIANCE','NTPC','POWERGRID','ONGC','ADANI_PORTS','ADANI_ENTERPRISES','COAL_INDIA','ULTRATECH','JSW_STEEL','TATA_STEEL','GRASIM','HINDALCO']
+        };
+        const SECTOR_COLORS = { Banking: '#3b82f6', IT: '#8b5cf6', Auto: '#f59e0b', Pharma: '#10b981', Consumer: '#ec4899', Energy: '#f97316' };
+
+        const sectorAlloc = {};
+        holdings.forEach(h => {
+          const val = h.quantity * (marketData[h.symbol] || h.average_buy_price);
+          let sector = 'Other';
+          for (const [s, symbols] of Object.entries(SECTOR_MAP)) {
+            if (symbols.includes(h.symbol)) { sector = s; break; }
+          }
+          sectorAlloc[sector] = (sectorAlloc[sector] || 0) + val;
+        });
+        const totalAlloc = Object.values(sectorAlloc).reduce((a,b) => a+b, 0);
+
+        // Top gainers/losers
+        const holdingsWithPnl = holdings.map(h => {
+          const cp = marketData[h.symbol] || h.average_buy_price;
+          const pnlPct = ((cp - h.average_buy_price) / h.average_buy_price) * 100;
+          return { ...h, currentPrice: cp, pnlPct };
+        });
+        const sorted = [...holdingsWithPnl].sort((a,b) => b.pnlPct - a.pnlPct);
+        const topGainers = sorted.filter(h => h.pnlPct > 0).slice(0, 3);
+        const topLosers = sorted.filter(h => h.pnlPct < 0).reverse().slice(0, 3);
+
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+            {/* Sector Allocation */}
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Sector Allocation</h4>
+              {/* Visual bar */}
+              <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', height: '12px', marginBottom: '16px' }}>
+                {Object.entries(sectorAlloc).map(([sector, val]) => (
+                  <div key={sector} style={{ width: `${(val/totalAlloc)*100}%`, background: SECTOR_COLORS[sector] || '#6b7280', transition: 'width 0.3s' }} title={`${sector}: ${((val/totalAlloc)*100).toFixed(1)}%`} />
+                ))}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {Object.entries(sectorAlloc).sort((a,b) => b[1]-a[1]).map(([sector, val]) => (
+                  <div key={sector} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: SECTOR_COLORS[sector] || '#6b7280' }} />
+                      <span style={{ fontSize: '0.9rem' }}>{sector}</span>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{((val/totalAlloc)*100).toFixed(1)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Top Movers */}
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Top Movers</h4>
+              {topGainers.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>Top Gainers</span>
+                  {topGainers.map(h => (
+                    <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
+                      <span style={{ fontWeight: '600' }}>{h.symbol}</span>
+                      <span style={{ color: 'var(--success)', fontWeight: 'bold' }}>+{h.pnlPct.toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {topLosers.length > 0 && (
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>Top Losers</span>
+                  {topLosers.map(h => (
+                    <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
+                      <span style={{ fontWeight: '600' }}>{h.symbol}</span>
+                      <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>{h.pnlPct.toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {topGainers.length === 0 && topLosers.length === 0 && (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No significant movers yet.</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       <h3 style={{ marginBottom: '16px', fontSize: '1.5rem' }}>Current Holdings</h3>
       
