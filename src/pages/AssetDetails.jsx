@@ -6,7 +6,8 @@ import useSimulationStore from '../store/useSimulationStore';
 import { getLogoUrl } from '../utils/assetMap';
 
 export default function AssetDetails() {
-  const { symbol } = useParams();
+  const rawSymbol = useParams().symbol;
+  const symbol = decodeURIComponent(rawSymbol);
   const navigate = useNavigate();
   const currentSimulatedDate = useSimulationStore(state => state.currentSimulatedDate);
   
@@ -164,7 +165,7 @@ export default function AssetDetails() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', flex: 1 }}>
+      <div style={{ display: 'flex', gap: '24px', flex: 1, flexWrap: 'wrap' }}>
         {/* Left: Chart & Stats */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Chart Container */}
@@ -210,7 +211,7 @@ export default function AssetDetails() {
         </div>
 
         {/* Right: Order Form */}
-        <div style={{ width: '320px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
+        <div style={{ flex: '1 1 320px', maxWidth: '400px', minWidth: '300px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
            <h3>Execute Order</h3>
            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px', marginBottom: '24px' }}>
             Available Capital: ₹10,00,000
