@@ -238,7 +238,7 @@ export default function Market() {
           {!aiRecommendations && !aiLoading && (
             <div style={{ maxWidth: '600px' }}>
               <p style={{ color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
-                Gemini AI will analyze the current market conditions against your financial profile and determine how much to invest this month and in which stocks.
+                Our AI will analyze the current market conditions against your financial profile and determine how much to invest this month and in which stocks.
               </p>
               <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.85rem', fontStyle: 'italic' }}>
                 ⏳ You can use this once per simulated month. The AI considers your income, savings, risk appetite, and market conditions.
