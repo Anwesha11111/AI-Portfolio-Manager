@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
 import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit } from 'lucide-react';
-import { getGradientForSymbol } from '../utils/assetMap';
+import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 
 export default function Market() {
@@ -355,13 +355,15 @@ export default function Market() {
                   background: getGradientForSymbol(asset.symbol),
                   borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 'bold', fontSize: '1.2rem', color: 'white',
-                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)', flexShrink: 0
+                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)', flexShrink: 0, overflow: 'hidden'
                 }}>
-                  {asset.symbol[0]}
+                  {getLogoUrl(asset.symbol) ? (
+                      <img src={getLogoUrl(asset.symbol)} alt={asset.symbol} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'white', padding: '2px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                  ) : null}
+                  <span style={{ display: getLogoUrl(asset.symbol) ? 'none' : 'block' }}>{asset.symbol[0]}</span>
                 </div>
                 <div style={{ overflow: 'hidden' }}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name}</h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>{asset.symbol}</span>
                 </div>
               </div>
 
