@@ -122,7 +122,7 @@ export default function Landing() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
             <StepCard step="1" icon={<ShieldCheck size={24} color="#60a5fa" />} title="Build Your Profile" desc="Enter your income, expenses, savings, and risk appetite. We calculate your investable capital." />
-            <StepCard step="2" icon={<BrainCircuit size={24} color="#a78bfa" />} title="Get AI Recommendations" desc="Gemini AI analyzes 47 stocks and builds a portfolio matched to your financial profile." />
+            <StepCard step="2" icon={<BrainCircuit size={24} color="#a78bfa" />} title="Get AI Recommendations" desc="Our AI analyzes 47 stocks and builds a portfolio matched to your financial profile." />
             <StepCard step="3" icon={<LineChart size={24} color="#34d399" />} title="Trade Through History" desc="Execute trades in a time machine spanning 2005-2023 using real Nifty 50 prices." />
             <StepCard step="4" icon={<BarChart3 size={24} color="#f59e0b" />} title="Track & Learn" desc="Monitor your portfolio score, P&L, sector allocation, and learn from the Academy." />
           </div>
@@ -141,7 +141,7 @@ export default function Landing() {
           <FeatureCard 
             icon={<Sparkles size={28} color="#a78bfa" />}
             title="AI Portfolio Architect"
-            desc="Gemini AI acts as your personal financial advisor — analyzing volatility, returns, and sector diversification to build your ideal portfolio."
+            desc="Our AI acts as your personal financial advisor — analyzing volatility, returns, and sector diversification to build your ideal portfolio."
           />
           <FeatureCard 
             icon={<GraduationCap size={28} color="#34d399" />}

@@ -94,7 +94,7 @@ export default function Analysis() {
           {aiLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '20px 0' }}>
               <Loader size={48} className="spin" color="var(--accent-primary)" />
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Gemini AI is analyzing...</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Our AI is analyzing...</span>
             </div>
           ) : aiData ? (
             <>
@@ -190,7 +190,7 @@ export default function Analysis() {
             </>
           ) : (
             <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <span>Click the <strong>Generate AI Analysis</strong> button above to let Gemini diagnose your portfolio's health, diversification, and growth potential.</span>
+              <span>Click the <strong>Generate AI Analysis</strong> button above to let our AI diagnose your portfolio's health, diversification, and growth potential.</span>
             </div>
           )}
         </div>
