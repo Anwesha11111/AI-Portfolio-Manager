@@ -18,7 +18,7 @@ export default function AssetDetails() {
   
   const [assetData, setAssetData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState('6M');
+  const [timeframe, setTimeframe] = useState('3M');
   
   // Trading States
   const [quantity, setQuantity] = useState('');
@@ -251,7 +251,7 @@ export default function AssetDetails() {
           </div>
           <div>
             <h2 className="text-gradient" style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em' }}>{symbol.replace(/_/g, ' ')}</h2>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString()}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString('en-GB')}</span>
           </div>
         </div>
 
@@ -290,7 +290,23 @@ export default function AssetDetails() {
               ))}
             </div>
             
-            <div ref={chartContainerRef} style={{ flex: 1, width: '100%', minHeight: '400px' }}></div>
+            <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: '400px' }}>
+              <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }}></div>
+              {(() => {
+                const MS_PER_DAY = 24 * 60 * 60 * 1000;
+                const tfMap = { '1W': MS_PER_DAY * 7, '1M': MS_PER_DAY * 30, '3M': MS_PER_DAY * 90, '6M': MS_PER_DAY * 180, '1Y': MS_PER_DAY * 365, 'ALL': Infinity };
+                const cutoff = currentSimulatedDate - (tfMap[timeframe] || tfMap['3M']);
+                const count = assetData.history.filter(d => d.rawTimestamp >= cutoff).length;
+                if (count < 2) {
+                  return (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', color: 'var(--text-muted)', fontSize: '1.1rem', zIndex: 10 }}>
+                      Not enough historical data available for this timeframe.
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           </div>
 
           {/* Daily Stats */}
