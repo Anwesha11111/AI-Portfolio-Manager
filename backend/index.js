@@ -85,9 +85,13 @@ app.get('/api/market/batch', (req, res) => {
 
 // AI Recommendation Endpoint
 app.post('/api/ai/recommend', async (req, res) => {
-  const { date, timeHorizon, drawdownTolerance, primaryObjective, investmentAmount } = req.body;
+  const { date, timeHorizon, drawdownTolerance, primaryObjective, profile } = req.body;
   const simDateTimestamp = parseInt(date);
-  const capital = parseFloat(investmentAmount) || 100000;
+
+  const monthlyIncome = profile?.monthly_income || 0;
+  const monthlyExpenses = profile?.monthly_expenses || 0;
+  const availableCash = profile?.virtual_balance || 0;
+  const totalSavings = profile?.total_savings || 0;
 
   if (!simDateTimestamp) {
     return res.status(400).json({ error: 'Missing simulation date' });
@@ -141,13 +145,16 @@ app.post('/api/ai/recommend', async (req, res) => {
     // 2. Feed into Gemini
     if (!apiKey) {
       const topPick = topCandidates[0];
-      return res.json([
-        {
+      const fallbackAmount = Math.min(availableCash * 0.5, 100000);
+      return res.json({
+        investable_amount: fallbackAmount,
+        reasoning_for_amount: 'Fallback: investing 50% of available cash.',
+        recommendations: [{
           symbol: topPick.symbol,
-          allocation: capital,
-          reasoning: `(Fallback Mode: No Gemini Key provided) Based purely on algorithmic momentum and volatility over the last 6 months, ${topPick.symbol} shows the strongest risk-adjusted returns (Score: ${topPick.algorithmicScore.toFixed(2)}).`
-        }
-      ]);
+          allocation: fallbackAmount,
+          reasoning: `(Fallback Mode) Based on algorithmic momentum, ${topPick.symbol} shows strong risk-adjusted returns.`
+        }]
+      });
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -173,40 +180,51 @@ app.post('/api/ai/recommend', async (req, res) => {
 
     const prompt = `You are a world-class financial advisor operating in the simulated year ${new Date(simDateTimestamp).getFullYear()} in the Indian stock market (Nifty 50).
 
-INVESTOR PROFILE:
+INVESTOR FINANCIAL PROFILE:
+- Monthly Income: ${monthlyIncome}
+- Monthly Expenses: ${monthlyExpenses}
+- Monthly Surplus: ${Math.max(0, monthlyIncome - monthlyExpenses)}
+- Total Savings: ${totalSavings}
+- Available Cash Balance: ${availableCash}
 - Time Horizon: ${timeHorizon}
 - Drawdown Tolerance: ${drawdownTolerance}
 - Primary Objective: ${primaryObjective}
-- Capital to Deploy: ${capital}
 
-BEHAVIORAL RULES (YOU MUST FOLLOW THESE):
+YOUR FIRST TASK: Determine how much of the available cash (${availableCash}) to invest this month.
+Rules:
+- Conservative/preservation: invest 20-40% of available cash
+- Moderate: invest 40-60% of available cash
+- Aggressive/growth: invest 60-80% of available cash
+- NEVER invest more than available cash (${availableCash})
+- NEVER invest 100% — always leave emergency buffer
+- If available cash < 5000, set investable_amount to 0
+
+BEHAVIORAL RULES:
 ${riskGuidance[drawdownTolerance] || riskGuidance.medium}
 ${horizonGuidance[timeHorizon] || horizonGuidance.long}
 ${objectiveGuidance[primaryObjective] || objectiveGuidance.growth}
 
-MARKET DATA (Top 15 stocks by algorithmic risk-adjusted score):
-Each entry has: symbol, sixMonthReturn (%), annualizedVolatility (%), algorithmicScore (return/volatility).
+MARKET DATA (Top 15 stocks by risk-adjusted score):
 ${JSON.stringify(topCandidates, null, 2)}
 
-SECTOR CONTEXT (use for diversification):
+SECTOR CONTEXT:
 Banking/Finance: HDFC_BANK, ICICI_BANK, KOTAK_BANK, AXIS_BANK, SBI, BAJAJ_FINANCE, BAJAJ_FINSERV, HDFC_LIFE, SBI_LIFE
 IT: INFOSYS, TCS, WIPRO, TECH_MAHINDRA, HCL_TECH
-Automobile: TATA_MOTORS, MARUTI, MAHINDRA, BAJAJ_AUTO, EICHER_MOTORS, HERO_MOTO
+Auto: TATA_MOTORS, MARUTI, MAHINDRA, BAJAJ_AUTO, EICHER_MOTORS, HERO_MOTO
 Pharma: CIPLA, DIVIS_LABS, DRREDDYS, APOLLO_HOSPITALS, SUN_PHARMA
 Consumer: HINDUSTAN_UNILEVER, ITC, ASIAN_PAINTS, TITAN, NESTLE, BRITANNIA
 Energy/Industrial: RELIANCE, NTPC, POWERGRID, ONGC, ADANI_PORTS, COAL_INDIA, ULTRATECH, JSW_STEEL, TATA_STEEL, GRASIM, HINDALCO
 
-Do NOT pick two stocks from the same sector if drawdown tolerance is low or objective is preservation.
+Do NOT pick two stocks from the same sector if drawdown tolerance is low.
 
-NUMBER OF STOCKS TO PICK (based on risk):
-- Aggressive/High tolerance: 1-3 stocks (concentrated high-conviction bets)
-- Moderate tolerance: 3-5 stocks (balanced portfolio)
-- Conservative/Low tolerance or preservation objective: 5-8 stocks (maximum diversification)
+Respond ONLY with valid JSON (no markdown, no backticks):
+{
+  "investable_amount": 50000,
+  "reasoning_for_amount": "1 sentence.",
+  "recommendations": [{"symbol": "STOCK_NAME", "allocation": 25000, "reasoning": "1-2 sentences."}]
+}
 
-Allocations MUST sum EXACTLY to ${capital}. Keep reasoning to 1-2 short sentences per stock.
-
-Respond ONLY with a valid JSON array, no markdown, no backticks:
-[{"symbol": "STOCK_NAME", "allocation": 50000, "reasoning": "1-2 sentences."}]
+Allocations MUST sum EXACTLY to investable_amount. Keep reasoning short.
     `;
 
     const response = await ai.models.generateContent({
