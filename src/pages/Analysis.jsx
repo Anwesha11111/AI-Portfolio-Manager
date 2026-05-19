@@ -96,7 +96,7 @@ export default function Analysis() {
               <Loader size={48} className="spin" color="var(--accent-primary)" />
               <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Gemini AI is analyzing...</span>
             </div>
-          ) : (
+          ) : aiData ? (
             <>
               <div style={{ position: 'relative', width: '140px', height: '140px', marginBottom: '16px' }}>
                 <svg width="140" height="140" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>

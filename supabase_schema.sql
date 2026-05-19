@@ -23,6 +23,7 @@ create table public.users (
   time_horizon text default 'long', -- 'short', 'medium', 'long'
   drawdown_tolerance text default 'medium', -- 'low', 'medium', 'high'
   primary_objective text default 'growth', -- 'income', 'growth', 'preservation'
+  completed_lessons text[] default '{}', -- array of completed lesson IDs
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

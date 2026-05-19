@@ -10,6 +10,7 @@ import Analysis from './pages/Analysis';
 import Academy from './pages/Academy';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
+import LessonView from './pages/LessonView';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuthStore();
@@ -45,6 +46,7 @@ function App() {
         <Route path="/market/:symbol" element={<AssetDetails />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/academy" element={<Academy />} />
+        <Route path="/academy/:id" element={<LessonView />} />
       </Route>
     </Routes>
   );
