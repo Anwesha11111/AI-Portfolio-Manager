@@ -4,6 +4,7 @@ import { ArrowLeft, Loader } from 'lucide-react';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import useSimulationStore from '../store/useSimulationStore';
 import { getLogoUrl } from '../utils/assetMap';
+import { supabase } from '../lib/supabase';
 
 export default function AssetDetails() {
   const rawSymbol = useParams().symbol;
@@ -18,6 +19,22 @@ export default function AssetDetails() {
   const [assetData, setAssetData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('6M');
+  
+  // Trading States
+  const [quantity, setQuantity] = useState('');
+  const [isTrading, setIsTrading] = useState(false);
+  const [virtualBalance, setVirtualBalance] = useState(1000000);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
+        if (data) setVirtualBalance(Number(data.virtual_balance));
+      }
+    };
+    fetchBalance();
+  }, []);
 
   // Fetch data strictly up to the current simulated date
   useEffect(() => {
@@ -108,7 +125,76 @@ export default function AssetDetails() {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [assetData, timeframe, currentSimulatedDate]); // Re-render chart if data or timeframe changes
+  }, [assetData, timeframe, currentSimulatedDate]);
+
+  const handleTrade = async (type) => {
+    if (!quantity || quantity <= 0) return;
+    const qty = parseInt(quantity);
+    const cost = qty * (assetData?.currentPrice || 0);
+
+    setIsTrading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Must be logged in to trade.");
+        setIsTrading(false);
+        return;
+      }
+
+      // Get latest balance
+      const { data: userData } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
+      let balance = Number(userData?.virtual_balance || 0);
+
+      if (type === 'BUY') {
+        if (cost > balance) {
+          alert(`Insufficient funds. You need ₹${cost.toLocaleString()} but only have ₹${balance.toLocaleString()}`);
+          setIsTrading(false);
+          return;
+        }
+        
+        await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
+        await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'BUY', quantity: qty, price_per_unit: assetData.currentPrice, simulated_date: currentSimulatedDate });
+
+        const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).single();
+        if (holding) {
+          const newQty = holding.quantity + qty;
+          const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
+          await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg }).eq('id', holding.id);
+        } else {
+          await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: assetData.currentPrice });
+        }
+
+        setVirtualBalance(balance - cost);
+        alert(`Successfully bought ${qty} shares of ${symbol}`);
+        setQuantity('');
+      } else if (type === 'SELL') {
+        const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).single();
+        if (!holding || holding.quantity < qty) {
+          alert(`Insufficient shares. You only own ${holding?.quantity || 0} shares of ${symbol}.`);
+          setIsTrading(false);
+          return;
+        }
+
+        await supabase.from('users').update({ virtual_balance: balance + cost }).eq('id', user.id);
+        await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'SELL', quantity: qty, price_per_unit: assetData.currentPrice, simulated_date: currentSimulatedDate });
+
+        const newQty = holding.quantity - qty;
+        if (newQty === 0) {
+          await supabase.from('holdings').delete().eq('id', holding.id);
+        } else {
+          await supabase.from('holdings').update({ quantity: newQty }).eq('id', holding.id);
+        }
+
+        setVirtualBalance(balance + cost);
+        alert(`Successfully sold ${qty} shares of ${symbol}`);
+        setQuantity('');
+      }
+    } catch (err) {
+      console.error("Trade failed:", err);
+      alert("Trade failed due to an error.");
+    }
+    setIsTrading(false);
+  };
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -210,29 +296,43 @@ export default function AssetDetails() {
           </div>
         </div>
 
-        {/* Right: Order Form */}
         <div style={{ flex: '1 1 320px', maxWidth: '400px', minWidth: '300px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
            <h3>Execute Order</h3>
            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px', marginBottom: '24px' }}>
-            Available Capital: ₹10,00,000
+            Available Capital: ₹{virtualBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
            </p>
 
            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Quantity</label>
-              <input type="number" placeholder="0" style={{ width: '100%', padding: '12px', borderRadius: '6px', backgroundColor: '#000', color: 'white', border: '1px solid var(--border-color)', fontSize: '1.1rem' }} />
+              <input 
+                type="number" 
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="0" 
+                min="1"
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', backgroundColor: '#000', color: 'white', border: '1px solid var(--border-color)', fontSize: '1.1rem' }} 
+              />
             </div>
             
             <div style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Estimated Cost</span>
-                <span style={{ fontWeight: 'bold' }}>₹0.00</span>
+                <span style={{ fontWeight: 'bold' }}>₹{((parseInt(quantity) || 0) * currentPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              <button style={{ flex: 1, padding: '14px', backgroundColor: 'var(--success)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>BUY</button>
-              <button style={{ flex: 1, padding: '14px', backgroundColor: 'var(--danger)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>SELL</button>
+              <button 
+                onClick={() => handleTrade('BUY')}
+                disabled={isTrading || currentPrice === 0}
+                style={{ flex: 1, padding: '14px', backgroundColor: 'var(--success)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: isTrading ? 'not-allowed' : 'pointer', fontSize: '1rem', opacity: isTrading || currentPrice === 0 ? 0.5 : 1 }}
+              >BUY</button>
+              <button 
+                onClick={() => handleTrade('SELL')}
+                disabled={isTrading || currentPrice === 0}
+                style={{ flex: 1, padding: '14px', backgroundColor: 'var(--danger)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: isTrading ? 'not-allowed' : 'pointer', fontSize: '1rem', opacity: isTrading || currentPrice === 0 ? 0.5 : 1 }}
+              >SELL</button>
             </div>
           </div>
         </div>

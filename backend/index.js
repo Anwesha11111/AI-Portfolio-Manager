@@ -26,6 +26,7 @@ app.get('/api/market', (req, res) => {
 // Batch Endpoint (already exists here)
 app.get('/api/market/batch', (req, res) => {
   const simDateTimestamp = parseInt(req.query.date);
+  const timeframe = req.query.timeframe || '2M';
 
   if (!simDateTimestamp) {
     return res.status(400).json({ error: 'Missing simulation date timestamp (?date=xxx)' });
@@ -34,6 +35,16 @@ app.get('/api/market/batch', (req, res) => {
   if (!fs.existsSync(DATA_DIR)) {
     return res.json([]);
   }
+
+  const tfMap = {
+    '1W': 7 * 24 * 60 * 60 * 1000,
+    '1M': 30 * 24 * 60 * 60 * 1000,
+    '2M': 60 * 24 * 60 * 60 * 1000,
+    '3M': 90 * 24 * 60 * 60 * 1000,
+    '6M': 180 * 24 * 60 * 60 * 1000,
+    '1Y': 365 * 24 * 60 * 60 * 1000,
+  };
+  const timeframeMs = tfMap[timeframe] || tfMap['2M'];
 
   try {
     const files = fs.readdirSync(DATA_DIR);
@@ -48,8 +59,7 @@ app.get('/api/market/batch', (req, res) => {
       const visibleData = fullData.filter(candle => candle.rawTimestamp <= simDateTimestamp);
       const currentPrice = visibleData.length > 0 ? visibleData[visibleData.length - 1].close : 0;
       
-      const TWO_MONTHS_MS = 5184000000;
-      const pastTimestamp = simDateTimestamp - TWO_MONTHS_MS;
+      const pastTimestamp = simDateTimestamp - timeframeMs;
       let pastPrice = 0;
       for (let i = visibleData.length - 1; i >= 0; i--) {
         if (visibleData[i].rawTimestamp <= pastTimestamp) {
@@ -75,15 +85,16 @@ app.get('/api/market/batch', (req, res) => {
 
 // AI Recommendation Endpoint
 app.post('/api/ai/recommend', async (req, res) => {
-  const { date, timeHorizon, drawdownTolerance, primaryObjective } = req.body;
+  const { date, timeHorizon, drawdownTolerance, primaryObjective, investmentAmount } = req.body;
   const simDateTimestamp = parseInt(date);
+  const capital = parseFloat(investmentAmount) || 100000;
 
   if (!simDateTimestamp) {
     return res.status(400).json({ error: 'Missing simulation date' });
   }
 
   try {
-    // 1. Gather algorithmic logic (Sharpe ratio, 6-month momentum)
+    // 1. Gather algorithmic logic
     const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json') && f !== 'NIFTY_50_STOCKS.json');
     const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
     const sixMonthsAgo = simDateTimestamp - SIX_MONTHS_MS;
@@ -96,13 +107,12 @@ app.post('/api/ai/recommend', async (req, res) => {
       const fullData = JSON.parse(rawData);
       
       const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp && c.rawTimestamp >= sixMonthsAgo);
-      if (visibleData.length < 30) continue; // Skip if less than 30 days of data
+      if (visibleData.length < 30) continue;
 
       const currentPrice = visibleData[visibleData.length - 1].close;
       const pastPrice = visibleData[0].close;
       const returnPct = ((currentPrice - pastPrice) / pastPrice) * 100;
 
-      // Calculate simple volatility
       let sumReturns = 0;
       let returns = [];
       for (let i = 1; i < visibleData.length; i++) {
@@ -123,32 +133,45 @@ app.post('/api/ai/recommend', async (req, res) => {
       });
     }
 
-    // Sort by algorithmic score
     marketAnalysis.sort((a, b) => b.algorithmicScore - a.algorithmicScore);
-    const topCandidates = marketAnalysis.slice(0, 10);
+    const topCandidates = marketAnalysis.slice(0, 15);
 
     // 2. Feed into Gemini
     if (!process.env.GEMINI_API_KEY) {
       const topPick = topCandidates[0];
-      return res.json({
-        symbol: topPick.symbol,
-        reasoning: `(Fallback Mode: No Gemini Key provided) Based purely on algorithmic momentum and volatility over the last 6 months, ${topPick.symbol} shows the strongest risk-adjusted returns (Score: ${topPick.algorithmicScore.toFixed(2)}).`
-      });
+      return res.json([
+        {
+          symbol: topPick.symbol,
+          allocation: capital,
+          reasoning: `(Fallback Mode: No Gemini Key provided) Based purely on algorithmic momentum and volatility over the last 6 months, ${topPick.symbol} shows the strongest risk-adjusted returns (Score: ${topPick.algorithmicScore.toFixed(2)}).`
+        }
+      ]);
     }
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const prompt = `
       Act as a world-class financial advisor in the year ${new Date(simDateTimestamp).getFullYear()}. 
       I am an investor with a ${timeHorizon} time horizon, a ${drawdownTolerance} drawdown tolerance, and my primary objective is ${primaryObjective}.
-      Here is the algorithmic momentum and volatility data for the top 10 Indian stocks over the past 6 months:
+      I have ₹${capital.toLocaleString()} ready to deploy.
+      
+      Here is the algorithmic momentum and volatility data for the top 15 Indian stocks over the past 6 months:
       ${JSON.stringify(topCandidates, null, 2)}
       
-      Based on my profile constraints and this data, select the SINGLE best stock for me to buy right now. 
-      Respond with a JSON object in this exact format, with no markdown formatting:
-      {
-        "symbol": "TATA MOTORS",
-        "reasoning": "A 2-3 sentence explanation of why this stock fits my specific time horizon and risk tolerance, referencing its recent volatility and returns."
-      }
+      Based on my profile constraints and this data, build a portfolio of 1 to 3 stocks from the list provided. Distribute the ₹${capital} among them appropriately (allocations must sum EXACTLY to ${capital}).
+      
+      Respond ONLY with a JSON array in this exact format, with no markdown formatting and no backticks:
+      [
+        {
+          "symbol": "TATA MOTORS",
+          "allocation": 50000,
+          "reasoning": "A 2-3 sentence explanation."
+        },
+        {
+          "symbol": "HDFC BANK",
+          "allocation": 50000,
+          "reasoning": "A 2-3 sentence explanation."
+        }
+      ]
     `;
 
     const response = await ai.models.generateContent({
@@ -164,6 +187,37 @@ app.post('/api/ai/recommend', async (req, res) => {
   } catch (error) {
     console.error('AI Recommend Error:', error);
     res.status(500).json({ error: 'Failed to generate recommendation' });
+  }
+});
+
+// AI Portfolio Analysis Endpoint
+app.post('/api/ai/analyze', async (req, res) => {
+  const { holdings, balance, profile } = req.body;
+
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({ analysis: "(Fallback Mode) Because there is no Gemini API key configured, I cannot perform a deep analysis. However, ensure you maintain diversification across sectors." });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const prompt = `
+      Act as a world-class financial advisor. Here is my current portfolio:
+      Cash Balance: ₹${balance}
+      Active Holdings: ${JSON.stringify(holdings)}
+      My Profile Constraints: Time Horizon: ${profile.time_horizon}, Drawdown Tolerance: ${profile.drawdown_tolerance}, Objective: ${profile.primary_objective}.
+      
+      Provide a 1-paragraph summary evaluating my diversification, market exposure, and whether my portfolio aligns with my risk tolerance and objective. Do not use markdown or bullet points. Just one cohesive paragraph of text.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    res.json({ analysis: response.text().trim() });
+  } catch (error) {
+    console.error('AI Analyze Error:', error);
+    res.status(500).json({ error: 'Failed to generate analysis' });
   }
 });
 

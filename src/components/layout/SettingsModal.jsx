@@ -4,8 +4,7 @@ import useSimulationStore from '../../store/useSimulationStore';
 export default function SettingsModal({ onClose }) {
   const { 
     currentSimulatedDate, isRunning, simulationSpeedMs, 
-    toggleSimulation, setSimulationSpeed, 
-    aiHelpEnabled, toggleAiHelp 
+    toggleSimulation, setSimulationSpeed 
   } = useSimulationStore();
 
   const formattedDate = new Date(currentSimulatedDate).toLocaleDateString('en-IN', {
@@ -61,45 +60,22 @@ export default function SettingsModal({ onClose }) {
           </div>
           
           <div>
-            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '8px' }}>
-              <span>Simulation Speed</span>
-              <span>{simulationSpeedMs === 60000 ? '1 Day = 60s' : simulationSpeedMs === 10000 ? '1 Day = 10s' : '1 Day = 1s'}</span>
+            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '12px' }}>
+              Simulation Speed
             </label>
-            <input 
-              type="range" min="1000" max="60000" step="1000"
-              value={simulationSpeedMs}
-              onChange={(e) => setSimulationSpeed(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
-            />
-          </div>
-        </div>
-
-        <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '24px 0' }}></div>
-
-        {/* AI Features */}
-        <div>
-          <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BrainCircuit size={16} /> AI Integrations
-          </h3>
-          
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div>
-              <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px' }}>AI Investment Assistant</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Displays best stock predictions on the market.</span>
-            </div>
-            
-            {/* Toggle Switch */}
-            <div 
-              onClick={toggleAiHelp}
-              style={{
-                width: '50px', height: '26px', backgroundColor: aiHelpEnabled ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)',
-                borderRadius: '13px', position: 'relative', cursor: 'pointer', transition: 'all 0.3s'
-              }}
-            >
-              <div style={{
-                width: '22px', height: '22px', backgroundColor: 'white', borderRadius: '50%',
-                position: 'absolute', top: '2px', left: aiHelpEnabled ? '26px' : '2px', transition: 'all 0.3s'
-              }} />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => setSimulationSpeed(60000)}
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 60000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+              >Slow (1d = 60s)</button>
+              <button 
+                onClick={() => setSimulationSpeed(10000)}
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 10000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+              >Fast (1d = 10s)</button>
+              <button 
+                onClick={() => setSimulationSpeed(1000)}
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 1000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+              >Hyper (1d = 1s)</button>
             </div>
           </div>
         </div>

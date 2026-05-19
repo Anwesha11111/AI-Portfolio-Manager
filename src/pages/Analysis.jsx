@@ -8,16 +8,40 @@ export default function Analysis() {
   const { user } = useAuthStore();
   const { currentSimulatedDate } = useSimulationStore();
   const [profile, setProfile] = useState(null);
+  const [holdings, setHoldings] = useState([]);
+  const [aiInsight, setAiInsight] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndAnalysis = async () => {
       if (!user) return;
-      const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
-      setProfile(data);
+      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).single();
+      const { data: holdingsData } = await supabase.from('holdings').select('*').eq('user_id', user.id);
+      
+      setProfile(userData);
+      setHoldings(holdingsData || []);
+
+      if (userData) {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              holdings: holdingsData || [],
+              balance: userData.virtual_balance,
+              profile: userData
+            })
+          });
+          const aiData = await res.json();
+          setAiInsight(aiData.analysis);
+        } catch (err) {
+          console.error("AI Analysis failed:", err);
+        }
+      }
+      
       setLoading(false);
     };
-    fetchProfile();
+    fetchProfileAndAnalysis();
   }, [user]);
 
   if (loading) {
@@ -60,24 +84,31 @@ export default function Analysis() {
         {/* AI Health Check */}
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent)' }}>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--success)' }}>
-            <ShieldCheck size={20} /> Portfolio Health
+            <ShieldCheck size={20} /> AI Portfolio Health
           </h3>
           <p style={{ color: 'var(--text-main)', lineHeight: '1.6' }}>
-            Currently, your portfolio is 100% Cash. To meet your {profile?.primary_objective || 'growth'} objectives, you should begin deploying capital into the market. 
-            Consider using the "AI Recommend" tool on the Market page to find your first optimal investment based on the algorithmic momentum models.
+            {aiInsight || "Analyzing portfolio..."}
           </p>
         </div>
       </div>
 
       {/* Diversification Matrix */}
-      <h3 style={{ marginBottom: '16px' }}>Risk Assessment</h3>
+      <h3 style={{ marginBottom: '16px' }}>Current Market Exposure</h3>
       <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
         <AlertTriangle size={32} color="var(--warning)" style={{ flexShrink: 0 }} />
         <div>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Zero Market Exposure</h4>
-          <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
-            Because you hold only cash, your portfolio is safe from immediate market volatility. However, inflation in the simulation (running from {new Date(currentSimulatedDate).getFullYear()}) will erode your purchasing power. Begin buying diversified assets to construct a risk-adjusted portfolio.
-          </p>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Active Holdings ({holdings.length})</h4>
+          {holdings.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
+              Because you hold only cash, your portfolio is safe from immediate market volatility. However, inflation in the simulation (running from {new Date(currentSimulatedDate).getFullYear()}) will erode your purchasing power. Begin buying diversified assets to construct a risk-adjusted portfolio.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {holdings.map(h => (
+                <span key={h.id} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '0.9rem' }}>{h.symbol}: {h.quantity}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
