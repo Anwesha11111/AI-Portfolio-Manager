@@ -55,41 +55,7 @@ export default function Onboarding() {
     navigate('/dashboard');
   };
 
-  const OptionCard = ({ selected, onClick, title, desc }) => (
-    <div 
-      onClick={onClick}
-      style={{
-        padding: '16px',
-        borderRadius: '8px',
-        border: `2px solid ${selected ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)'}`,
-        backgroundColor: selected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.02)',
-        cursor: 'pointer',
-        flex: 1,
-        minWidth: '200px',
-        transition: 'all 0.2s',
-      }}
-    >
-      <h4 style={{ margin: '0 0 8px 0', color: selected ? 'white' : 'var(--text-muted)' }}>{title}</h4>
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{desc}</p>
-    </div>
-  );
 
-  const InputField = ({ label, value, onChange, placeholder, icon: Icon }) => (
-    <div style={{ marginBottom: '20px' }}>
-      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '0.95rem' }}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '0 16px' }}>
-        {Icon && <Icon size={18} color="var(--text-muted)" />}
-        <span style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>₹</span>
-        <input 
-          type="number"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          style={{ flex: 1, padding: '14px 0', background: 'transparent', border: 'none', color: 'white', fontSize: '1.1rem', outline: 'none' }}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
@@ -238,3 +204,39 @@ export default function Onboarding() {
     </div>
   );
 }
+
+const OptionCard = ({ selected, onClick, title, desc }) => (
+  <div 
+    onClick={onClick}
+    style={{
+      padding: '16px',
+      borderRadius: '8px',
+      border: `2px solid ${selected ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)'}`,
+      backgroundColor: selected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.02)',
+      cursor: 'pointer',
+      flex: 1,
+      minWidth: '200px',
+      transition: 'all 0.2s',
+    }}
+  >
+    <h4 style={{ margin: '0 0 8px 0', color: selected ? 'white' : 'var(--text-muted)' }}>{title}</h4>
+    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{desc}</p>
+  </div>
+);
+
+const InputField = ({ label, value, onChange, placeholder, icon: Icon }) => (
+  <div style={{ marginBottom: '20px' }}>
+    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '0.95rem' }}>{label}</label>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '0 16px' }}>
+      {Icon && <Icon size={18} color="var(--text-muted)" />}
+      <span style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>₹</span>
+      <input 
+        type="number"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ flex: 1, padding: '14px 0', background: 'transparent', border: 'none', color: 'white', fontSize: '1.1rem', outline: 'none' }}
+      />
+    </div>
+  </div>
+);
