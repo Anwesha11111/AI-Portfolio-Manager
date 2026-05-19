@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/useAuthStore';
 import useSimulationStore from '../store/useSimulationStore';
-import { BrainCircuit, ShieldCheck, TrendingUp, AlertTriangle, Loader } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, TrendingUp, AlertTriangle, Loader, Layers } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getGradientForSymbol } from '../utils/assetMap';
 
 export default function Analysis() {
   const { user } = useAuthStore();
@@ -93,19 +94,40 @@ export default function Analysis() {
       </div>
 
       {/* Diversification Matrix */}
-      <h3 style={{ marginBottom: '16px' }}>Current Market Exposure</h3>
-      <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-        <AlertTriangle size={32} color="var(--warning)" style={{ flexShrink: 0 }} />
-        <div>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Active Holdings ({holdings.length})</h4>
+      <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Layers size={20} color="var(--accent-primary)" /> Current Market Exposure
+      </h3>
+      <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <AlertTriangle size={36} color="var(--warning)" style={{ flexShrink: 0, marginTop: '4px' }} />
+        <div style={{ flex: 1 }}>
+          <h4 style={{ margin: '0 0 12px 0', fontSize: '1.2rem' }}>Active Holdings ({holdings.length})</h4>
           {holdings.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
+            <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.6', fontSize: '1.05rem' }}>
               Because you hold only cash, your portfolio is safe from immediate market volatility. However, inflation in the simulation (running from {new Date(currentSimulatedDate).getFullYear()}) will erode your purchasing power. Begin buying diversified assets to construct a risk-adjusted portfolio.
             </p>
           ) : (
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
               {holdings.map(h => (
-                <span key={h.id} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '0.9rem' }}>{h.symbol}: {h.quantity}</span>
+                <div key={h.id} style={{ 
+                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', 
+                  background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid var(--border-color)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                >
+                  <div style={{
+                    width: '32px', height: '32px', background: getGradientForSymbol(h.symbol), borderRadius: '6px', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem', color: 'white',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)', flexShrink: 0
+                  }}>
+                    {h.symbol[0]}
+                  </div>
+                  <div style={{ overflow: 'hidden' }}>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{h.symbol}</strong>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{h.quantity} Shares</span>
+                  </div>
+                </div>
               ))}
             </div>
           )}
