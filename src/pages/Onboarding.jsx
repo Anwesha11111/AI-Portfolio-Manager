@@ -14,16 +14,18 @@ export default function Onboarding() {
   const [monthlyIncome, setMonthlyIncome] = useState('');
   const [monthlyExpenses, setMonthlyExpenses] = useState('');
   const [totalSavings, setTotalSavings] = useState('');
+  const [initialCapital, setInitialCapital] = useState('');
 
   // Step 2: Risk Profile
   const [horizon, setHorizon] = useState('long');
   const [tolerance, setTolerance] = useState('medium');
   const [objective, setObjective] = useState('growth');
 
-  // Starting capital = savings. Monthly surplus will be credited each sim month.
+  // Initial capital chosen by user. Monthly surplus will be credited each sim month.
   const income = Number(monthlyIncome) || 0;
   const expenses = Number(monthlyExpenses) || 0;
   const savings = Number(totalSavings) || 0;
+  const initialCap = Number(initialCapital) || 0;
   const monthlySurplus = Math.max(0, income - expenses);
 
   const handleSubmit = async (e) => {
@@ -38,7 +40,7 @@ export default function Onboarding() {
             monthly_income: income,
             monthly_expenses: expenses,
             total_savings: savings,
-            virtual_balance: savings,
+            virtual_balance: initialCap,
             time_horizon: horizon,
             drawdown_tolerance: tolerance,
             primary_objective: objective
@@ -95,6 +97,13 @@ export default function Onboarding() {
               placeholder="e.g. 300000"
               icon={Wallet}
             />
+            <InputField 
+              label="Initial Capital to Invest in Simulation" 
+              value={initialCapital} 
+              onChange={setInitialCapital} 
+              placeholder="e.g. 50000"
+              icon={TrendingUp}
+            />
 
             {/* Live Calculation */}
             <div style={{ 
@@ -114,7 +123,7 @@ export default function Onboarding() {
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Starting Capital</span>
                 <span style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--success)' }}>
-                  ₹{savings.toLocaleString('en-IN')}
+                  ₹{initialCap.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -139,7 +148,7 @@ export default function Onboarding() {
             <div style={{ textAlign: 'center' }}>
               <h1 style={{ marginBottom: '8px' }}>Configure Your Risk Profile</h1>
               <p style={{ color: 'var(--text-muted)' }}>
-                Your virtual capital: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{savings.toLocaleString('en-IN')}</strong>
+                Your virtual capital: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{initialCap.toLocaleString('en-IN')}</strong>
               </p>
             </div>
 
