@@ -26,6 +26,7 @@ export default function Market() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const delay = isFirstLoad.current ? 0 : 800;
 
     debounceRef.current = setTimeout(async () => {
       if (isFirstLoad.current) setLoading(true);
@@ -47,7 +48,7 @@ export default function Market() {
       }
       setLoading(false);
       isFirstLoad.current = false;
-    }, 500);
+    }, delay);
 
     return () => clearTimeout(debounceRef.current);
   }, [currentSimulatedDate, timeframe]);

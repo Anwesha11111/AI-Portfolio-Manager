@@ -227,7 +227,12 @@ app.post('/api/ai/analyze', async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
     if (!apiKey) {
-      return res.json({ analysis: "(Fallback Mode) Because there is no Gemini API key configured, I cannot perform a deep analysis. However, ensure you maintain diversification across sectors." });
+      return res.json({ 
+        score: 50,
+        strengths: ["Cash position provides safety buffer"],
+        weaknesses: ["No AI key configured for deep analysis"],
+        suggestion: "Configure your Gemini API key for personalized portfolio analysis."
+      });
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -247,14 +252,22 @@ CURRENT PORTFOLIO STATE:
 - Cash Balance: ${balance}
 - Holdings: ${holdingsSummary}
 
-Provide a 1-paragraph (4-6 sentences) health assessment. Specifically address:
-1. Is the portfolio sufficiently diversified for this investor risk tolerance?
-2. Is there too much concentration in one sector or stock?
-3. Is the cash allocation appropriate (too much idle cash = missed opportunity, too little = no buffer)?
-4. Does the portfolio align with their stated objective and time horizon?
-5. One actionable suggestion for improvement.
+SCORING RULES:
+- 100% cash with no holdings = score 20-30 (missed opportunity)
+- Single stock portfolio = score 30-50 (concentration risk)
+- 2-3 stocks same sector = score 40-60 (sector concentration)
+- 3+ stocks across different sectors matching risk profile = score 70-90
+- Perfect diversification matching all profile constraints = score 85-95
 
-Do NOT use markdown, bullet points, or headers. Write one cohesive, professional paragraph.
+Respond ONLY with a valid JSON object (no markdown, no backticks):
+{
+  "score": 72,
+  "strengths": ["Short bullet point 1", "Short bullet point 2"],
+  "weaknesses": ["Short bullet point 1", "Short bullet point 2"],
+  "suggestion": "One actionable sentence for improvement."
+}
+
+Keep each bullet point under 15 words. Provide 2-3 strengths and 2-3 weaknesses.
     `;
 
     const response = await ai.models.generateContent({
@@ -262,10 +275,17 @@ Do NOT use markdown, bullet points, or headers. Write one cohesive, professional
       contents: prompt,
     });
 
-    res.json({ analysis: response.text.trim() });
+    let resultText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(resultText);
+    res.json(parsed);
   } catch (error) {
     console.error('AI Analyze Error:', error);
-    res.status(500).json({ error: 'Failed to generate analysis' });
+    res.status(500).json({ 
+      score: 0,
+      strengths: [],
+      weaknesses: ["Analysis temporarily unavailable"],
+      suggestion: "Please try again later."
+    });
   }
 });
 
