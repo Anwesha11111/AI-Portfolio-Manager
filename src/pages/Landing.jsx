@@ -45,14 +45,14 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <button onClick={() => navigate('/auth')} style={{
+          <button onClick={() => navigate('/auth', { state: { isLogin: true } })} style={{
             padding: '10px 20px', background: 'transparent', color: 'var(--text-muted)',
             border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: '0.95rem'
           }} onMouseOver={(e) => e.target.style.color = 'white'} onMouseOut={(e) => e.target.style.color = 'var(--text-muted)'}>
             Log In
           </button>
           
-          <button onClick={() => navigate('/auth')} style={{
+          <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
             padding: '10px 24px', background: 'rgba(255,255,255,0.1)', color: 'white',
             border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', cursor: 'pointer',
             fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem'
@@ -89,7 +89,7 @@ export default function Landing() {
         </p>
 
         <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button onClick={() => navigate('/auth')} style={{
+          <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
             padding: '16px 32px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer',
             fontWeight: '700', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px',

@@ -1,28 +1,45 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const { state } = useLocation();
+  const [isLogin, setIsLogin] = useState(state?.isLogin ?? true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   
   const { signIn, signUp, loading } = useAuthStore();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (state?.isLogin !== undefined) {
+      setIsLogin(state.isLogin);
+      setErrorMsg('');
+      setSuccessMsg('');
+    }
+  }, [state]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
     
     try {
       if (isLogin) {
         await signIn(email, password);
         navigate('/dashboard');
       } else {
-        await signUp(email, password);
-        // Usually, new users should go to onboarding
-        navigate('/onboarding');
+        const data = await signUp(email, password);
+        // If email confirmation is enabled, Supabase returns data.user but data.session is null.
+        if (data?.user && !data.session) {
+          setSuccessMsg('Registration successful! Please check your email inbox to verify your account before logging in.');
+          setIsLogin(true); // Switch to login view for when they come back
+        } else {
+          // If no email confirmation is required, they are automatically logged in
+          navigate('/onboarding');
+        }
       }
     } catch (err) {
       setErrorMsg(err.message);
@@ -60,6 +77,12 @@ export default function Auth() {
           </div>
         )}
 
+        {successMsg && (
+          <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.95rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+            {successMsg}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <input
             type="email"
@@ -90,7 +113,11 @@ export default function Auth() {
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button 
             type="button"
-            onClick={() => setIsLogin(!isLogin)} 
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setErrorMsg('');
+              setSuccessMsg('');
+            }} 
             style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 'bold' }}
           >
             {isLogin ? 'Register' : 'Log in'}
