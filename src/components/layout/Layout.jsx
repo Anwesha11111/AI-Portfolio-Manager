@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Clock } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
+import SettingsModal from './SettingsModal';
 
 export default function Layout() {
-  const { currentSimulatedDate, isRunning, simulationSpeedMs, advanceTime, toggleSimulation } = useSimulationStore();
+  const { isRunning, simulationSpeedMs, advanceTime } = useSimulationStore();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // The Core Time Engine Loop
   useEffect(() => {
@@ -17,11 +19,6 @@ export default function Layout() {
     }
     return () => clearInterval(interval);
   }, [isRunning, simulationSpeedMs, advanceTime]);
-  
-  // Format the simulation date beautifully
-  const formattedDate = new Date(currentSimulatedDate).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric'
-  });
 
   return (
     <div className={styles.layout}>
@@ -29,7 +26,7 @@ export default function Layout() {
       <nav className={styles.navbar}>
         <div className={styles.logo}>
           <div className={styles.logoIcon}>AI</div>
-          <h2>Portfoio<span className={styles.accent}>Sim</span></h2>
+          <h2>Portfolio<span className={styles.accent}>Sim</span></h2>
         </div>
         
         <div className={styles.navLinks}>
@@ -48,15 +45,17 @@ export default function Layout() {
         </div>
 
         <div className={styles.navRight}>
-          <div className={styles.timeMachineStatus}>
-            <Clock size={16} className={styles.clockIcon} />
-            <span className={styles.currentDate}>{formattedDate}</span>
-          </div>
           <button 
-            className={`${styles.simToggleBtn} ${isRunning ? styles.btnStop : styles.btnPlay}`}
-            onClick={toggleSimulation}
+            onClick={() => setIsSettingsOpen(true)}
+            style={{
+              background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%',
+              width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
           >
-            {isRunning ? 'PAUSE' : 'START SIM'}
+            <Settings size={20} />
           </button>
         </div>
       </nav>
@@ -67,6 +66,8 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+
+      {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
     </div>
   );
 }

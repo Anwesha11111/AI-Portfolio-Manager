@@ -15,6 +15,9 @@ create table public.users (
   email text not null,
   virtual_balance numeric not null default 1000000.00,
   current_simulated_date bigint not null default 978307200000, -- Default: Jan 1, 2001 in milliseconds
+  time_horizon text default 'long', -- 'short', 'medium', 'long'
+  drawdown_tolerance text default 'medium', -- 'low', 'medium', 'high'
+  primary_objective text default 'growth', -- 'income', 'growth', 'preservation'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
