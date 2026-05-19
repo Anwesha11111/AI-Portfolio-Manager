@@ -30,8 +30,7 @@ export default function Market() {
     debounceRef.current = setTimeout(async () => {
       if (isFirstLoad.current) setLoading(true);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/batch?date=${currentSimulatedDate}&timeframe=${timeframe}`);
-        const data = await res.json();
+        const data = await useSimulationStore.getState().fetchMarketData(timeframe);
         if (Array.isArray(data)) {
           const formattedAssets = data.map(asset => ({
             ...asset,
