@@ -190,14 +190,18 @@ INVESTOR FINANCIAL PROFILE:
 - Drawdown Tolerance: ${drawdownTolerance}
 - Primary Objective: ${primaryObjective}
 
-YOUR FIRST TASK: Determine how much of the available cash (${availableCash}) to invest this month.
+YOUR FIRST TASK: Determine how much of the Available Cash Balance (${availableCash}) to invest this month.
 Rules:
-- Conservative/preservation: invest 20-40% of available cash
-- Moderate: invest 40-60% of available cash
-- Aggressive/growth: invest 60-80% of available cash
-- NEVER invest more than available cash (${availableCash})
-- NEVER invest 100% — always leave emergency buffer
-- If available cash < 5000, set investable_amount to 0
+- You are NOT limited to investing just the Monthly Surplus (${Math.max(0, monthlyIncome - monthlyExpenses)}). 
+- If market conditions are highly favorable (e.g., strong algorithmic scores, recovery phase), you may invest a larger chunk of the total Available Cash.
+- If market conditions are poor or volatile, you may choose to invest only the Monthly Surplus, or even less (to keep cash in reserve).
+- Maximum limits based on risk profile:
+  * Conservative/preservation: invest up to 30% of available cash
+  * Moderate: invest up to 60% of available cash
+  * Aggressive/growth: invest up to 90% of available cash
+- NEVER invest more than the Available Cash Balance (${availableCash}).
+- NEVER invest 100% — always leave an emergency cash buffer.
+- If Available Cash < 5000, set investable_amount to 0.
 
 BEHAVIORAL RULES:
 ${riskGuidance[drawdownTolerance] || riskGuidance.medium}
