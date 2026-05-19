@@ -251,7 +251,11 @@ Allocations MUST sum EXACTLY to investable_amount. Keep reasoning short.
 
   } catch (error) {
     console.error('AI Recommend Error:', error);
-    res.status(500).json({ error: 'Failed to generate recommendation' });
+    res.status(200).json({
+      investable_amount: 0,
+      reasoning_for_amount: "AI API is currently rate limited or unavailable. Please try again later.",
+      recommendations: []
+    });
   }
 });
 
@@ -321,12 +325,34 @@ Keep each bullet point under 15 words. Provide 2-3 strengths and 2-3 weaknesses.
     res.json(parsed);
   } catch (error) {
     console.error('AI Analyze Error:', error);
-    res.status(500).json({ 
-      score: 0,
-      strengths: [],
-      weaknesses: ["Analysis temporarily unavailable"],
-      suggestion: "Please try again later."
-    });
+    
+    // Fallback heuristic if API rate limits or fails
+    const hasHoldings = holdings && holdings.length > 0;
+    const isDiversified = holdings && holdings.length >= 3;
+    
+    let score = 50;
+    let strengths = [];
+    let weaknesses = [];
+    let suggestion = "Consider adding more diverse assets.";
+    
+    if (!hasHoldings) {
+      score = 30;
+      strengths = ["100% cash position protects against immediate market downturns"];
+      weaknesses = ["Zero exposure to equity growth", "Cash loses value to inflation over time"];
+      suggestion = "Start deploying capital into high-quality businesses to begin compounding wealth.";
+    } else if (!isDiversified) {
+      score = 60;
+      strengths = ["Active market participation", "Focused portfolio layout"];
+      weaknesses = ["High concentration risk", "Volatility could severely impact overall balance"];
+      suggestion = "Diversify your holdings across different sectors to reduce risk.";
+    } else {
+      score = 80;
+      strengths = ["Good diversification", "Active market participation"];
+      weaknesses = ["Requires ongoing monitoring"];
+      suggestion = "Continue to monitor and rebalance as market conditions change.";
+    }
+
+    res.status(200).json({ score, strengths, weaknesses, suggestion });
   }
 });
 
