@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/useAuthStore';
 import useSimulationStore from '../store/useSimulationStore';
-import { BrainCircuit, ShieldCheck, TrendingUp, AlertTriangle, Loader, Layers } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, AlertTriangle, Loader, Layers, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getGradientForSymbol } from '../utils/assetMap';
 
@@ -10,7 +10,7 @@ export default function Analysis() {
   const { currentSimulatedDate } = useSimulationStore();
   const [profile, setProfile] = useState(null);
   const [holdings, setHoldings] = useState([]);
-  const [aiInsight, setAiInsight] = useState('');
+  const [aiData, setAiData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,8 +33,8 @@ export default function Analysis() {
               profile: userData
             })
           });
-          const aiData = await res.json();
-          setAiInsight(aiData.analysis);
+          const result = await res.json();
+          setAiData(result);
         } catch (err) {
           console.error("AI Analysis failed:", err);
         }
@@ -49,17 +49,58 @@ export default function Analysis() {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
   }
 
+  const score = aiData?.score || 0;
+  const strengths = aiData?.strengths || [];
+  const weaknesses = aiData?.weaknesses || [];
+  const suggestion = aiData?.suggestion || '';
+
+  // Score color
+  const getScoreColor = (s) => {
+    if (s >= 75) return 'var(--success)';
+    if (s >= 50) return '#f59e0b';
+    return 'var(--danger)';
+  };
+  const scoreColor = getScoreColor(score);
+
+  // Score ring
+  const circumference = 2 * Math.PI * 54;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
       <h2 style={{ marginBottom: '8px', fontSize: '2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <BrainCircuit size={32} color="var(--accent-primary)" /> AI Portfolio Analysis
       </h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        Deep-dive analytics tailored to your financial goals and risk tolerance.
+        AI-powered health check tailored to your financial goals and risk tolerance.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '32px' }}>
-        {/* Profile Summary Card */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+        
+        {/* Portfolio Score */}
+        <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h3 style={{ marginBottom: '24px', fontSize: '1.1rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Portfolio Score</h3>
+          <div style={{ position: 'relative', width: '140px', height: '140px', marginBottom: '16px' }}>
+            <svg width="140" height="140" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+              <circle cx="60" cy="60" r="54" fill="none" stroke={scoreColor} strokeWidth="8" 
+                strokeLinecap="round"
+                strokeDasharray={circumference} 
+                strokeDashoffset={strokeDashoffset}
+                style={{ transition: 'stroke-dashoffset 1s ease' }}
+              />
+            </svg>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+              <span style={{ fontSize: '2.5rem', fontWeight: '800', color: scoreColor }}>{score}</span>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>/100</span>
+            </div>
+          </div>
+          <span style={{ fontSize: '0.95rem', color: scoreColor, fontWeight: 'bold' }}>
+            {score >= 75 ? 'Healthy' : score >= 50 ? 'Needs Attention' : 'At Risk'}
+          </span>
+        </div>
+
+        {/* Your Profile */}
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
           <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>Your AI Profile</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -82,14 +123,40 @@ export default function Analysis() {
           </div>
         </div>
 
-        {/* AI Health Check */}
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent)' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--success)' }}>
-            <ShieldCheck size={20} /> AI Portfolio Health
-          </h3>
-          <p style={{ color: 'var(--text-main)', lineHeight: '1.6' }}>
-            {aiInsight || "Analyzing portfolio..."}
-          </p>
+        {/* Strengths & Weaknesses */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
+          <h3 style={{ marginBottom: '16px' }}>AI Assessment</h3>
+          
+          {strengths.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Strengths</span>
+              {strengths.map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                  <CheckCircle size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{s}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {weaknesses.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Weaknesses</span>
+              {weaknesses.map((w, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                  <XCircle size={16} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{w}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {suggestion && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              <Lightbulb size={16} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{suggestion}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -98,7 +165,7 @@ export default function Analysis() {
         <Layers size={20} color="var(--accent-primary)" /> Current Market Exposure
       </h3>
       <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-        <AlertTriangle size={36} color="var(--warning)" style={{ flexShrink: 0, marginTop: '4px' }} />
+        <AlertTriangle size={36} color="#f59e0b" style={{ flexShrink: 0, marginTop: '4px' }} />
         <div style={{ flex: 1 }}>
           <h4 style={{ margin: '0 0 12px 0', fontSize: '1.2rem' }}>Active Holdings ({holdings.length})</h4>
           {holdings.length === 0 ? (
