@@ -59,19 +59,27 @@ export default function Dashboard() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
       <h2 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '800' }}>My Portfolio</h2>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <Wallet size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Total Net Worth</span>
+            <Wallet size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Net Worth</span>
           </div>
-          <h3 style={{ fontSize: '2rem', margin: 0 }}>₹{netWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{netWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
         </div>
 
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Invested Value</span>
+            <Wallet size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Cash Balance</span>
           </div>
-          <h3 style={{ fontSize: '2rem', margin: 0 }}>₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Available to invest</span>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+            <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Market Value</span>
+          </div>
+          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Cost Basis: ₹{investedValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
         </div>
 
@@ -79,7 +87,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
             <Activity size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Total P&L</span>
           </div>
-          <h3 style={{ fontSize: '2rem', margin: 0, color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+          <h3 style={{ fontSize: '1.8rem', margin: 0, color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
             {totalPandL >= 0 ? '+' : ''}₹{totalPandL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </h3>
           <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px' }}>
