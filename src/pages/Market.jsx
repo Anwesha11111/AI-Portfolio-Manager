@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
-import { Loader, TrendingUp, TrendingDown, Sparkles, X } from 'lucide-react';
+import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit } from 'lucide-react';
 import { getGradientForSymbol } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 
@@ -14,11 +14,12 @@ export default function Market() {
   const [sortBy, setSortBy] = useState('gainers');
   const [timeframe, setTimeframe] = useState('6M');
   
-  // AI Modal States
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  // AI Panel States
+  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [aiAmount, setAiAmount] = useState(100000);
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiRecommendations, setAiRecommendations] = useState(null); // Will be an array now
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [isTrading, setIsTrading] = useState(false);
 
   useEffect(() => {
     const fetchBatchData = async () => {
@@ -85,6 +86,60 @@ export default function Market() {
   if (sortBy === 'alpha-asc') sortedAssets.sort((a,b) => a.symbol.localeCompare(b.symbol));
   if (sortBy === 'alpha-desc') sortedAssets.sort((a,b) => b.symbol.localeCompare(a.symbol));
 
+  const handleAiTrade = async (symbol, qty, price) => {
+    if (!qty || qty <= 0) return;
+    const cost = qty * price;
+
+    setIsTrading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { alert("Must be logged in."); setIsTrading(false); return; }
+
+      const { data: userData } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
+      let balance = Number(userData?.virtual_balance || 0);
+
+      if (cost > balance) {
+        alert(`Insufficient funds for ${symbol}. Need ₹${cost.toLocaleString()}, have ₹${balance.toLocaleString()}.`);
+        setIsTrading(false);
+        return false;
+      }
+      
+      await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
+      await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'BUY', quantity: qty, price_per_unit: price, simulated_date: currentSimulatedDate });
+
+      const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).maybeSingle();
+      if (holding) {
+        const newQty = holding.quantity + qty;
+        const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
+        await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg }).eq('id', holding.id);
+      } else {
+        await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: price });
+      }
+
+      alert(`Successfully bought ${qty} shares of ${symbol}`);
+      setIsTrading(false);
+      return true;
+    } catch (err) {
+      console.error("Trade failed:", err);
+      alert("Trade failed due to an error.");
+      setIsTrading(false);
+      return false;
+    }
+  };
+
+  const handleBuyAll = async () => {
+    if (!Array.isArray(aiRecommendations)) return;
+    for (const rec of aiRecommendations) {
+      const asset = assets.find(a => a.symbol === rec.symbol);
+      if (asset && asset.price > 0) {
+        const qty = Math.floor((rec.allocation || 0) / asset.price);
+        if (qty > 0) {
+           await handleAiTrade(asset.symbol, qty, asset.price);
+        }
+      }
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', position: 'relative' }}>
       
@@ -99,10 +154,10 @@ export default function Market() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <button 
-            onClick={() => setIsAiModalOpen(true)}
+            onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
             className="glass-panel"
             style={{
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))',
+              background: isAiPanelOpen ? 'rgba(139, 92, 246, 0.4)' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))',
               border: '1px solid rgba(139, 92, 246, 0.4)',
               color: 'white', padding: '10px 20px', borderRadius: '8px',
               display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
@@ -111,8 +166,8 @@ export default function Market() {
             onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 25px rgba(139, 92, 246, 0.6)'}
             onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'}
           >
-            <Sparkles size={18} color="#c084fc" />
-            AI Portfolio Allocator
+            <Sparkles size={18} color={isAiPanelOpen ? "#fff" : "#c084fc"} />
+            {isAiPanelOpen ? "Close AI Architect" : "AI Portfolio Architect"}
           </button>
 
           <select 
@@ -147,6 +202,122 @@ export default function Market() {
           </select>
         </div>
       </div>
+
+      {/* Inline AI Panel */}
+      {isAiPanelOpen && (
+        <div className="glass-panel animate-fade-in-up" style={{ 
+          marginBottom: '32px', padding: '32px', borderRadius: '16px', 
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05))',
+          border: '1px solid rgba(139, 92, 246, 0.3)'
+        }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: '#c084fc' }}>
+            <Sparkles size={24} /> AI Portfolio Architect
+          </h2>
+
+          {!aiRecommendations && !aiLoading && (
+            <div style={{ maxWidth: '600px' }}>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.6' }}>
+                Specify your capital deployment. Gemini AI will analyze the market based on your risk profile and build a diversified allocation plan. You can execute these trades with a single click.
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Investment Amount (₹)</label>
+                <input 
+                  type="number" 
+                  value={aiAmount}
+                  onChange={(e) => setAiAmount(Number(e.target.value))}
+                  style={{ width: '100%', padding: '16px', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-color)', color: 'white', fontSize: '1.2rem' }}
+                />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button onClick={() => setAiAmount(50000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹50k</button>
+                  <button onClick={() => setAiAmount(100000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹1 Lakh</button>
+                  <button onClick={() => setAiAmount(500000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹5 Lakh</button>
+                </div>
+              </div>
+              
+              <button 
+                onClick={fetchAiRecommendation}
+                style={{ padding: '16px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <BrainCircuit size={20} /> Generate Portfolio
+              </button>
+            </div>
+          )}
+
+          {aiLoading && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0' }}>
+              <Loader size={48} className="spin" color="#c084fc" style={{ marginBottom: '16px' }} />
+              <h3 style={{ color: '#c084fc' }}>Architecting your portfolio...</h3>
+            </div>
+          )}
+
+          {aiRecommendations && !aiLoading && (
+            <div className="animate-fade-in-up">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.5rem' }}>Recommended Allocation</h3>
+                  <span style={{ color: 'var(--text-muted)' }}>Based on ₹{aiAmount.toLocaleString()} investment</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    onClick={() => setAiRecommendations(null)}
+                    style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Recalculate
+                  </button>
+                  {Array.isArray(aiRecommendations) && (
+                    <button 
+                      onClick={handleBuyAll}
+                      disabled={isTrading}
+                      style={{ padding: '12px 24px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: isTrading ? 'not-allowed' : 'pointer', opacity: isTrading ? 0.5 : 1 }}
+                    >
+                      Buy Full Portfolio
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                {Array.isArray(aiRecommendations) ? aiRecommendations.map((rec, i) => {
+                  const asset = assets.find(a => a.symbol === rec.symbol);
+                  const price = asset?.price || 0;
+                  const alloc = rec.allocation || 0;
+                  const qty = price > 0 ? Math.floor(alloc / price) : 0;
+
+                  return (
+                    <div key={i} style={{ padding: '24px', backgroundColor: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                        <div>
+                          <strong style={{ fontSize: '1.3rem', color: '#c084fc', display: 'block' }}>{rec.symbol}</strong>
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Target: ₹{alloc.toLocaleString()}</span>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ display: 'block', fontWeight: 'bold', fontSize: '1.1rem' }}>{qty} Shares</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@ ₹{price.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <p style={{ margin: '0 0 24px 0', color: 'var(--text-main)', fontSize: '0.95rem', lineHeight: '1.6', flex: 1 }}>{rec.reasoning}</p>
+                      
+                      <button 
+                        onClick={() => handleAiTrade(rec.symbol, qty, price)}
+                        disabled={isTrading || qty === 0}
+                        style={{ width: '100%', padding: '12px', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', fontWeight: 'bold', cursor: (isTrading || qty === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s', opacity: (isTrading || qty === 0) ? 0.5 : 1 }}
+                        onMouseOver={(e) => { if(!isTrading && qty>0) e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)' }}
+                        onMouseOut={(e) => { if(!isTrading && qty>0) e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)' }}
+                      >
+                        {qty > 0 ? `Buy ${qty} ${rec.symbol}` : 'Cannot Buy (No Price)'}
+                      </button>
+                    </div>
+                  );
+                }) : (
+                  <div style={{ padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '12px', gridColumn: '1 / -1' }}>
+                    {aiRecommendations?.error || "Failed to generate valid recommendations."}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '64px' }}>
@@ -215,91 +386,6 @@ export default function Market() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* AI Modal */}
-      {isAiModalOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
-          backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
-        }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '32px', borderRadius: '16px', position: 'relative' }}>
-            <button 
-              onClick={() => setIsAiModalOpen(false)}
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-            >
-              <X size={24} />
-            </button>
-            
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: '#c084fc' }}>
-              <Sparkles size={24} /> AI Portfolio Allocator
-            </h2>
-
-            {!aiRecommendations && !aiLoading && (
-              <>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-                  Specify how much capital you want to deploy. Our Gemini AI will analyze the market using your financial constraints and build a diversified allocation plan for you.
-                </p>
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Investment Amount (₹)</label>
-                  <input 
-                    type="number" 
-                    value={aiAmount}
-                    onChange={(e) => setAiAmount(Number(e.target.value))}
-                    style={{ width: '100%', padding: '16px', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-color)', color: 'white', fontSize: '1.2rem' }}
-                  />
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                    <button onClick={() => setAiAmount(50000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹50k</button>
-                    <button onClick={() => setAiAmount(100000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹1 Lakh</button>
-                    <button onClick={() => setAiAmount(500000)} style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>₹5 Lakh</button>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={fetchAiRecommendation}
-                  style={{ width: '100%', padding: '16px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
-                >
-                  Generate Portfolio
-                </button>
-              </>
-            )}
-
-            {aiLoading && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0' }}>
-                <Loader size={48} className="spin" color="#c084fc" style={{ marginBottom: '16px' }} />
-                <h3 style={{ color: '#c084fc' }}>Analyzing Market Data...</h3>
-              </div>
-            )}
-
-            {aiRecommendations && !aiLoading && (
-              <div className="animate-fade-in-up">
-                <h3 style={{ marginBottom: '16px' }}>Recommended Allocation (₹{aiAmount.toLocaleString()})</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {Array.isArray(aiRecommendations) ? aiRecommendations.map((rec, i) => (
-                    <div key={i} style={{ padding: '16px', backgroundColor: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <strong style={{ fontSize: '1.1rem', color: '#c084fc' }}>{rec.symbol}</strong>
-                        <strong style={{ fontSize: '1.1rem' }}>₹{rec.allocation?.toLocaleString() || 0}</strong>
-                      </div>
-                      <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>{rec.reasoning}</p>
-                    </div>
-                  )) : (
-                    <div style={{ padding: '16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px' }}>
-                      {aiRecommendations.error || "Failed to generate valid recommendations."}
-                    </div>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setIsAiModalOpen(false)}
-                  style={{ width: '100%', padding: '16px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', marginTop: '24px', cursor: 'pointer' }}
-                >
-                  Close
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       )}
 
