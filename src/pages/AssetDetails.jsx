@@ -42,6 +42,7 @@ export default function AssetDetails() {
 
   useEffect(() => {
     if (dataDebounceRef.current) clearTimeout(dataDebounceRef.current);
+    const delay = isFirstDataLoad.current ? 0 : 800;
 
     dataDebounceRef.current = setTimeout(async () => {
       try {
@@ -55,7 +56,7 @@ export default function AssetDetails() {
         console.error("Failed to fetch asset data:", err);
         setLoading(false);
       }
-    }, 500);
+    }, delay);
 
     return () => clearTimeout(dataDebounceRef.current);
   }, [symbol, currentSimulatedDate]);

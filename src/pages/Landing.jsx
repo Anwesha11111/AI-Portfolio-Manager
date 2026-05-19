@@ -1,8 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import { TrendingUp, BrainCircuit, LineChart, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { TrendingUp, BrainCircuit, LineChart, ArrowRight, ShieldCheck, Sparkles, BarChart3, GraduationCap } from 'lucide-react';
+import useAuthStore from '../store/useAuthStore';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, loading } = useAuthStore();
+
+  // Redirect logged-in users straight to dashboard
+  if (!loading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div style={{
@@ -22,6 +29,11 @@ export default function Landing() {
         position: 'absolute', bottom: '-20%', right: '-10%', width: '60vw', height: '60vw',
         background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(0,0,0,0) 70%)',
         borderRadius: '50%', filter: 'blur(80px)', zIndex: 0, animation: 'pulseGlow 12s infinite reverse'
+      }} />
+      <div style={{
+        position: 'absolute', top: '40%', right: '20%', width: '30vw', height: '30vw',
+        background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0,0,0,0) 70%)',
+        borderRadius: '50%', filter: 'blur(60px)', zIndex: 0, animation: 'pulseGlow 10s infinite 2s'
       }} />
 
       {/* Top Navigation */}
@@ -53,75 +65,153 @@ export default function Landing() {
           </button>
           
           <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
-            padding: '10px 24px', background: 'rgba(255,255,255,0.1)', color: 'white',
-            border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', cursor: 'pointer',
-            fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem'
-          }} onMouseOver={(e) => { e.target.style.background = 'rgba(255,255,255,0.15)'; e.target.style.borderColor = 'rgba(255,255,255,0.3)'; }} 
-             onMouseOut={(e) => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}>
-            Register
+            padding: '10px 24px',
+            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+            color: 'white',
+            border: 'none', borderRadius: '8px', cursor: 'pointer',
+            fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem',
+            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+          }}>
+            Get Started Free
           </button>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '120px 20px 80px', position: 'relative', zIndex: 10 }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 20px 60px', position: 'relative', zIndex: 10 }}>
         <div className="animate-fade-in-up" style={{
           display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.1)',
           border: '1px solid rgba(59, 130, 246, 0.2)', padding: '6px 16px', borderRadius: '100px',
           color: '#60a5fa', fontSize: '0.85rem', fontWeight: '600', marginBottom: '24px'
         }}>
-          <ShieldCheck size={16} /> Market Simulation Engine v2.0
+          <ShieldCheck size={16} /> Powered by Google Gemini AI & Real Nifty 50 Data
         </div>
 
         <h1 className="animate-fade-in-up delay-100 text-gradient" style={{ 
-          fontSize: 'clamp(3rem, 8vw, 5rem)', fontWeight: '800', textAlign: 'center', 
-          marginBottom: '24px', letterSpacing: '-0.04em', maxWidth: '1000px', lineHeight: '1.1' 
+          fontSize: 'clamp(2.8rem, 7vw, 4.5rem)', fontWeight: '800', textAlign: 'center', 
+          marginBottom: '24px', letterSpacing: '-0.04em', maxWidth: '900px', lineHeight: '1.1' 
         }}>
-          Master the Markets.<br/>
-          <span className="text-gradient-accent">Without the Risk.</span>
+          Learn to Invest.<br/>
+          <span className="text-gradient-accent">Without Risking a Rupee.</span>
         </h1>
         
         <p className="animate-fade-in-up delay-200" style={{ 
-          fontSize: 'clamp(1.1rem, 2vw, 1.3rem)', color: 'var(--text-muted)', textAlign: 'center', 
-          maxWidth: '750px', lineHeight: '1.6', marginBottom: '40px' 
+          fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: 'var(--text-muted)', textAlign: 'center', 
+          maxWidth: '700px', lineHeight: '1.7', marginBottom: '40px' 
         }}>
-          PortfolioSim bridges the gap between raw financial data and actionable trading knowledge. Experience decades of real Indian stock market history in a high-fidelity time-machine environment.
+          Build your financial profile, receive AI-powered portfolio recommendations, 
+          and practice trading through 18 years of real Indian stock market history — all in a risk-free simulation.
         </p>
 
-        <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
             padding: '16px 32px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer',
             fontWeight: '700', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px',
             boxShadow: '0 8px 30px rgba(59, 130, 246, 0.4)', transition: 'transform 0.2s, box-shadow 0.2s'
-          }} onMouseOver={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 12px 40px rgba(59, 130, 246, 0.5)'; }}
-             onMouseOut={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.4)'; }}>
-            Start Trading Now <ArrowRight size={20} />
+          }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(59, 130, 246, 0.5)'; }}
+             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.4)'; }}>
+            Start Your Journey <ArrowRight size={20} />
+          </button>
+          <button onClick={() => navigate('/auth', { state: { isLogin: true } })} style={{
+            padding: '16px 32px', background: 'rgba(255,255,255,0.05)',
+            color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer',
+            fontWeight: '600', fontSize: '1rem', transition: 'all 0.2s'
+          }} onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+             onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}>
+            I have an account
           </button>
         </div>
 
+        {/* Stats Row */}
+        <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '48px', marginTop: '72px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <StatItem value="47" label="Nifty 50 Stocks" />
+          <StatItem value="18+" label="Years of Data" />
+          <StatItem value="AI" label="Portfolio Architect" />
+          <StatItem value="₹0" label="Real Money Risk" />
+        </div>
+
+        {/* How It Works */}
+        <div style={{ maxWidth: '1200px', width: '100%', marginTop: '100px' }}>
+          <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'center', marginBottom: '48px' }}>
+            How It Works
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            <StepCard step="1" icon={<ShieldCheck size={24} color="#60a5fa" />} title="Build Your Profile" desc="Enter your income, expenses, savings, and risk appetite. We calculate your investable capital." />
+            <StepCard step="2" icon={<BrainCircuit size={24} color="#a78bfa" />} title="Get AI Recommendations" desc="Gemini AI analyzes 47 stocks and builds a portfolio matched to your financial profile." />
+            <StepCard step="3" icon={<LineChart size={24} color="#34d399" />} title="Trade Through History" desc="Execute trades in a time machine spanning 2005-2023 using real Nifty 50 prices." />
+            <StepCard step="4" icon={<BarChart3 size={24} color="#f59e0b" />} title="Track & Learn" desc="Monitor your portfolio score, P&L, sector allocation, and learn from the Academy." />
+          </div>
+        </div>
+
         {/* Feature Grid */}
-        <div className="animate-fade-in-up delay-300" style={{ 
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          gap: '24px', maxWidth: '1200px', width: '100%', marginTop: '100px' 
+        <div style={{ 
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '24px', maxWidth: '1200px', width: '100%', marginTop: '80px' 
         }}>
           <FeatureCard 
             icon={<TrendingUp size={28} color="#60a5fa" />}
-            title="Historical Time Travel"
-            desc="Trade through decades of real stock market history. Experience massive bull runs and unexpected sector rotations day-by-day."
+            title="Historical Time Machine"
+            desc="Travel through 18 years of real market data. Experience bull runs, crashes, recessions, and recovery — day by day."
           />
           <FeatureCard 
-            icon={<BrainCircuit size={28} color="#a78bfa" />}
-            title="AI Predictive Advisor"
-            desc="A built-in AI quant analyst that calculates complex technical indicators in real-time, matching trades to your personal risk profile."
+            icon={<Sparkles size={28} color="#a78bfa" />}
+            title="AI Portfolio Architect"
+            desc="Gemini AI acts as your personal financial advisor — analyzing volatility, returns, and sector diversification to build your ideal portfolio."
           />
           <FeatureCard 
-            icon={<LineChart size={28} color="#34d399" />}
-            title="Behavioral Analysis"
-            desc="The system silently tracks your trading psychology, flagging panic sells and FOMO buys to help you develop ironclad emotional discipline."
+            icon={<GraduationCap size={28} color="#34d399" />}
+            title="Stock Market Academy"
+            desc="Learn fundamentals like stocks, dividends, recessions, diversification, and the Nifty 50 with our built-in educational modules."
           />
         </div>
+
+        {/* Bottom CTA */}
+        <div style={{ marginTop: '80px', marginBottom: '40px', textAlign: 'center' }}>
+          <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '16px' }}>
+            Ready to build your first portfolio?
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '1.1rem' }}>
+            No credit card. No real money. Just pure learning.
+          </p>
+          <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
+            padding: '16px 40px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+            color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer',
+            fontWeight: '700', fontSize: '1.15rem', display: 'inline-flex', alignItems: 'center', gap: '8px',
+            boxShadow: '0 8px 30px rgba(59, 130, 246, 0.4)', transition: 'transform 0.2s'
+          }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+            Create Free Account <ArrowRight size={20} />
+          </button>
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem', position: 'relative', zIndex: 10, borderTop: '1px solid var(--border-color)' }}>
+        Built for Fidelity Hackathon 2025 • Powered by Gemini AI & Real Nifty 50 Data
+      </footer>
+    </div>
+  );
+}
+
+function StatItem({ value, label }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem', fontWeight: '800' }} className="text-gradient-accent">{value}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{label}</div>
+    </div>
+  );
+}
+
+function StepCard({ step, icon, title, desc }) {
+  return (
+    <div className="glass-panel" style={{ borderRadius: '14px', padding: '28px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: '12px', right: '16px', fontSize: '3rem', fontWeight: '900', color: 'rgba(255,255,255,0.03)', lineHeight: 1 }}>{step}</div>
+      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '16px', width: 'fit-content' }}>
+        {icon}
+      </div>
+      <h4 style={{ fontSize: '1.1rem', marginBottom: '8px', fontWeight: '700' }}>{title}</h4>
+      <p style={{ color: 'var(--text-muted)', lineHeight: '1.5', fontSize: '0.95rem', margin: 0 }}>{desc}</p>
     </div>
   );
 }
@@ -147,8 +237,8 @@ function FeatureCard({ icon, title, desc }) {
       }}>
         {icon}
       </div>
-      <h3 style={{ fontSize: '1.4rem', marginBottom: '12px', fontWeight: '700' }}>{title}</h3>
-      <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1.05rem' }}>{desc}</p>
+      <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '700' }}>{title}</h3>
+      <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>{desc}</p>
     </div>
   );
 }
