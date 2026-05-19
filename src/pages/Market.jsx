@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
 import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit } from 'lucide-react';
@@ -21,9 +21,14 @@ export default function Market() {
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [isTrading, setIsTrading] = useState(false);
 
+  const debounceRef = useRef(null);
+  const isFirstLoad = useRef(true);
+
   useEffect(() => {
-    const fetchBatchData = async () => {
-      setLoading(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      if (isFirstLoad.current) setLoading(true);
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/batch?date=${currentSimulatedDate}&timeframe=${timeframe}`);
         const data = await res.json();
@@ -41,10 +46,12 @@ export default function Market() {
         console.error("Failed to fetch market overview:", err);
       }
       setLoading(false);
-    };
+      isFirstLoad.current = false;
+    }, 500);
 
-    fetchBatchData();
+    return () => clearTimeout(debounceRef.current);
   }, [currentSimulatedDate, timeframe]);
+
 
   const fetchAiRecommendation = async () => {
     setAiLoading(true);

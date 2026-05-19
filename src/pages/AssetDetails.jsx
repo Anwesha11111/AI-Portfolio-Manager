@@ -37,25 +37,27 @@ export default function AssetDetails() {
   }, []);
 
   // Fetch data strictly up to the current simulated date
+  const dataDebounceRef = useRef(null);
+  const isFirstDataLoad = useRef(true);
+
   useEffect(() => {
-    const fetchData = async () => {
+    if (dataDebounceRef.current) clearTimeout(dataDebounceRef.current);
+
+    dataDebounceRef.current = setTimeout(async () => {
       try {
         const url = `${import.meta.env.VITE_API_URL}/api/market/${symbol}?date=${currentSimulatedDate}`;
         const response = await fetch(url);
         const data = await response.json();
         setAssetData(data);
         setLoading(false);
+        isFirstDataLoad.current = false;
       } catch (err) {
         console.error("Failed to fetch asset data:", err);
         setLoading(false);
       }
-    };
-    
-    // We only fetch on mount or if they switch symbols.
-    // In a production app, we would fetch the next candle on every tick,
-    // but for the hackathon MVP, fetching the chunk once and rendering is fine, 
-    // or refetching on a slower interval. For now, fetch whenever time jumps significantly.
-    fetchData();
+    }, 500);
+
+    return () => clearTimeout(dataDebounceRef.current);
   }, [symbol, currentSimulatedDate]);
 
   // Initialize TradingView Chart
