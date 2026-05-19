@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import SettingsModal from './SettingsModal';
+import ProfileModal from './ProfileModal';
 
 export default function Layout() {
   const { isRunning, simulationSpeedMs, advanceTime } = useSimulationStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   // The Core Time Engine Loop
   useEffect(() => {
@@ -44,7 +46,21 @@ export default function Layout() {
           </NavLink>
         </div>
 
-        <div className={styles.navRight}>
+        <div className={styles.navRight} style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={() => setIsProfileOpen(true)}
+            style={{
+              background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%',
+              width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+            title="Profile & Settings"
+          >
+            <User size={20} />
+          </button>
+
           <button 
             onClick={() => setIsSettingsOpen(true)}
             style={{
@@ -54,6 +70,7 @@ export default function Layout() {
             }}
             onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
             onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+            title="Simulation Controls"
           >
             <Settings size={20} />
           </button>
@@ -68,6 +85,7 @@ export default function Layout() {
       </main>
 
       {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
+      {isProfileOpen && <ProfileModal onClose={() => setIsProfileOpen(false)} />}
     </div>
   );
 }
