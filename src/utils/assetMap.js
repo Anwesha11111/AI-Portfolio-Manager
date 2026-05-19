@@ -53,3 +53,13 @@ export function getLogoUrl(symbol) {
   if (!domain) return null;
   return `https://logo.clearbit.com/${domain}`;
 }
+
+export function getGradientForSymbol(symbol) {
+  let hash = 0;
+  for (let i = 0; i < symbol.length; i++) {
+    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h1 = Math.abs(hash) % 360;
+  const h2 = (h1 + 40) % 360;
+  return `linear-gradient(135deg, hsl(${h1}, 70%, 40%), hsl(${h2}, 70%, 20%))`;
+}
