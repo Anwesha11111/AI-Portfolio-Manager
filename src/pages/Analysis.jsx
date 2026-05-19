@@ -57,7 +57,7 @@ export default function Analysis() {
   };
 
   if (pageLoading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '30vh', minHeight: '80vh' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
   }
 
   const score = aiData?.score || 0;
