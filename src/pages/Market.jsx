@@ -324,7 +324,7 @@ export default function Market() {
       )}
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '64px' }}>
+        <div className="page-loader">
           <Loader size={48} className="spin" color="var(--accent-primary)" />
         </div>
       ) : (

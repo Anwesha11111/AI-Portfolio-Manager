@@ -52,7 +52,11 @@ export default function Dashboard() {
   }, [currentSimulatedDate]);
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
+    return (
+      <div className="page-loader">
+        <Loader size={48} className="spin" color="var(--accent-primary)" />
+      </div>
+    );
   }
 
   // Calculate Metrics
