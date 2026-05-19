@@ -57,49 +57,56 @@ export default function LessonView() {
     setUpdating(false);
   };
 
-  // Simple Markdown Parser for the content
+  // Robust line-by-line Markdown Parser
   const renderContent = (text) => {
-    const blocks = text.split('\n\n').filter(b => b.trim() !== '');
-    
-    return blocks.map((block, idx) => {
-      const b = block.trim();
-      if (b.startsWith('### ')) {
-        return <h3 key={idx} style={{ marginTop: '40px', marginBottom: '20px', color: 'white', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>{b.replace('### ', '')}</h3>;
-      }
-      
-      if (b.startsWith('- ')) {
-        const items = b.split('\n').map(i => i.replace('- ', '').trim());
-        return (
-          <ul key={idx} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
-            {items.map((item, i) => {
-              // Parse **bold**
-              const parts = item.split(/(\*\*.*?\*\*)/g);
-              return (
-                <li key={i} style={{ marginBottom: '12px' }}>
-                  {parts.map((part, j) => 
-                    part.startsWith('**') && part.endsWith('**') 
-                      ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
-                      : part
-                  )}
-                </li>
-              );
-            })}
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const elements = [];
+    let currentList = [];
+
+    const parseBold = (str) => {
+      const parts = str.split(/(\*\*.*?\*\*)/g);
+      return parts.map((part, j) => 
+        part.startsWith('**') && part.endsWith('**') 
+          ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
+          : part
+      );
+    };
+
+    const flushList = () => {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`ul-${elements.length}`} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+            {currentList.map((item, i) => (
+              <li key={i} style={{ marginBottom: '12px' }}>{parseBold(item)}</li>
+            ))}
           </ul>
         );
+        currentList = [];
       }
+    };
 
-      // Normal paragraph (handle inline bold)
-      const parts = b.split(/(\*\*.*?\*\*)/g);
-      return (
-        <p key={idx} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem', letterSpacing: '0.01em' }}>
-          {parts.map((part, j) => 
-            part.startsWith('**') && part.endsWith('**') 
-              ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
-              : part
-          )}
-        </p>
-      );
+    lines.forEach((line, idx) => {
+      if (line.startsWith('### ')) {
+        flushList();
+        elements.push(
+          <h3 key={`h3-${idx}`} style={{ marginTop: '40px', marginBottom: '20px', color: 'white', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
+            {line.replace('### ', '')}
+          </h3>
+        );
+      } else if (line.startsWith('- ')) {
+        currentList.push(line.replace(/^- /, ''));
+      } else {
+        flushList();
+        elements.push(
+          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem', letterSpacing: '0.01em' }}>
+            {parseBold(line)}
+          </p>
+        );
+      }
     });
+
+    flushList();
+    return elements;
   };
 
   const Icon = lesson.icon;
