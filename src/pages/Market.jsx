@@ -2,15 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
 import { Loader } from 'lucide-react';
-
-const POPULAR_ASSETS = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries' },
-  { symbol: 'TCS', name: 'Tata Consultancy Services' },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank' },
-  { symbol: 'INFY', name: 'Infosys' },
-  { symbol: 'ICICIBANK', name: 'ICICI Bank' },
-  { symbol: 'SBIN', name: 'State Bank of India' },
-];
+import { getLogoUrl } from '../utils/assetMap';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -21,14 +13,23 @@ export default function Market() {
   useEffect(() => {
     const fetchAssetData = async () => {
       try {
-        const promises = POPULAR_ASSETS.map(async (asset) => {
-          // Fetch real data from our time-machine backend
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/${asset.symbol}?date=${currentSimulatedDate}`);
+        // 1. Fetch the full list of available assets
+        const listRes = await fetch(`${import.meta.env.VITE_API_URL}/api/market`);
+        const listData = await listRes.json();
+        
+        // Filter out the NIFTY_50_STOCKS index file from the trading grid
+        const validSymbols = listData.assets.filter(s => s !== 'NIFTY_50_STOCKS');
+
+        // 2. Fetch the current simulated price for every asset
+        const promises = validSymbols.map(async (symbol) => {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/${symbol}?date=${currentSimulatedDate}`);
           const data = await res.json();
           return {
-            ...asset,
+            symbol: symbol,
+            name: symbol.replace(/_/g, ' '), // Basic fallback name
             price: data.currentPrice || 0,
-            change: data.twoMonthChangePct || 0
+            change: data.twoMonthChangePct || 0,
+            logo: getLogoUrl(symbol)
           };
         });
 
@@ -96,13 +97,16 @@ export default function Market() {
                 backgroundColor: 'rgba(255,255,255,0.05)',
                 borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 'bold', fontSize: '1rem', color: 'var(--accent-primary)',
-                border: '1px solid rgba(255,255,255,0.1)'
+                border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden'
               }}>
-                {asset.symbol[0]}
+                {asset.logo ? (
+                  <img src={asset.logo} alt={asset.symbol} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'white', padding: '4px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                ) : null}
+                <span style={{ display: asset.logo ? 'none' : 'block' }}>{asset.symbol[0]}</span>
               </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{asset.symbol}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{asset.name}</span>
+              <div style={{ overflow: 'hidden' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.symbol}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{asset.name}</span>
               </div>
             </div>
 

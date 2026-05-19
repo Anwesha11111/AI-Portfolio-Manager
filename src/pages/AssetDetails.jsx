@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader } from 'lucide-react';
-import { createChart } from 'lightweight-charts';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
 import useSimulationStore from '../store/useSimulationStore';
+import { getLogoUrl } from '../utils/assetMap';
 
 export default function AssetDetails() {
   const { symbol } = useParams();
@@ -15,6 +16,7 @@ export default function AssetDetails() {
   
   const [assetData, setAssetData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('6M');
 
   // Fetch data strictly up to the current simulated date
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function AssetDetails() {
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#10b981',
       downColor: '#ef4444',
       borderVisible: false,
@@ -66,14 +68,28 @@ export default function AssetDetails() {
       wickDownColor: '#ef4444',
     });
 
-    // Format data for lightweight-charts
-    const chartData = assetData.history.map(d => ({
-      time: d.time,
-      open: d.open,
-      high: d.high,
-      low: d.low,
-      close: d.close
-    }));
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const tfMap = {
+      '1W': MS_PER_DAY * 7,
+      '1M': MS_PER_DAY * 30,
+      '3M': MS_PER_DAY * 90,
+      '6M': MS_PER_DAY * 180,
+      '1Y': MS_PER_DAY * 365,
+      'ALL': Infinity
+    };
+
+    const cutoffTimestamp = currentSimulatedDate - (tfMap[timeframe] || tfMap['6M']);
+
+    // Format and filter data for lightweight-charts
+    const chartData = assetData.history
+      .filter(d => d.rawTimestamp >= cutoffTimestamp)
+      .map(d => ({
+        time: d.time,
+        open: d.open,
+        high: d.high,
+        low: d.low,
+        close: d.close
+      }));
 
     candlestickSeries.setData(chartData);
     chart.timeScale().fitContent();
@@ -91,7 +107,7 @@ export default function AssetDetails() {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [assetData]); // Re-render chart if assetData changes
+  }, [assetData, timeframe, currentSimulatedDate]); // Re-render chart if data or timeframe changes
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -100,9 +116,11 @@ export default function AssetDetails() {
   }
 
   if (!assetData) return <div>Asset not found.</div>;
+  if (assetData.error) return <div style={{ color: 'var(--danger)', padding: '24px' }}>Error: {assetData.error}</div>;
+  if (!assetData.history || assetData.history.length === 0) return <div style={{ padding: '24px' }}>No historical data available for this date.</div>;
 
-  const currentPrice = assetData.currentPrice;
-  const changePct = assetData.twoMonthChangePct;
+  const currentPrice = assetData.currentPrice || 0;
+  const changePct = assetData.twoMonthChangePct || 0;
   const latestCandle = assetData.history[assetData.history.length - 1] || {};
 
   return (
@@ -119,15 +137,18 @@ export default function AssetDetails() {
           <ArrowLeft size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
            <div style={{
               width: '48px', height: '48px',
               backgroundColor: 'rgba(255,255,255,0.05)',
               borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--accent-primary)',
-              border: '1px solid rgba(255,255,255,0.1)'
+              border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden'
             }}>
-              {symbol[0]}
+              {getLogoUrl(symbol) ? (
+                  <img src={getLogoUrl(symbol)} alt={symbol} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'white', padding: '4px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+              ) : null}
+              <span style={{ display: getLogoUrl(symbol) ? 'none' : 'block' }}>{symbol[0]}</span>
           </div>
           <div>
             <h2 style={{ margin: 0 }}>{symbol}</h2>
@@ -152,12 +173,16 @@ export default function AssetDetails() {
             border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column'
           }}>
             <div style={{ display: 'flex', gap: '8px', padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
-              {['1D', '1W', '1M', '3M', '6M', '1Y'].map(tf => (
-                <button key={tf} style={{
-                  padding: '6px 12px', background: tf === '6M' ? 'var(--accent-primary)' : 'transparent',
-                  color: tf === '6M' ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: '4px',
-                  fontWeight: '600', cursor: 'pointer'
-                }}>{tf}</button>
+              {['1W', '1M', '3M', '6M', '1Y', 'ALL'].map(tf => (
+                <button 
+                  key={tf} 
+                  onClick={() => setTimeframe(tf)}
+                  style={{
+                    padding: '6px 12px', background: tf === timeframe ? 'var(--accent-primary)' : 'transparent',
+                    color: tf === timeframe ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: '4px',
+                    fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease'
+                  }}
+                >{tf}</button>
               ))}
             </div>
             
