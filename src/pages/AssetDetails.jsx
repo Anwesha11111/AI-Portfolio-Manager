@@ -18,7 +18,7 @@ export default function AssetDetails() {
   
   const [assetData, setAssetData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState('3M');
+  const [timeframe, setTimeframe] = useState(() => localStorage.getItem('asset_timeframe') || '3M');
   
   // Trading States
   const [quantity, setQuantity] = useState('');
@@ -99,7 +99,7 @@ export default function AssetDetails() {
       'ALL': Infinity
     };
 
-    const cutoffTimestamp = currentSimulatedDate - (tfMap[timeframe] || tfMap['6M']);
+    const cutoffTimestamp = currentSimulatedDate - (tfMap[timeframe] || tfMap['3M']);
 
     // Format and filter data for lightweight-charts
     const seenTimes = new Set();
@@ -119,8 +119,13 @@ export default function AssetDetails() {
         return true;
       });
 
-    candlestickSeries.setData(chartData);
-    chart.timeScale().fitContent();
+    if (chartData.length >= 2) {
+      candlestickSeries.setData(chartData);
+      chart.timeScale().fitContent();
+    } else {
+      // Not enough data to draw the chart lines
+      candlestickSeries.setData([]);
+    }
 
     chartRef.current = chart;
     seriesRef.current = candlestickSeries;
@@ -278,7 +283,10 @@ export default function AssetDetails() {
               {['1W', '1M', '3M', '6M', '1Y', 'ALL'].map(tf => (
                 <button 
                   key={tf} 
-                  onClick={() => setTimeframe(tf)}
+                  onClick={() => {
+                    setTimeframe(tf);
+                    localStorage.setItem('asset_timeframe', tf);
+                  }}
                   style={{
                     padding: '6px 16px', background: tf === timeframe ? 'var(--accent-primary)' : 'transparent',
                     color: tf === timeframe ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: '6px',
