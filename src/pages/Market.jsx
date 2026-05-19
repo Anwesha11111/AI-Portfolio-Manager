@@ -53,7 +53,7 @@ export default function Market() {
       
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase.from('users').select('time_horizon, drawdown_tolerance, primary_objective').eq('id', user.id).single();
+        const { data } = await supabase.from('users').select('time_horizon, drawdown_tolerance, primary_objective').eq('id', user.id).maybeSingle();
         if (data) {
           profileParams = data;
         }
