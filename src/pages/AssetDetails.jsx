@@ -214,41 +214,49 @@ export default function AssetDetails() {
   const latestCandle = assetData.history[assetData.history.length - 1] || {};
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '24px' }}>
       {/* Header Back Button & Asset Info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
+      <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px' }}>
         <button 
           onClick={() => navigate('/market')}
           style={{ 
-            background: 'none', border: '1px solid var(--border-color)', borderRadius: '8px', 
-            padding: '8px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex'
+            background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', 
+            padding: '12px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
           }}
+          onMouseOver={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
+          onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={24} />
         </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-           <div style={{
-              width: '48px', height: '48px',
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--accent-primary)',
-              border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden'
-            }}>
-              {getLogoUrl(symbol) ? (
-                  <img src={getLogoUrl(symbol)} alt={symbol} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'white', padding: '4px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-              ) : null}
-              <span style={{ display: getLogoUrl(symbol) ? 'none' : 'block' }}>{symbol[0]}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+          <div style={{
+            width: '56px', height: '56px',
+            backgroundColor: 'white',
+            borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 'bold', fontSize: '1.5rem', color: '#000',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '4px'
+          }}>
+            {getLogoUrl(symbol) ? (
+                <img src={getLogoUrl(symbol)} alt={symbol} style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+            ) : null}
+            <span style={{ display: getLogoUrl(symbol) ? 'none' : 'block' }}>{symbol[0]}</span>
           </div>
           <div>
-            <h2 style={{ margin: 0 }}>{symbol}</h2>
-            <span style={{ color: 'var(--text-muted)' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString()}</span>
+            <h2 className="text-gradient" style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em' }}>{symbol}</h2>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString()}</span>
           </div>
         </div>
 
         <div style={{ textAlign: 'right' }}>
-          <h2 style={{ margin: 0, fontSize: '2rem' }}>₹{currentPrice.toFixed(2)}</h2>
-          <span style={{ color: changePct >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold' }}>
+          <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '800', tabularNums: 'tabular-nums' }}>₹{currentPrice.toFixed(2)}</h2>
+          <span style={{ 
+            color: changePct >= 0 ? 'var(--success)' : 'var(--danger)', 
+            fontWeight: '600', fontSize: '1.1rem',
+            display: 'inline-block', marginTop: '4px',
+            padding: '4px 12px', borderRadius: '20px',
+            backgroundColor: changePct >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+          }}>
             {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}% (2M Change)
           </span>
         </div>
@@ -256,85 +264,101 @@ export default function AssetDetails() {
 
       <div style={{ display: 'flex', gap: '24px', flex: 1, flexWrap: 'wrap' }}>
         {/* Left: Chart & Stats */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', minWidth: '400px' }}>
           {/* Chart Container */}
-          <div style={{
-            flex: 1, backgroundColor: 'var(--bg-card)', borderRadius: '12px', 
-            border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column'
-          }}>
-            <div style={{ display: 'flex', gap: '8px', padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: '8px', padding: '16px 24px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)' }}>
               {['1W', '1M', '3M', '6M', '1Y', 'ALL'].map(tf => (
                 <button 
                   key={tf} 
                   onClick={() => setTimeframe(tf)}
                   style={{
-                    padding: '6px 12px', background: tf === timeframe ? 'var(--accent-primary)' : 'transparent',
-                    color: tf === timeframe ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: '4px',
-                    fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease'
+                    padding: '6px 16px', background: tf === timeframe ? 'var(--accent-primary)' : 'transparent',
+                    color: tf === timeframe ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: '6px',
+                    fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', fontSize: '0.9rem'
                   }}
+                  onMouseOver={(e) => { if(tf !== timeframe) e.currentTarget.style.color = '#fff'; }}
+                  onMouseOut={(e) => { if(tf !== timeframe) e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >{tf}</button>
               ))}
             </div>
             
-            <div ref={chartContainerRef} style={{ flex: 1, width: '100%' }}></div>
+            <div ref={chartContainerRef} style={{ flex: 1, width: '100%', minHeight: '400px' }}></div>
           </div>
 
           {/* Daily Stats */}
-          <div style={{
-             backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)', 
-             padding: '24px', display: 'flex', justifyContent: 'space-between'
-          }}>
+          <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', padding: '24px' }}>
             <div>
-              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Day High</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>₹{latestCandle.high?.toFixed(2) || '0.00'}</span>
+              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Simulated Day High</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.4rem' }}>₹{latestCandle.high?.toFixed(2) || '0.00'}</span>
             </div>
             <div>
-              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Day Low</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>₹{latestCandle.low?.toFixed(2) || '0.00'}</span>
+              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Simulated Day Low</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.4rem' }}>₹{latestCandle.low?.toFixed(2) || '0.00'}</span>
             </div>
             <div>
-              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>Volume</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{latestCandle.volume ? (latestCandle.volume / 1000000).toFixed(2) + 'M' : '0'}</span>
+              <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Volume</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.4rem' }}>{latestCandle.volume ? (latestCandle.volume / 1000000).toFixed(2) + 'M' : '0'}</span>
             </div>
           </div>
         </div>
 
-        <div style={{ flex: '1 1 320px', maxWidth: '400px', minWidth: '300px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
-           <h3>Execute Order</h3>
-           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px', marginBottom: '24px' }}>
-            Available Capital: ₹{virtualBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        {/* Right: Order Ticket */}
+        <div className="glass-panel" style={{ flex: '1 1 320px', maxWidth: '400px', minWidth: '300px', padding: '32px 24px', display: 'flex', flexDirection: 'column' }}>
+           <h3 style={{ fontSize: '1.5rem', marginBottom: '8px', marginTop: 0 }}>Execute Order</h3>
+           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: '0 0 32px 0' }}>
+            Available Capital: <strong style={{ color: 'var(--text-main)' }}>₹{virtualBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
            </p>
 
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Quantity</label>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', fontWeight: '600' }}>QUANTITY</label>
               <input 
                 type="number" 
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0" 
                 min="1"
-                style={{ width: '100%', padding: '12px', borderRadius: '6px', backgroundColor: '#000', color: 'white', border: '1px solid var(--border-color)', fontSize: '1.1rem' }} 
+                className="focus-ring"
+                style={{ 
+                  width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.3)', 
+                  color: 'white', border: '1px solid var(--border-color)', fontSize: '1.5rem', fontWeight: 'bold',
+                  textAlign: 'center', transition: 'all 0.2s'
+                }} 
               />
             </div>
             
-            <div style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Estimated Cost</span>
-                <span style={{ fontWeight: 'bold' }}>₹{((parseInt(quantity) || 0) * currentPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <div style={{ padding: '20px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Estimated Cost</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--accent-primary)' }}>₹{((parseInt(quantity) || 0) * currentPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
             
-            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <div style={{ display: 'flex', gap: '16px', marginTop: 'auto', paddingTop: '24px' }}>
               <button 
                 onClick={() => handleTrade('BUY')}
-                disabled={isTrading || currentPrice === 0}
-                style={{ flex: 1, padding: '14px', backgroundColor: 'var(--success)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: isTrading ? 'not-allowed' : 'pointer', fontSize: '1rem', opacity: isTrading || currentPrice === 0 ? 0.5 : 1 }}
+                disabled={isTrading || currentPrice === 0 || !quantity || quantity <= 0}
+                style={{ 
+                  flex: 1, padding: '16px', backgroundColor: 'var(--success)', color: '#000', border: 'none', 
+                  borderRadius: '12px', fontWeight: '800', cursor: isTrading ? 'not-allowed' : 'pointer', 
+                  fontSize: '1.1rem', letterSpacing: '0.05em', opacity: isTrading || currentPrice === 0 || !quantity || quantity <= 0 ? 0.3 : 1,
+                  transition: 'opacity 0.2s, transform 0.1s'
+                }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >BUY</button>
               <button 
                 onClick={() => handleTrade('SELL')}
-                disabled={isTrading || currentPrice === 0}
-                style={{ flex: 1, padding: '14px', backgroundColor: 'var(--danger)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: isTrading ? 'not-allowed' : 'pointer', fontSize: '1rem', opacity: isTrading || currentPrice === 0 ? 0.5 : 1 }}
+                disabled={isTrading || currentPrice === 0 || !quantity || quantity <= 0}
+                style={{ 
+                  flex: 1, padding: '16px', backgroundColor: 'var(--danger)', color: '#fff', border: 'none', 
+                  borderRadius: '12px', fontWeight: '800', cursor: isTrading ? 'not-allowed' : 'pointer', 
+                  fontSize: '1.1rem', letterSpacing: '0.05em', opacity: isTrading || currentPrice === 0 || !quantity || quantity <= 0 ? 0.3 : 1,
+                  transition: 'opacity 0.2s, transform 0.1s'
+                }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >SELL</button>
             </div>
           </div>
