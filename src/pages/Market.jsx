@@ -284,7 +284,7 @@ export default function Market() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
                 {Array.isArray(aiRecommendations) ? aiRecommendations.map((rec, i) => {
                   const asset = assets.find(a => a.symbol === rec.symbol);
                   const price = asset?.price || 0;
@@ -292,32 +292,27 @@ export default function Market() {
                   const qty = price > 0 ? Math.floor(alloc / price) : 0;
 
                   return (
-                    <div key={i} style={{ padding: '24px', backgroundColor: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <div>
-                          <strong style={{ fontSize: '1.3rem', color: '#c084fc', display: 'block' }}>{rec.symbol}</strong>
-                          <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Target: ₹{alloc.toLocaleString()}</span>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ display: 'block', fontWeight: 'bold', fontSize: '1.1rem' }}>{qty} Shares</span>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>@ ₹{price.toFixed(2)}</span>
-                        </div>
+                    <div key={i} style={{ padding: '16px', backgroundColor: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontSize: '1.1rem', color: '#c084fc' }}>{rec.symbol}</strong>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{qty} × ₹{price.toFixed(0)}</span>
                       </div>
-                      <p style={{ margin: '0 0 24px 0', color: 'var(--text-main)', fontSize: '0.95rem', lineHeight: '1.6', flex: 1 }}>{rec.reasoning}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        <span>Alloc: ₹{alloc.toLocaleString()}</span>
+                      </div>
+                      <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.82rem', lineHeight: '1.5', flex: 1 }}>{rec.reasoning}</p>
                       
                       <button 
                         onClick={() => handleAiTrade(rec.symbol, qty, price)}
                         disabled={isTrading || qty === 0}
-                        style={{ width: '100%', padding: '12px', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', fontWeight: 'bold', cursor: (isTrading || qty === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s', opacity: (isTrading || qty === 0) ? 0.5 : 1 }}
-                        onMouseOver={(e) => { if(!isTrading && qty>0) e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)' }}
-                        onMouseOut={(e) => { if(!isTrading && qty>0) e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)' }}
+                        style={{ width: '100%', padding: '8px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem', cursor: (isTrading || qty === 0) ? 'not-allowed' : 'pointer', opacity: (isTrading || qty === 0) ? 0.5 : 1 }}
                       >
-                        {qty > 0 ? `Buy ${qty} ${rec.symbol}` : 'Cannot Buy (No Price)'}
+                        {qty > 0 ? `Buy ${qty} shares` : 'No price'}
                       </button>
                     </div>
                   );
                 }) : (
-                  <div style={{ padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '12px', gridColumn: '1 / -1' }}>
+                  <div style={{ padding: '16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '10px', gridColumn: '1 / -1' }}>
                     {aiRecommendations?.error || "Failed to generate valid recommendations."}
                   </div>
                 )}

@@ -198,10 +198,15 @@ Energy/Industrial: RELIANCE, NTPC, POWERGRID, ONGC, ADANI_PORTS, COAL_INDIA, ULT
 
 Do NOT pick two stocks from the same sector if drawdown tolerance is low or objective is preservation.
 
-Build a portfolio of 1 to 3 stocks. Allocations MUST sum EXACTLY to ${capital}. In reasoning, explain WHY each stock fits the investor profile.
+NUMBER OF STOCKS TO PICK (based on risk):
+- Aggressive/High tolerance: 1-3 stocks (concentrated high-conviction bets)
+- Moderate tolerance: 3-5 stocks (balanced portfolio)
+- Conservative/Low tolerance or preservation objective: 5-8 stocks (maximum diversification)
+
+Allocations MUST sum EXACTLY to ${capital}. Keep reasoning to 1-2 short sentences per stock.
 
 Respond ONLY with a valid JSON array, no markdown, no backticks:
-[{"symbol": "STOCK_NAME", "allocation": 50000, "reasoning": "2-3 sentences."}]
+[{"symbol": "STOCK_NAME", "allocation": 50000, "reasoning": "1-2 sentences."}]
     `;
 
     const response = await ai.models.generateContent({
