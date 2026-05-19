@@ -12,7 +12,7 @@ export default function Market() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
-  const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '6M');
+  const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '3M');
   
   // AI Panel States
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
