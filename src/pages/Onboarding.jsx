@@ -2,15 +2,30 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 import { supabase } from '../lib/supabase';
+import { Wallet, TrendingUp, Shield } from 'lucide-react';
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
-  
+  const [step, setStep] = useState(1);
+
+  // Step 1: Financial Profile
+  const [monthlyIncome, setMonthlyIncome] = useState('');
+  const [monthlyExpenses, setMonthlyExpenses] = useState('');
+  const [totalSavings, setTotalSavings] = useState('');
+
+  // Step 2: Risk Profile
   const [horizon, setHorizon] = useState('long');
   const [tolerance, setTolerance] = useState('medium');
   const [objective, setObjective] = useState('growth');
+
+  // Calculate investable amount: savings + 6 months of surplus income
+  const income = Number(monthlyIncome) || 0;
+  const expenses = Number(monthlyExpenses) || 0;
+  const savings = Number(totalSavings) || 0;
+  const monthlySurplus = Math.max(0, income - expenses);
+  const investableAmount = Math.max(savings + (monthlySurplus * 6), 100000); // minimum ₹1 Lakh
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +36,10 @@ export default function Onboarding() {
         const { error } = await supabase
           .from('users')
           .update({
+            monthly_income: income,
+            monthly_expenses: expenses,
+            total_savings: savings,
+            virtual_balance: investableAmount,
             time_horizon: horizon,
             drawdown_tolerance: tolerance,
             primary_objective: objective
@@ -47,6 +66,7 @@ export default function Onboarding() {
         backgroundColor: selected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.02)',
         cursor: 'pointer',
         flex: 1,
+        minWidth: '200px',
         transition: 'all 0.2s',
       }}
     >
@@ -55,68 +75,167 @@ export default function Onboarding() {
     </div>
   );
 
+  const InputField = ({ label, value, onChange, placeholder, icon: Icon }) => (
+    <div style={{ marginBottom: '20px' }}>
+      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '0.95rem' }}>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '0 16px' }}>
+        {Icon && <Icon size={18} color="var(--text-muted)" />}
+        <span style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>₹</span>
+        <input 
+          type="number"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ flex: 1, padding: '14px 0', background: 'transparent', border: 'none', color: 'white', fontSize: '1.1rem', outline: 'none' }}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
       <div className="glass-panel" style={{ maxWidth: '800px', width: '100%', padding: '40px', borderRadius: '16px' }}>
-        <h1 style={{ marginBottom: '8px', textAlign: 'center' }}>Configure Your AI Profile</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '32px', textAlign: 'center' }}>
-          To provide highly accurate predictions, our AI needs to understand your exact financial constraints. Your starting portfolio is fixed at ₹10,00,000.
-        </p>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Time Horizon */}
-          <div>
-            <h3 style={{ marginBottom: '16px' }}>1. Time Horizon</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>How long do you plan to hold your investments before withdrawing?</p>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <OptionCard selected={horizon === 'short'} onClick={() => setHorizon('short')} title="Short-Term (< 1 Year)" desc="Highly liquid, short duration trades." />
-              <OptionCard selected={horizon === 'medium'} onClick={() => setHorizon('medium')} title="Medium-Term (1-5 Years)" desc="Looking for a balance of liquidity and growth." />
-              <OptionCard selected={horizon === 'long'} onClick={() => setHorizon('long')} title="Long-Term (5+ Years)" desc="Focus on compounding returns over decades." />
-            </div>
-          </div>
+        {/* Progress */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
+          <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'var(--accent-primary)' }} />
+          <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: step >= 2 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)' }} />
+        </div>
 
-          {/* Drawdown Tolerance */}
-          <div>
-            <h3 style={{ marginBottom: '16px' }}>2. Drawdown Tolerance</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>If the market crashes, how much of a temporary drop in portfolio value can you stomach before panicking?</p>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <OptionCard selected={tolerance === 'low'} onClick={() => setTolerance('low')} title="Low (< 10% Drop)" desc="I need my money safe from large volatile swings." />
-              <OptionCard selected={tolerance === 'medium'} onClick={() => setTolerance('medium')} title="Medium (~20% Drop)" desc="I can handle normal market corrections." />
-              <OptionCard selected={tolerance === 'high'} onClick={() => setTolerance('high')} title="High (40%+ Drop)" desc="I ignore the noise and focus on the destination." />
-            </div>
-          </div>
+        {step === 1 && (
+          <div className="animate-fade-in-up">
+            <h1 style={{ marginBottom: '8px', textAlign: 'center' }}>Your Financial Profile</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '32px', textAlign: 'center' }}>
+              We'll use this to calculate your investable capital and tailor AI recommendations to your actual financial situation.
+            </p>
 
-          {/* Primary Objective */}
-          <div>
-            <h3 style={{ marginBottom: '16px' }}>3. Primary Objective</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>What is the main driver behind your investment strategy?</p>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <OptionCard selected={objective === 'preservation'} onClick={() => setObjective('preservation')} title="Capital Preservation" desc="Protect my purchasing power against inflation." />
-              <OptionCard selected={objective === 'income'} onClick={() => setObjective('income')} title="Income Generation" desc="Focus on reliable dividend-paying mature companies." />
-              <OptionCard selected={objective === 'growth'} onClick={() => setObjective('growth')} title="Aggressive Growth" desc="Maximize total capital appreciation." />
-            </div>
-          </div>
+            <InputField 
+              label="Monthly Income (post-tax)" 
+              value={monthlyIncome} 
+              onChange={setMonthlyIncome} 
+              placeholder="e.g. 80000"
+              icon={Wallet}
+            />
+            <InputField 
+              label="Monthly Expenses (rent, bills, EMIs)" 
+              value={monthlyExpenses} 
+              onChange={setMonthlyExpenses} 
+              placeholder="e.g. 45000"
+              icon={Wallet}
+            />
+            <InputField 
+              label="Total Available Savings" 
+              value={totalSavings} 
+              onChange={setTotalSavings} 
+              placeholder="e.g. 300000"
+              icon={Wallet}
+            />
 
-          <button 
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '16px 24px',
-              background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontWeight: 'bold',
-              fontSize: '1.1rem',
-              marginTop: '16px',
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'Saving Profile...' : 'Start Time Machine'}
-          </button>
-        </form>
+            {/* Live Calculation */}
+            <div style={{ 
+              padding: '24px', borderRadius: '12px', marginBottom: '24px',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1))',
+              border: '1px solid rgba(16, 185, 129, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Monthly Surplus</span>
+                <span style={{ fontWeight: 'bold', color: monthlySurplus > 0 ? 'var(--success)' : 'var(--danger)' }}>
+                  ₹{monthlySurplus.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>6-Month Surplus Buffer</span>
+                <span style={{ fontWeight: 'bold' }}>₹{(monthlySurplus * 6).toLocaleString('en-IN')}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Your Virtual Capital</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--success)' }}>
+                  ₹{investableAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setStep(2)}
+              disabled={income <= 0}
+              style={{
+                width: '100%', padding: '16px',
+                background: income > 0 ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' : 'rgba(255,255,255,0.1)',
+                color: 'white', border: 'none', borderRadius: '8px', cursor: income > 0 ? 'pointer' : 'not-allowed',
+                fontWeight: 'bold', fontSize: '1.1rem', opacity: income > 0 ? 1 : 0.5
+              }}
+            >
+              Continue to Risk Profile →
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <form onSubmit={handleSubmit} className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h1 style={{ marginBottom: '8px' }}>Configure Your Risk Profile</h1>
+              <p style={{ color: 'var(--text-muted)' }}>
+                Your virtual capital: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{investableAmount.toLocaleString('en-IN')}</strong>
+              </p>
+            </div>
+
+            {/* Time Horizon */}
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>1. Investment Time Horizon</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>How long do you plan to hold your investments?</p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <OptionCard selected={horizon === 'short'} onClick={() => setHorizon('short')} title="Short-Term (< 1 Year)" desc="Quick trades, high liquidity focus." />
+                <OptionCard selected={horizon === 'medium'} onClick={() => setHorizon('medium')} title="Medium-Term (1-5 Years)" desc="Balance of liquidity and growth." />
+                <OptionCard selected={horizon === 'long'} onClick={() => setHorizon('long')} title="Long-Term (5+ Years)" desc="Compounding returns over decades." />
+              </div>
+            </div>
+
+            {/* Drawdown Tolerance */}
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>2. Risk Appetite</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>How much temporary loss can you tolerate?</p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <OptionCard selected={tolerance === 'low'} onClick={() => setTolerance('low')} title="Conservative (< 10%)" desc="Safety-first, minimal volatility." />
+                <OptionCard selected={tolerance === 'medium'} onClick={() => setTolerance('medium')} title="Moderate (~20%)" desc="Can handle normal corrections." />
+                <OptionCard selected={tolerance === 'high'} onClick={() => setTolerance('high')} title="Aggressive (40%+)" desc="High risk, high reward focus." />
+              </div>
+            </div>
+
+            {/* Primary Objective */}
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>3. Primary Objective</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}>What is your main investment goal?</p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <OptionCard selected={objective === 'preservation'} onClick={() => setObjective('preservation')} title="Capital Preservation" desc="Protect against inflation." />
+                <OptionCard selected={objective === 'income'} onClick={() => setObjective('income')} title="Income Generation" desc="Steady dividend income." />
+                <OptionCard selected={objective === 'growth'} onClick={() => setObjective('growth')} title="Aggressive Growth" desc="Maximize capital appreciation." />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                type="button"
+                onClick={() => setStep(1)}
+                style={{ flex: 1, padding: '16px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
+              >
+                ← Back
+              </button>
+              <button 
+                type="submit"
+                disabled={loading}
+                style={{
+                  flex: 2, padding: '16px',
+                  background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                  color: 'white', border: 'none', borderRadius: '8px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold', fontSize: '1.1rem', opacity: loading ? 0.7 : 1
+                }}
+              >
+                {loading ? 'Saving Profile...' : 'Start Time Machine 🚀'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
