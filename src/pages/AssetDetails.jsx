@@ -105,6 +105,7 @@ export default function AssetDetails() {
     const seenTimes = new Set();
     const chartData = assetData.history
       .filter(d => d.rawTimestamp >= cutoffTimestamp && d.rawTimestamp <= currentSimulatedDate)
+      .filter(d => d.open != null && d.high != null && d.low != null && d.close != null)
       .map(d => ({
         time: d.time,
         open: d.open,
@@ -304,7 +305,7 @@ export default function AssetDetails() {
                 const MS_PER_DAY = 24 * 60 * 60 * 1000;
                 const tfMap = { '1W': MS_PER_DAY * 7, '1M': MS_PER_DAY * 30, '3M': MS_PER_DAY * 90, '6M': MS_PER_DAY * 180, '1Y': MS_PER_DAY * 365, 'ALL': Infinity };
                 const cutoff = currentSimulatedDate - (tfMap[timeframe] || tfMap['3M']);
-                const count = assetData.history.filter(d => d.rawTimestamp >= cutoff && d.rawTimestamp <= currentSimulatedDate).length;
+                const count = assetData.history.filter(d => d.rawTimestamp >= cutoff && d.rawTimestamp <= currentSimulatedDate && d.close != null).length;
                 if (count < 2) {
                   return (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', color: 'var(--text-muted)', fontSize: '1.1rem', zIndex: 10 }}>
