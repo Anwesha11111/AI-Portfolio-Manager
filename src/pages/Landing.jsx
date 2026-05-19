@@ -58,9 +58,9 @@ export default function Landing() {
 
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <button onClick={() => navigate('/auth', { state: { isLogin: true } })} style={{
-            padding: '10px 20px', background: 'transparent', color: 'var(--text-muted)',
+            padding: '10px 20px', background: 'transparent', color: '#e2e8f0',
             border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: '0.95rem'
-          }} onMouseOver={(e) => e.target.style.color = 'white'} onMouseOut={(e) => e.target.style.color = 'var(--text-muted)'}>
+          }} onMouseOver={(e) => e.target.style.color = 'white'} onMouseOut={(e) => e.target.style.color = '#e2e8f0'}>
             Log In
           </button>
           
@@ -72,21 +72,13 @@ export default function Landing() {
             fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem',
             boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
           }}>
-            Get Started Free
+            Get Started
           </button>
         </div>
       </header>
 
       {/* Hero Section */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 20px 60px', position: 'relative', zIndex: 10 }}>
-        <div className="animate-fade-in-up" style={{
-          display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(59, 130, 246, 0.1)',
-          border: '1px solid rgba(59, 130, 246, 0.2)', padding: '6px 16px', borderRadius: '100px',
-          color: '#60a5fa', fontSize: '0.85rem', fontWeight: '600', marginBottom: '24px'
-        }}>
-          <ShieldCheck size={16} /> Powered by Google Gemini AI & Real Nifty 50 Data
-        </div>
-
         <h1 className="animate-fade-in-up delay-100 text-gradient" style={{ 
           fontSize: 'clamp(2.8rem, 7vw, 4.5rem)', fontWeight: '800', textAlign: 'center', 
           marginBottom: '24px', letterSpacing: '-0.04em', maxWidth: '900px', lineHeight: '1.1' 
@@ -96,7 +88,7 @@ export default function Landing() {
         </h1>
         
         <p className="animate-fade-in-up delay-200" style={{ 
-          fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: 'var(--text-muted)', textAlign: 'center', 
+          fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: '#e2e8f0', textAlign: 'center', 
           maxWidth: '700px', lineHeight: '1.7', marginBottom: '40px' 
         }}>
           Build your financial profile, receive AI-powered portfolio recommendations, 
@@ -171,9 +163,7 @@ export default function Landing() {
           <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '16px' }}>
             Ready to build your first portfolio?
           </h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '1.1rem' }}>
-            No credit card. No real money. Just pure learning.
-          </p>
+
           <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
             padding: '16px 40px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer',
@@ -181,14 +171,14 @@ export default function Landing() {
             boxShadow: '0 8px 30px rgba(59, 130, 246, 0.4)', transition: 'transform 0.2s'
           }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-            Create Free Account <ArrowRight size={20} />
+            Create Account <ArrowRight size={20} />
           </button>
         </div>
       </main>
 
       {/* Footer */}
       <footer style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem', position: 'relative', zIndex: 10, borderTop: '1px solid var(--border-color)' }}>
-        Built for Fidelity Hackathon 2025 • Powered by Gemini AI & Real Nifty 50 Data
+        Built for Fidelity Hackathon 2025
       </footer>
     </div>
   );
