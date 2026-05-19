@@ -38,38 +38,38 @@ export default function Landing() {
 
       {/* Top Navigation */}
       <header className="glass-panel" style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
-        padding: '16px clamp(16px, 4vw, 40px)', position: 'sticky', top: 0, zIndex: 50, borderTop: 'none', borderLeft: 'none', borderRight: 'none'
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '8px',
+        padding: '12px clamp(12px, 4vw, 40px)', position: 'sticky', top: 0, zIndex: 50, borderTop: 'none', borderLeft: 'none', borderRight: 'none', overflowX: 'hidden'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flexShrink: 1, minWidth: 0 }}>
           <div style={{
-            width: '36px', height: '36px',
+            width: '32px', height: '32px',
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             borderRadius: '10px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)'
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)', flexShrink: 0
           }}>
-            <TrendingUp size={20} color="white" />
+            <TrendingUp size={18} color="white" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0, letterSpacing: '-0.03em' }}>
+          <h2 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.4rem)', fontWeight: '800', margin: 0, letterSpacing: '-0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Portfolio<span className="text-gradient-accent">Sim</span>
           </h2>
         </div>
 
-        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'clamp(4px, 2vw, 16px)', alignItems: 'center', flexShrink: 0 }}>
           <button onClick={() => navigate('/auth', { state: { isLogin: true } })} style={{
-            padding: '8px clamp(8px, 2vw, 16px)', background: 'transparent', color: '#e2e8f0',
-            border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: '0.95rem', whiteSpace: 'nowrap'
+            padding: '8px clamp(6px, 2vw, 16px)', background: 'transparent', color: '#e2e8f0',
+            border: 'none', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s', fontSize: 'clamp(0.85rem, 3vw, 0.95rem)', whiteSpace: 'nowrap'
           }} onMouseOver={(e) => e.target.style.color = 'white'} onMouseOut={(e) => e.target.style.color = '#e2e8f0'}>
             Log In
           </button>
           
           <button onClick={() => navigate('/auth', { state: { isLogin: false } })} style={{
-            padding: '8px clamp(12px, 3vw, 24px)',
+            padding: '8px clamp(10px, 3vw, 24px)',
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white',
             border: 'none', borderRadius: '8px', cursor: 'pointer',
-            fontWeight: '600', transition: 'all 0.2s', fontSize: '0.95rem',
+            fontWeight: '600', transition: 'all 0.2s', fontSize: 'clamp(0.85rem, 3vw, 0.95rem)',
             boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)', whiteSpace: 'nowrap'
           }}>
             Get Started
