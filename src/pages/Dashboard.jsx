@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import useSimulationStore from '../store/useSimulationStore';
 import { getGradientForSymbol } from '../utils/assetMap';
@@ -11,9 +11,14 @@ export default function Dashboard() {
   const [holdings, setHoldings] = useState([]);
   const [marketData, setMarketData] = useState({});
 
+  const debounceRef = useRef(null);
+  const isFirstLoad = useRef(true);
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      if (isFirstLoad.current) setLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -39,9 +44,10 @@ export default function Dashboard() {
         console.error("Dashboard fetch error:", err);
       }
       setLoading(false);
-    };
+      isFirstLoad.current = false;
+    }, 500);
 
-    fetchDashboardData();
+    return () => clearTimeout(debounceRef.current);
   }, [currentSimulatedDate]);
 
   if (loading) {
