@@ -26,13 +26,16 @@ export default function Market() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/batch?date=${currentSimulatedDate}&timeframe=${timeframe}`);
         const data = await res.json();
-        
-        const formattedAssets = data.map(asset => ({
-          ...asset,
-          name: asset.symbol.replace(/_/g, ' '),
-        }));
-
-        setAssets(formattedAssets);
+        if (Array.isArray(data)) {
+          const formattedAssets = data.map(asset => ({
+            ...asset,
+            name: asset.symbol.replace(/_/g, ' '),
+          }));
+          setAssets(formattedAssets);
+        } else {
+          console.error("Backend returned non-array data:", data);
+          setAssets([]);
+        }
       } catch (err) {
         console.error("Failed to fetch market overview:", err);
       }
@@ -274,15 +277,19 @@ export default function Market() {
               <div className="animate-fade-in-up">
                 <h3 style={{ marginBottom: '16px' }}>Recommended Allocation (₹{aiAmount.toLocaleString()})</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {aiRecommendations.map((rec, i) => (
+                  {Array.isArray(aiRecommendations) ? aiRecommendations.map((rec, i) => (
                     <div key={i} style={{ padding: '16px', backgroundColor: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                         <strong style={{ fontSize: '1.1rem', color: '#c084fc' }}>{rec.symbol}</strong>
-                        <strong style={{ fontSize: '1.1rem' }}>₹{rec.allocation.toLocaleString()}</strong>
+                        <strong style={{ fontSize: '1.1rem' }}>₹{rec.allocation?.toLocaleString() || 0}</strong>
                       </div>
                       <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>{rec.reasoning}</p>
                     </div>
-                  ))}
+                  )) : (
+                    <div style={{ padding: '16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px' }}>
+                      {aiRecommendations.error || "Failed to generate valid recommendations."}
+                    </div>
+                  )}
                 </div>
                 <button 
                   onClick={() => setIsAiModalOpen(false)}
