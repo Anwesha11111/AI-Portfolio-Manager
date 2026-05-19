@@ -15,7 +15,7 @@ export default function Analysis() {
   useEffect(() => {
     const fetchProfileAndAnalysis = async () => {
       if (!user) return;
-      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).single();
+      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
       const { data: holdingsData } = await supabase.from('holdings').select('*').eq('user_id', user.id);
       
       setProfile(userData);

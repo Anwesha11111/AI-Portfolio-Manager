@@ -181,7 +181,7 @@ app.post('/api/ai/recommend', async (req, res) => {
       contents: prompt,
     });
 
-    let aiResultText = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+    let aiResultText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
     const aiPick = JSON.parse(aiResultText);
     
     res.json(aiPick);
@@ -217,7 +217,7 @@ app.post('/api/ai/analyze', async (req, res) => {
       contents: prompt,
     });
 
-    res.json({ analysis: response.text().trim() });
+    res.json({ analysis: response.text.trim() });
   } catch (error) {
     console.error('AI Analyze Error:', error);
     res.status(500).json({ error: 'Failed to generate analysis' });
