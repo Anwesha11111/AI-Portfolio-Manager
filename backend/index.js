@@ -253,6 +253,12 @@ INVESTOR PROFILE:
 - Drawdown Tolerance: ${profile.drawdown_tolerance || 'medium'} (${profile.drawdown_tolerance === 'low' ? 'risk-averse, wants stability' : profile.drawdown_tolerance === 'high' ? 'aggressive, comfortable with losses' : 'balanced approach'})
 - Primary Objective: ${profile.primary_objective || 'growth'} (${profile.primary_objective === 'income' ? 'wants steady dividend income' : profile.primary_objective === 'preservation' ? 'wants to protect capital above all' : 'wants maximum capital appreciation'})
 
+FINANCIAL SITUATION:
+- Monthly Income: ${profile.monthly_income || 'Unknown'}
+- Monthly Expenses: ${profile.monthly_expenses || 'Unknown'}
+- Monthly Surplus: ${(profile.monthly_income || 0) - (profile.monthly_expenses || 0)}
+- Total Savings: ${profile.total_savings || 'Unknown'}
+
 CURRENT PORTFOLIO STATE:
 - Cash Balance: ${balance}
 - Holdings: ${holdingsSummary}
