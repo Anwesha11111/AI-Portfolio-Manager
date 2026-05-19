@@ -14,7 +14,7 @@ create table public.users (
   id uuid primary key references auth.users(id),
   email text not null,
   virtual_balance numeric not null default 1000000.00,
-  current_simulated_date bigint not null default 978307200000, -- Default: Jan 1, 2001 in milliseconds
+  current_simulated_date bigint not null default 1104537600000, -- Default: Jan 1, 2005 in milliseconds
   time_horizon text default 'long', -- 'short', 'medium', 'long'
   drawdown_tolerance text default 'medium', -- 'low', 'medium', 'high'
   primary_objective text default 'growth', -- 'income', 'growth', 'preservation'

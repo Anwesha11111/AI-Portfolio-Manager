@@ -136,8 +136,10 @@ app.post('/api/ai/recommend', async (req, res) => {
     marketAnalysis.sort((a, b) => b.algorithmicScore - a.algorithmicScore);
     const topCandidates = marketAnalysis.slice(0, 15);
 
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+
     // 2. Feed into Gemini
-    if (!process.env.GEMINI_API_KEY) {
+    if (!apiKey) {
       const topPick = topCandidates[0];
       return res.json([
         {
@@ -148,7 +150,7 @@ app.post('/api/ai/recommend', async (req, res) => {
       ]);
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     const prompt = `
       Act as a world-class financial advisor in the year ${new Date(simDateTimestamp).getFullYear()}. 
       I am an investor with a ${timeHorizon} time horizon, a ${drawdownTolerance} drawdown tolerance, and my primary objective is ${primaryObjective}.
@@ -195,11 +197,12 @@ app.post('/api/ai/analyze', async (req, res) => {
   const { holdings, balance, profile } = req.body;
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+    if (!apiKey) {
       return res.json({ analysis: "(Fallback Mode) Because there is no Gemini API key configured, I cannot perform a deep analysis. However, ensure you maintain diversification across sectors." });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     const prompt = `
       Act as a world-class financial advisor. Here is my current portfolio:
       Cash Balance: ₹${balance}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-// 2001-01-01 in timestamp
-const START_DATE = new Date('2001-01-01').getTime();
+// 2005-01-01 in timestamp
+const START_DATE = new Date('2005-01-01').getTime();
 
 const useSimulationStore = create((set, get) => ({
   // Core Time Engine
