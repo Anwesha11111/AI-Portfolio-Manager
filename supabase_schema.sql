@@ -15,6 +15,9 @@ create table public.users (
   email text not null,
   virtual_balance numeric not null default 1000000.00,
   current_simulated_date bigint not null default 1104537600000, -- Default: Jan 1, 2005 in milliseconds
+  monthly_income numeric default 0,
+  monthly_expenses numeric default 0,
+  total_savings numeric default 0,
   time_horizon text default 'long', -- 'short', 'medium', 'long'
   drawdown_tolerance text default 'medium', -- 'low', 'medium', 'high'
   primary_objective text default 'growth', -- 'income', 'growth', 'preservation'
@@ -56,6 +59,7 @@ create policy "Users can update their own profile." on users for update using (a
 create policy "Users can view their own holdings." on holdings for select using (auth.uid() = user_id);
 create policy "Users can insert their own holdings." on holdings for insert with check (auth.uid() = user_id);
 create policy "Users can update their own holdings." on holdings for update using (auth.uid() = user_id);
+create policy "Users can delete their own holdings." on holdings for delete using (auth.uid() = user_id);
 
 create policy "Users can view their own transactions." on transactions for select using (auth.uid() = user_id);
 create policy "Users can insert their own transactions." on transactions for insert with check (auth.uid() = user_id);

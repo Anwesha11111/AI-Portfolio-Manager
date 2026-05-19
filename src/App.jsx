@@ -7,6 +7,7 @@ import Onboarding from './pages/Onboarding';
 import Market from './pages/Market';
 import AssetDetails from './pages/AssetDetails';
 import Analysis from './pages/Analysis';
+import Academy from './pages/Academy';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 
@@ -24,8 +25,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Placeholder for Academy
-const Academy = () => <div style={{padding: '2rem'}}><h1>Academy</h1><p>Learn the market mechanics here.</p></div>;
+
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
