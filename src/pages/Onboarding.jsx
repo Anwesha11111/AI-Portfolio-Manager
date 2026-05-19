@@ -139,7 +139,7 @@ export default function Onboarding() {
             <div style={{ textAlign: 'center' }}>
               <h1 style={{ marginBottom: '8px' }}>Configure Your Risk Profile</h1>
               <p style={{ color: 'var(--text-muted)' }}>
-                Your virtual capital: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{investableAmount.toLocaleString('en-IN')}</strong>
+                Your virtual capital: <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>₹{savings.toLocaleString('en-IN')}</strong>
               </p>
             </div>
 
