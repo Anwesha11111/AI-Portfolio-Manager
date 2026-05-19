@@ -151,29 +151,57 @@ app.post('/api/ai/recommend', async (req, res) => {
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
-    const prompt = `
-      Act as a world-class financial advisor in the year ${new Date(simDateTimestamp).getFullYear()}. 
-      I am an investor with a ${timeHorizon} time horizon, a ${drawdownTolerance} drawdown tolerance, and my primary objective is ${primaryObjective}.
-      I have ₹${capital.toLocaleString()} ready to deploy.
-      
-      Here is the algorithmic momentum and volatility data for the top 15 Indian stocks over the past 6 months:
-      ${JSON.stringify(topCandidates, null, 2)}
-      
-      Based on my profile constraints and this data, build a portfolio of 1 to 3 stocks from the list provided. Distribute the ₹${capital} among them appropriately (allocations must sum EXACTLY to ${capital}).
-      
-      Respond ONLY with a JSON array in this exact format, with no markdown formatting and no backticks:
-      [
-        {
-          "symbol": "TATA MOTORS",
-          "allocation": 50000,
-          "reasoning": "A 2-3 sentence explanation."
-        },
-        {
-          "symbol": "HDFC BANK",
-          "allocation": 50000,
-          "reasoning": "A 2-3 sentence explanation."
-        }
-      ]
+
+    // Build behavioral context based on user profile
+    const riskGuidance = {
+      low: 'The investor is RISK-AVERSE. You MUST spread the capital across 3 stocks from DIFFERENT sectors to maximize diversification. Avoid any stock with annualized volatility above 35%. Prefer stable blue-chip companies with consistent returns over high-growth speculative plays.',
+      medium: 'The investor has MODERATE risk tolerance. Spread the capital across 2-3 stocks. You may include one moderately volatile growth stock, but anchor the portfolio with at least one low-volatility blue-chip. Aim for a balanced risk-reward ratio.',
+      high: 'The investor is AGGRESSIVE and comfortable with high drawdowns. You may concentrate into 1-2 high-momentum stocks if their algorithmic scores justify it. Volatility is acceptable if the upside potential is strong.'
+    };
+
+    const horizonGuidance = {
+      short: 'The investor has a SHORT time horizon (under 1 year). Prioritize stocks with strong recent momentum (high 6-month returns) and lower volatility. Avoid turnaround plays or stocks that need time to recover.',
+      medium: 'The investor has a MEDIUM time horizon (1-3 years). Balance between momentum and fundamental stability. Some cyclical exposure is acceptable.',
+      long: 'The investor has a LONG time horizon (5+ years). You can include companies with strong long-term growth potential even if short-term volatility is higher. Compounding potential matters more than recent momentum.'
+    };
+
+    const objectiveGuidance = {
+      growth: 'The investor seeks CAPITAL GROWTH. Prioritize stocks with high momentum scores and strong return percentages. Dividend yield is not a priority.',
+      income: 'The investor seeks INCOME/STABILITY. Prioritize established companies known for dividend payments and stable price action. Avoid highly cyclical or speculative stocks.',
+      preservation: 'The investor seeks CAPITAL PRESERVATION. This is the most conservative objective. ONLY recommend the lowest-volatility stocks with positive returns. Spread widely across 3 stocks to minimize any single-stock risk.'
+    };
+
+    const prompt = `You are a world-class financial advisor operating in the simulated year ${new Date(simDateTimestamp).getFullYear()} in the Indian stock market (Nifty 50).
+
+INVESTOR PROFILE:
+- Time Horizon: ${timeHorizon}
+- Drawdown Tolerance: ${drawdownTolerance}
+- Primary Objective: ${primaryObjective}
+- Capital to Deploy: ${capital}
+
+BEHAVIORAL RULES (YOU MUST FOLLOW THESE):
+${riskGuidance[drawdownTolerance] || riskGuidance.medium}
+${horizonGuidance[timeHorizon] || horizonGuidance.long}
+${objectiveGuidance[primaryObjective] || objectiveGuidance.growth}
+
+MARKET DATA (Top 15 stocks by algorithmic risk-adjusted score):
+Each entry has: symbol, sixMonthReturn (%), annualizedVolatility (%), algorithmicScore (return/volatility).
+${JSON.stringify(topCandidates, null, 2)}
+
+SECTOR CONTEXT (use for diversification):
+Banking/Finance: HDFC_BANK, ICICI_BANK, KOTAK_BANK, AXIS_BANK, SBI, BAJAJ_FINANCE, BAJAJ_FINSERV, HDFC_LIFE, SBI_LIFE
+IT: INFOSYS, TCS, WIPRO, TECH_MAHINDRA, HCL_TECH
+Automobile: TATA_MOTORS, MARUTI, MAHINDRA, BAJAJ_AUTO, EICHER_MOTORS, HERO_MOTO
+Pharma: CIPLA, DIVIS_LABS, DRREDDYS, APOLLO_HOSPITALS, SUN_PHARMA
+Consumer: HINDUSTAN_UNILEVER, ITC, ASIAN_PAINTS, TITAN, NESTLE, BRITANNIA
+Energy/Industrial: RELIANCE, NTPC, POWERGRID, ONGC, ADANI_PORTS, COAL_INDIA, ULTRATECH, JSW_STEEL, TATA_STEEL, GRASIM, HINDALCO
+
+Do NOT pick two stocks from the same sector if drawdown tolerance is low or objective is preservation.
+
+Build a portfolio of 1 to 3 stocks. Allocations MUST sum EXACTLY to ${capital}. In reasoning, explain WHY each stock fits the investor profile.
+
+Respond ONLY with a valid JSON array, no markdown, no backticks:
+[{"symbol": "STOCK_NAME", "allocation": 50000, "reasoning": "2-3 sentences."}]
     `;
 
     const response = await ai.models.generateContent({
@@ -203,13 +231,30 @@ app.post('/api/ai/analyze', async (req, res) => {
     }
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
-    const prompt = `
-      Act as a world-class financial advisor. Here is my current portfolio:
-      Cash Balance: ₹${balance}
-      Active Holdings: ${JSON.stringify(holdings)}
-      My Profile Constraints: Time Horizon: ${profile.time_horizon}, Drawdown Tolerance: ${profile.drawdown_tolerance}, Objective: ${profile.primary_objective}.
-      
-      Provide a 1-paragraph summary evaluating my diversification, market exposure, and whether my portfolio aligns with my risk tolerance and objective. Do not use markdown or bullet points. Just one cohesive paragraph of text.
+
+    const holdingsSummary = holdings.length > 0 
+      ? holdings.map(h => `${h.symbol}: ${h.quantity} shares @ avg cost ${h.average_buy_price}`).join(', ')
+      : 'No stocks held, 100% cash position.';
+
+    const prompt = `You are a world-class financial advisor performing a portfolio health check.
+
+INVESTOR PROFILE:
+- Time Horizon: ${profile.time_horizon || 'long'} (${profile.time_horizon === 'short' ? 'under 1 year' : profile.time_horizon === 'medium' ? '1-3 years' : '5+ years'})
+- Drawdown Tolerance: ${profile.drawdown_tolerance || 'medium'} (${profile.drawdown_tolerance === 'low' ? 'risk-averse, wants stability' : profile.drawdown_tolerance === 'high' ? 'aggressive, comfortable with losses' : 'balanced approach'})
+- Primary Objective: ${profile.primary_objective || 'growth'} (${profile.primary_objective === 'income' ? 'wants steady dividend income' : profile.primary_objective === 'preservation' ? 'wants to protect capital above all' : 'wants maximum capital appreciation'})
+
+CURRENT PORTFOLIO STATE:
+- Cash Balance: ${balance}
+- Holdings: ${holdingsSummary}
+
+Provide a 1-paragraph (4-6 sentences) health assessment. Specifically address:
+1. Is the portfolio sufficiently diversified for this investor risk tolerance?
+2. Is there too much concentration in one sector or stock?
+3. Is the cash allocation appropriate (too much idle cash = missed opportunity, too little = no buffer)?
+4. Does the portfolio align with their stated objective and time horizon?
+5. One actionable suggestion for improvement.
+
+Do NOT use markdown, bullet points, or headers. Write one cohesive, professional paragraph.
     `;
 
     const response = await ai.models.generateContent({
