@@ -33,8 +33,7 @@ export default function Dashboard() {
         setHoldings(holdingsData || []);
 
         // Fetch Market Prices to calculate P&L
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/batch?date=${currentSimulatedDate}&timeframe=1M`);
-        const marketJson = await res.json();
+        const marketJson = await useSimulationStore.getState().fetchMarketData('1M');
         
         if (Array.isArray(marketJson)) {
           const mData = {};

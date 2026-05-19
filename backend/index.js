@@ -12,15 +12,29 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 const DATA_DIR = path.join(__dirname, 'data');
 
+// In-Memory Cache for all historical stock data
+let stockDataCache = {};
+
+function initializeCache() {
+  if (!fs.existsSync(DATA_DIR)) return;
+  const files = fs.readdirSync(DATA_DIR);
+  for (const file of files) {
+    if (file.endsWith('.json') && file !== 'NIFTY_50_STOCKS.json') {
+      const symbol = file.split('.')[0];
+      try {
+        const rawData = fs.readFileSync(path.join(DATA_DIR, file), 'utf8');
+        stockDataCache[symbol] = JSON.parse(rawData);
+      } catch (err) {
+        console.error(`Failed to load ${file} into cache:`, err);
+      }
+    }
+  }
+  console.log(`Cache initialized with ${Object.keys(stockDataCache).length} assets.`);
+}
+
 // Discover all available symbols
 app.get('/api/market', (req, res) => {
-  if (!fs.existsSync(DATA_DIR)) {
-    return res.json({ assets: [] });
-  }
-  
-  const files = fs.readdirSync(DATA_DIR);
-  const symbols = files.map(f => f.split('.')[0]);
-  res.json({ assets: symbols });
+  res.json({ assets: Object.keys(stockDataCache) });
 });
 
 // Batch Endpoint (already exists here)
@@ -47,14 +61,10 @@ app.get('/api/market/batch', (req, res) => {
   const timeframeMs = tfMap[timeframe] || tfMap['2M'];
 
   try {
-    const files = fs.readdirSync(DATA_DIR);
-    const validFiles = files.filter(f => f.endsWith('.json') && f !== 'NIFTY_50_STOCKS.json');
+    const validSymbols = Object.keys(stockDataCache);
     
-    const batchData = validFiles.map(file => {
-      const symbol = file.split('.')[0];
-      const filePath = path.join(DATA_DIR, file);
-      const rawData = fs.readFileSync(filePath, 'utf8');
-      const fullData = JSON.parse(rawData);
+    const batchData = validSymbols.map(symbol => {
+      const fullData = stockDataCache[symbol];
 
       const visibleData = fullData.filter(candle => candle.rawTimestamp <= simDateTimestamp);
       const currentPrice = visibleData.length > 0 ? visibleData[visibleData.length - 1].close : 0;
@@ -99,16 +109,14 @@ app.post('/api/ai/recommend', async (req, res) => {
 
   try {
     // 1. Gather algorithmic logic
-    const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json') && f !== 'NIFTY_50_STOCKS.json');
+    const symbols = Object.keys(stockDataCache);
     const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
     const sixMonthsAgo = simDateTimestamp - SIX_MONTHS_MS;
 
     let marketAnalysis = [];
 
-    for (const file of files) {
-      const symbol = file.split('.')[0];
-      const rawData = fs.readFileSync(path.join(DATA_DIR, file), 'utf8');
-      const fullData = JSON.parse(rawData);
+    for (const symbol of symbols) {
+      const fullData = stockDataCache[symbol];
       
       const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp && c.rawTimestamp >= sixMonthsAgo);
       if (visibleData.length < 30) continue;
@@ -329,24 +337,29 @@ app.get('/api/market/:symbol', (req, res) => {
   const simDateTimestamp = parseInt(req.query.date);
 
   if (!simDateTimestamp) {
-    return res.status(400).json({ error: 'Missing simulation date timestamp (?date=xxx)' });
-  }
-
-  const filePath = path.join(DATA_DIR, `${symbol.toUpperCase()}.json`);
-  
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: `Data for symbol ${symbol} not found.` });
+    return res.status(400).json({ error: 'Missing simulation date timestamp' });
   }
 
   try {
-    const rawData = fs.readFileSync(filePath, 'utf8');
-    const fullData = JSON.parse(rawData);
+    const fullData = stockDataCache[symbol.toUpperCase()];
+    if (!fullData) {
+      return res.status(404).json({ error: 'Asset data not found' });
+    }
 
-    // Filter data to only include dates <= the simulation date (NO PEEKING AT THE FUTURE!)
     const visibleData = fullData.filter(candle => candle.rawTimestamp <= simDateTimestamp);
+    
+    if (visibleData.length === 0) {
+      return res.json({
+        symbol: symbol.toUpperCase(),
+        currentSimulatedDate: simDateTimestamp,
+        currentPrice: 0,
+        twoMonthChangePct: 0,
+        dataLength: 0,
+        history: []
+      });
+    }
 
-    // Get current asset stats
-    const currentPrice = visibleData.length > 0 ? visibleData[visibleData.length - 1].close : 0;
+    const currentPrice = visibleData[visibleData.length - 1].close;
     
     // Find price from exactly 2 simulated months ago (approx 60 days = 60 * 24 * 60 * 60 * 1000 = 5,184,000,000 ms)
     const TWO_MONTHS_MS = 5184000000;
@@ -379,6 +392,7 @@ app.get('/api/market/:symbol', (req, res) => {
 
 // Discover all available symbols is moved above.
 
+initializeCache();
 app.listen(PORT, () => {
   console.log(`PortfolioSim Backend is running on port ${PORT}`);
   console.log(`Time Machine API ready. No futures allowed.`);

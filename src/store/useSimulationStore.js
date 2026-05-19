@@ -56,6 +56,32 @@ const useSimulationStore = create((set, get) => ({
       console.error('Failed to save date:', err);
     }
   },
+  // Market Data Cache to prevent duplicate requests
+  marketDataCache: {},
+  fetchMarketData: async (timeframe = '1M') => {
+    const simDate = get().currentSimulatedDate;
+    const cacheKey = `${simDate}-${timeframe}`;
+    
+    // Return cached data if available for this specific date and timeframe
+    if (get().marketDataCache[cacheKey]) {
+      return get().marketDataCache[cacheKey];
+    }
+    
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/batch?date=${simDate}&timeframe=${timeframe}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        set((state) => ({
+          marketDataCache: { ...state.marketDataCache, [cacheKey]: data }
+        }));
+        return data;
+      }
+      return [];
+    } catch (err) {
+      console.error("Failed to fetch market data:", err);
+      return [];
+    }
+  },
 }));
 
 export default useSimulationStore;
