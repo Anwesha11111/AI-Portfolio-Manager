@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/useAuthStore';
 import useSimulationStore from '../store/useSimulationStore';
-import { BrainCircuit, ShieldCheck, AlertTriangle, Loader, Layers, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
+import { BrainCircuit, AlertTriangle, Loader, Layers, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getGradientForSymbol } from '../utils/assetMap';
 
@@ -10,19 +10,24 @@ export default function Analysis() {
   const { currentSimulatedDate } = useSimulationStore();
   const [profile, setProfile] = useState(null);
   const [holdings, setHoldings] = useState([]);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
   const [aiData, setAiData] = useState(null);
-  const [loading, setLoading] = useState(true);
 
+  // Step 1: Load user data immediately
   useEffect(() => {
-    const fetchProfileAndAnalysis = async () => {
+    const fetchUserData = async () => {
       if (!user) return;
       const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
       const { data: holdingsData } = await supabase.from('holdings').select('*').eq('user_id', user.id);
       
       setProfile(userData);
       setHoldings(holdingsData || []);
+      setPageLoading(false);
 
+      // Step 2: Fire AI analysis in background
       if (userData) {
+        setAiLoading(true);
         try {
           const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/analyze`, {
             method: 'POST',
@@ -30,7 +35,14 @@ export default function Analysis() {
             body: JSON.stringify({
               holdings: holdingsData || [],
               balance: userData.virtual_balance,
-              profile: userData
+              profile: {
+                time_horizon: userData.time_horizon,
+                drawdown_tolerance: userData.drawdown_tolerance,
+                primary_objective: userData.primary_objective,
+                monthly_income: userData.monthly_income,
+                monthly_expenses: userData.monthly_expenses,
+                total_savings: userData.total_savings,
+              }
             })
           });
           const result = await res.json();
@@ -38,14 +50,13 @@ export default function Analysis() {
         } catch (err) {
           console.error("AI Analysis failed:", err);
         }
+        setAiLoading(false);
       }
-      
-      setLoading(false);
     };
-    fetchProfileAndAnalysis();
+    fetchUserData();
   }, [user]);
 
-  if (loading) {
+  if (pageLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
   }
 
@@ -54,17 +65,16 @@ export default function Analysis() {
   const weaknesses = aiData?.weaknesses || [];
   const suggestion = aiData?.suggestion || '';
 
-  // Score color
   const getScoreColor = (s) => {
     if (s >= 75) return 'var(--success)';
     if (s >= 50) return '#f59e0b';
     return 'var(--danger)';
   };
   const scoreColor = getScoreColor(score);
-
-  // Score ring
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  const monthlySurplus = Math.max(0, (profile?.monthly_income || 0) - (profile?.monthly_expenses || 0));
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
@@ -72,7 +82,7 @@ export default function Analysis() {
         <BrainCircuit size={32} color="var(--accent-primary)" /> AI Portfolio Analysis
       </h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        AI-powered health check tailored to your financial goals and risk tolerance.
+        AI-powered health check tailored to your financial profile and risk tolerance.
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '32px' }}>
@@ -80,46 +90,49 @@ export default function Analysis() {
         {/* Portfolio Score */}
         <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <h3 style={{ marginBottom: '24px', fontSize: '1.1rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Portfolio Score</h3>
-          <div style={{ position: 'relative', width: '140px', height: '140px', marginBottom: '16px' }}>
-            <svg width="140" height="140" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-              <circle cx="60" cy="60" r="54" fill="none" stroke={scoreColor} strokeWidth="8" 
-                strokeLinecap="round"
-                strokeDasharray={circumference} 
-                strokeDashoffset={strokeDashoffset}
-                style={{ transition: 'stroke-dashoffset 1s ease' }}
-              />
-            </svg>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-              <span style={{ fontSize: '2.5rem', fontWeight: '800', color: scoreColor }}>{score}</span>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>/100</span>
+          
+          {aiLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '20px 0' }}>
+              <Loader size={48} className="spin" color="var(--accent-primary)" />
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Gemini AI is analyzing...</span>
             </div>
-          </div>
-          <span style={{ fontSize: '0.95rem', color: scoreColor, fontWeight: 'bold' }}>
-            {score >= 75 ? 'Healthy' : score >= 50 ? 'Needs Attention' : 'At Risk'}
-          </span>
+          ) : (
+            <>
+              <div style={{ position: 'relative', width: '140px', height: '140px', marginBottom: '16px' }}>
+                <svg width="140" height="140" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                  <circle cx="60" cy="60" r="54" fill="none" stroke={scoreColor} strokeWidth="8" 
+                    strokeLinecap="round"
+                    strokeDasharray={circumference} 
+                    strokeDashoffset={strokeDashoffset}
+                    style={{ transition: 'stroke-dashoffset 1s ease' }}
+                  />
+                </svg>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                  <span style={{ fontSize: '2.5rem', fontWeight: '800', color: scoreColor }}>{score}</span>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>/100</span>
+                </div>
+              </div>
+              <span style={{ fontSize: '0.95rem', color: scoreColor, fontWeight: 'bold' }}>
+                {score >= 75 ? 'Healthy' : score >= 50 ? 'Needs Attention' : score > 0 ? 'At Risk' : 'Not Scored'}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Your Profile */}
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
-          <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>Your AI Profile</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Time Horizon</span>
-              <span style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{profile?.time_horizon || 'Long'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Drawdown Tolerance</span>
-              <span style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{profile?.drawdown_tolerance || 'Medium'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Primary Objective</span>
-              <span style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{profile?.primary_objective || 'Growth'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Virtual Balance</span>
-              <span style={{ fontWeight: 'bold' }}>₹{profile?.virtual_balance?.toLocaleString() || '0'}</span>
-            </div>
+          <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>Financial Profile</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ProfileRow label="Monthly Income" value={`₹${(profile?.monthly_income || 0).toLocaleString()}`} />
+            <ProfileRow label="Monthly Expenses" value={`₹${(profile?.monthly_expenses || 0).toLocaleString()}`} />
+            <ProfileRow label="Monthly Surplus" value={`₹${monthlySurplus.toLocaleString()}`} color={monthlySurplus > 0 ? 'var(--success)' : 'var(--danger)'} />
+            <ProfileRow label="Total Savings" value={`₹${(profile?.total_savings || 0).toLocaleString()}`} />
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '4px' }} />
+            <ProfileRow label="Time Horizon" value={profile?.time_horizon || 'Long'} />
+            <ProfileRow label="Risk Appetite" value={profile?.drawdown_tolerance || 'Medium'} />
+            <ProfileRow label="Objective" value={profile?.primary_objective || 'Growth'} />
+            <ProfileRow label="Virtual Balance" value={`₹${(profile?.virtual_balance || 0).toLocaleString()}`} bold />
           </div>
         </div>
 
@@ -127,35 +140,46 @@ export default function Analysis() {
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
           <h3 style={{ marginBottom: '16px' }}>AI Assessment</h3>
           
-          {strengths.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Strengths</span>
-              {strengths.map((s, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <CheckCircle size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{s}</span>
+          {aiLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '32px 0' }}>
+              <Loader size={32} className="spin" color="var(--accent-secondary)" />
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Evaluating your portfolio...</span>
+            </div>
+          ) : aiData ? (
+            <>
+              {strengths.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Strengths</span>
+                  {strengths.map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                      <CheckCircle size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{s}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {weaknesses.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Weaknesses</span>
-              {weaknesses.map((w, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <XCircle size={16} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{w}</span>
+              {weaknesses.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>Weaknesses</span>
+                  {weaknesses.map((w, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                      <XCircle size={16} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{w}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {suggestion && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-              <Lightbulb size={16} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{suggestion}</span>
-            </div>
+              {suggestion && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                  <Lightbulb size={16} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{suggestion}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Analysis unavailable. Try again later.</p>
           )}
         </div>
       </div>
@@ -170,7 +194,7 @@ export default function Analysis() {
           <h4 style={{ margin: '0 0 12px 0', fontSize: '1.2rem' }}>Active Holdings ({holdings.length})</h4>
           {holdings.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.6', fontSize: '1.05rem' }}>
-              Because you hold only cash, your portfolio is safe from immediate market volatility. However, inflation in the simulation (running from {new Date(currentSimulatedDate).getFullYear()}) will erode your purchasing power. Begin buying diversified assets to construct a risk-adjusted portfolio.
+              You hold only cash — safe from volatility but inflation will erode purchasing power over time. Begin buying diversified assets.
             </p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
@@ -180,8 +204,8 @@ export default function Analysis() {
                   background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid var(--border-color)',
                   transition: 'all 0.2s'
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
                 >
                   <div style={{
                     width: '32px', height: '32px', background: getGradientForSymbol(h.symbol), borderRadius: '6px', 
@@ -200,6 +224,15 @@ export default function Analysis() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ProfileRow({ label, value, color, bold }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{label}</span>
+      <span style={{ fontWeight: bold ? '800' : 'bold', textTransform: 'capitalize', color: color || 'var(--text-main)', fontSize: '0.9rem' }}>{value}</span>
     </div>
   );
 }
