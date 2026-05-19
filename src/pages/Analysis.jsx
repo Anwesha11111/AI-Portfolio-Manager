@@ -24,40 +24,40 @@ export default function Analysis() {
       setProfile(userData);
       setHoldings(holdingsData || []);
       setPageLoading(false);
-
-      // Step 2: Fire AI analysis in background
-      if (userData) {
-        setAiLoading(true);
-        try {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/analyze`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              holdings: holdingsData || [],
-              balance: userData.virtual_balance,
-              profile: {
-                time_horizon: userData.time_horizon,
-                drawdown_tolerance: userData.drawdown_tolerance,
-                primary_objective: userData.primary_objective,
-                monthly_income: userData.monthly_income,
-                monthly_expenses: userData.monthly_expenses,
-                total_savings: userData.total_savings,
-              }
-            })
-          });
-          const result = await res.json();
-          setAiData(result);
-        } catch (err) {
-          console.error("AI Analysis failed:", err);
-        }
-        setAiLoading(false);
-      }
     };
     fetchUserData();
   }, [user]);
 
+  const generateAnalysis = async () => {
+    if (!profile) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          holdings: holdings || [],
+          balance: profile.virtual_balance,
+          profile: {
+            time_horizon: profile.time_horizon,
+            drawdown_tolerance: profile.drawdown_tolerance,
+            primary_objective: profile.primary_objective,
+            monthly_income: profile.monthly_income,
+            monthly_expenses: profile.monthly_expenses,
+            total_savings: profile.total_savings,
+          }
+        })
+      });
+      const result = await res.json();
+      setAiData(result);
+    } catch (err) {
+      console.error("AI Analysis failed:", err);
+    }
+    setAiLoading(false);
+  };
+
   if (pageLoading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}><Loader size={48} className="spin" color="var(--accent-primary)" /></div>;
   }
 
   const score = aiData?.score || 0;
@@ -117,6 +117,16 @@ export default function Analysis() {
                 {score >= 75 ? 'Healthy' : score >= 50 ? 'Needs Attention' : score > 0 ? 'At Risk' : 'Not Scored'}
               </span>
             </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <BrainCircuit size={48} color="var(--text-muted)" style={{ marginBottom: '16px', opacity: 0.5 }} />
+              <button 
+                onClick={generateAnalysis}
+                style={{ padding: '12px 24px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)' }}
+              >
+                Generate AI Analysis
+              </button>
+            </div>
           )}
         </div>
 
@@ -179,7 +189,9 @@ export default function Analysis() {
               )}
             </>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Analysis unavailable. Try again later.</p>
+            <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <span>Click the <strong>Generate AI Analysis</strong> button above to let Gemini diagnose your portfolio's health, diversification, and growth potential.</span>
+            </div>
           )}
         </div>
       </div>
