@@ -84,47 +84,36 @@ export default function TourOverlay({ onEnd }) {
   const current = TOUR_STEPS[step];
   const tooltipRef = useRef(null);
 
-  const findAndHighlight = useCallback(() => {
-    // First pass: scroll element into view
-    const scrollTimer = setTimeout(() => {
-      const el = document.querySelector(current.target);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 300);
-
-    // Second pass: measure after scroll settles
-    const measureTimer = setTimeout(() => {
-      const el = document.querySelector(current.target);
-      if (el) {
-        const r = el.getBoundingClientRect();
-        setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-      } else {
-        setRect(null);
-      }
-      setTransitioning(false);
-    }, 700);
-
-    return () => { clearTimeout(scrollTimer); clearTimeout(measureTimer); };
+  const measureTarget = useCallback(() => {
+    const el = document.querySelector(current.target);
+    if (el) {
+      el.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+      // Read rect immediately after instant scroll
+      const r = el.getBoundingClientRect();
+      setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+    } else {
+      setRect(null);
+    }
+    setTransitioning(false);
   }, [current.target]);
 
   // Navigate and find target
   useEffect(() => {
-    if (current.route && location.pathname !== current.route) {
-      setTransitioning(true);
+    setTransitioning(true);
+    const needsNavigation = current.route && location.pathname !== current.route;
+    if (needsNavigation) {
       navigate(current.route);
     }
-    // Use a slight delay for navigation to complete
-    const cleanup = findAndHighlight();
-    return cleanup;
+    // Short delay for DOM to render after navigation, instant if same page
+    const timer = setTimeout(measureTarget, needsNavigation ? 250 : 50);
+    return () => clearTimeout(timer);
   }, [step]);
 
   // Recalculate on window resize
   useEffect(() => {
-    const handleResize = () => findAndHighlight();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [findAndHighlight]);
+    window.addEventListener('resize', measureTarget);
+    return () => window.removeEventListener('resize', measureTarget);
+  }, [measureTarget]);
 
   const handleNext = () => {
     if (step < TOUR_STEPS.length - 1) {
