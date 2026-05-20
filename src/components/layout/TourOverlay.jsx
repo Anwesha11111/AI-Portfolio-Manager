@@ -54,14 +54,14 @@ const TOUR_STEPS = [
   },
   {
     route: '/analysis',
-    target: '.page-container',
+    target: '#tour-analysis',
     title: 'AI Portfolio Analysis 🧠',
     description: 'Get an AI health check of your portfolio. It scores your diversification, identifies strengths and weaknesses, and gives personalized improvement suggestions based on your risk profile.',
     position: 'top'
   },
   {
     route: '/academy',
-    target: '.page-container',
+    target: '#tour-academy',
     title: 'Stock Market Academy 🎓',
     description: 'Learn investing fundamentals through interactive lessons — stocks, dividends, market crashes, diversification, and more. Your progress is saved automatically.',
     position: 'top'

@@ -77,12 +77,14 @@ export default function Analysis() {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-      <h2 style={{ marginBottom: '8px', fontSize: '2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <BrainCircuit size={32} color="var(--accent-primary)" /> AI Portfolio Analysis
-      </h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        AI-powered health check tailored to your financial profile and risk tolerance.
-      </p>
+      <div id="tour-analysis">
+        <h2 style={{ marginBottom: '8px', fontSize: '2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <BrainCircuit size={32} color="var(--accent-primary)" /> AI Portfolio Analysis
+        </h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
+          AI-powered health check tailored to your financial profile and risk tolerance.
+        </p>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         
