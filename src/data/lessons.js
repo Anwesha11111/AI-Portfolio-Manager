@@ -1,4 +1,4 @@
-import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
+import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown, ShieldCheck, Briefcase, Search } from 'lucide-react';
 
 export const LESSONS = [
   {
@@ -204,6 +204,75 @@ export const LESSONS = [
       Warren Buffett famously advises: *"Be fearful when others are greedy, and greedy when others are fearful."*
       
       A market crash is a wealth-transfer event. Weak, panicked investors sell their shares at dirt-cheap prices to disciplined, patient investors. If you hold strong companies that will survive the economic shock, the best strategy is often to hold firm, ignore the noise, and use your available capital to slowly accumulate more shares while they are cheap (a strategy known as Dollar-Cost Averaging).
+    `
+  };
+  {
+    id: 'indian-market-ecosystem',
+    icon: ShieldCheck,
+    title: 'The Indian Market: NIFTY & SEBI',
+    readTime: '6 min read',
+    content: `
+      ### Understanding the NIFTY 50
+      When financial news channels say "The market is up today," they are usually referring to a benchmark index. In India, the most tracked index is the **NIFTY 50** (National Stock Exchange Fifty). 
+      
+      The NIFTY 50 tracks the behavior of the 50 largest and most liquid Indian companies. It is a "market-capitalization weighted" index. This means a massive company like Reliance Industries has a much higher impact on the index's movement than a smaller company like Apollo Hospitals. If the top 5 companies in the NIFTY 50 are doing well, the entire index will likely be green, even if the bottom 20 companies are falling.
+
+      ### The Role of SEBI
+      The stock market involves trillions of rupees, which naturally attracts manipulation and fraud. The **Securities and Exchange Board of India (SEBI)** is the regulatory body tasked with protecting retail investors. 
+      
+      SEBI enforces strict rules against:
+      - **Insider Trading:** Buying or selling stock based on confidential company information before it is released to the public.
+      - **Price Rigging:** Groups of operators artificially inflating a stock's price to trap retail investors (often called "Pump and Dump" schemes).
+      
+      Before trusting any broker, portfolio manager, or research analyst, you must ensure they are SEBI-registered.
+
+      ### BSE SENSEX
+      While NIFTY represents the National Stock Exchange, the **SENSEX** (Sensitivity Index) represents the Bombay Stock Exchange (BSE). The SENSEX tracks the 30 largest companies. Because the top companies in both indices overlap significantly, NIFTY and SENSEX generally move in the exact same direction.
+    `
+  },
+  {
+    id: 'case-study-reliance-hdfc',
+    icon: Search,
+    title: 'Case Study: Reliance vs HDFC Bank',
+    readTime: '7 min read',
+    content: `
+      ### Analyzing the Giants
+      To understand how different businesses behave in a portfolio, let's look at two of the heaviest lifters in the Indian stock market: Reliance Industries and HDFC Bank.
+
+      ### Reliance Industries (The Growth Conglomerate)
+      Reliance is not just an oil refinery company anymore. It is a massive conglomerate heavily invested in retail (Reliance Retail) and telecom (Jio). 
+      
+      - **The Catalyst:** When Reliance launched Jio in 2016, it disrupted the entire telecom sector, absorbing massive upfront capital costs but eventually capturing hundreds of millions of users.
+      - **Stock Behavior:** Reliance often trades based on future growth expectations (like the expansion of Jio Financial Services or green energy). Its stock can remain stagnant for years while building infrastructure, followed by massive, rapid price breakouts when those investments start generating cash.
+
+      ### HDFC Bank (The Stable Compounder)
+      HDFC Bank operates in a completely different paradigm. As India's largest private sector bank, its business model revolves around borrowing money at low interest rates (from your savings accounts) and lending it out at higher rates (for home loans and credit cards).
+      
+      - **The Catalyst:** HDFC Bank's growth is directly tied to the growth of the Indian middle class and overall credit expansion in the country.
+      - **Stock Behavior:** Unlike tech startups or conglomerates, HDFC Bank is valued for its strict asset quality and consistent 15-20% annual profit growth. It is often viewed as a "defensive" stock. During market panics, investors flock to HDFC Bank because of its massive cash reserves and stable dividend payouts.
+
+      ### The Portfolio Lesson
+      Holding both in a portfolio provides balance. Reliance offers aggressive capital appreciation through sector disruption, while HDFC Bank acts as a resilient anchor that steadily compounds wealth regardless of global economic shocks.
+    `
+  },
+  {
+    id: 'passive-investing-etfs',
+    icon: Briefcase,
+    title: 'Passive Investing & ETFs',
+    readTime: '5 min read',
+    content: `
+      ### The Difficulty of Stock Picking
+      Actively picking individual stocks is notoriously difficult. Statistics show that over a 10-year period, a vast majority of professional mutual fund managers fail to beat the benchmark index (like the NIFTY 50). If highly paid professionals struggle to win consistently, retail investors face a massive uphill battle.
+
+      ### Enter the ETF
+      An **Exchange Traded Fund (ETF)** solves this problem. Instead of trying to find the needle in the haystack, an ETF allows you to simply buy the entire haystack. 
+      
+      When you buy a single unit of a NIFTY 50 ETF (such as Nippon India Nifty BeES or SBI Nifty ETF), your money is automatically distributed across the top 50 largest companies in India in the exact proportion of their market weight.
+
+      ### Why Indexing Wins
+      - **Self-Cleansing:** The index automatically kicks out failing companies (e.g., Yes Bank in 2020) and replaces them with growing ones. You never have to manually monitor and rebalance your portfolio.
+      - **Ultra-Low Cost:** Because ETFs are managed by algorithms rather than highly paid fund managers, the expense ratio is a fraction of a percent (often 0.05% vs 1.5% for active mutual funds).
+      - **Guaranteed Market Returns:** While you will never "beat" the market with an index fund, you are mathematically guaranteed to earn the market's return, which historically doubles your money every 5 to 7 years in growing economies.
     `
   }
 ];
