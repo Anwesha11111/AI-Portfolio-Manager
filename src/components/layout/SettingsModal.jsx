@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { X, Clock, Zap, BrainCircuit, Play, Pause } from 'lucide-react';
 import useSimulationStore from '../../store/useSimulationStore';
 
@@ -12,7 +13,40 @@ export default function SettingsModal({ onClose }) {
   });
 
   const dateObj = new Date(currentSimulatedDate);
-  const isoDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const yyyy = dateObj.getFullYear();
+  const displayDate = `${dd}/${mm}/${yyyy}`;
+
+  const [inputValue, setInputValue] = useState(displayDate);
+
+  useEffect(() => {
+    setInputValue(displayDate);
+  }, [displayDate]);
+
+  const handleDateChange = (e) => {
+    let val = e.target.value;
+    // Auto-add slashes for user convenience
+    if (val.length === 2 && !val.includes('/')) val += '/';
+    if (val.length === 5 && (val.match(/\//g) || []).length === 1) val += '/';
+    setInputValue(val);
+  };
+
+  const handleDateBlur = () => {
+    const parts = inputValue.split('/');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const y = parseInt(parts[2], 10);
+      if (d > 0 && d <= 31 && m > 0 && m <= 12 && y >= 2005 && y <= 2023) {
+        const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        setSimulatedDate(iso);
+        return;
+      }
+    }
+    // Revert if invalid
+    setInputValue(displayDate);
+  };
 
   return (
     <div style={{
@@ -62,14 +96,13 @@ export default function SettingsModal({ onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>Jump to Date</label>
               <input 
-                type="date" 
-                value={isoDate}
-                min="2005-01-01"
-                max="2023-12-31"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSimulatedDate(e.target.value);
-                  }
+                type="text" 
+                placeholder="DD/MM/YYYY"
+                value={inputValue}
+                onChange={handleDateChange}
+                onBlur={handleDateBlur}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleDateBlur();
                 }}
                 style={{
                   width: '100%',
