@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
-import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit } from 'lucide-react';
+import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search } from 'lucide-react';
 import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 
@@ -13,6 +13,7 @@ export default function Market() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
   const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '3M');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // AI Panel States
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
@@ -98,7 +99,12 @@ export default function Market() {
     setAiLoading(false);
   };
 
-  let sortedAssets = [...assets];
+  let filteredAssets = assets.filter(asset => 
+    asset.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    asset.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  let sortedAssets = [...filteredAssets];
   if (sortBy === 'gainers') sortedAssets.sort((a,b) => b.change - a.change);
   if (sortBy === 'losers') sortedAssets.sort((a,b) => a.change - b.change);
   if (sortBy === 'alpha-asc') sortedAssets.sort((a,b) => a.symbol.localeCompare(b.symbol));
@@ -169,7 +175,32 @@ export default function Market() {
           <p>Select a company to view detailed charts and execute trades.</p>
         </div>
         
-        <div className="controls-bar" id="tour-market-controls">
+        <div className="controls-bar" id="tour-market-controls" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          
+          {/* Search Bar */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: '150px' }}>
+            <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px' }} />
+            <input 
+              type="text" 
+              placeholder="Search assets..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '9px 16px 9px 36px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                background: 'transparent',
+                color: 'var(--text-main)',
+                fontSize: '0.875rem',
+                outline: 'none',
+                width: '100%',
+                transition: 'border-color 0.3s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+            />
+          </div>
+
           <button 
             onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
             style={{

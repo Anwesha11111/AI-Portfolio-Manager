@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Clock, Zap, Play, Pause, RotateCcw, Trash2, Compass } from 'lucide-react';
+import { X, Clock, Zap, Play, Pause, RotateCcw, Trash2, Compass, Palette } from 'lucide-react';
 import useSimulationStore from '../../store/useSimulationStore';
 import useAuthStore from '../../store/useAuthStore';
+import useThemeStore from '../../store/useThemeStore';
 import { supabase } from '../../lib/supabase';
 
 export default function SettingsModal({ onClose, onStartTour }) {
   const navigate = useNavigate();
   const { user, signOut } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
   const { 
     currentSimulatedDate, isRunning, simulationSpeedMs, 
     toggleSimulation, setSimulationSpeed, setSimulatedDate
@@ -113,8 +115,8 @@ export default function SettingsModal({ onClose, onStartTour }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
           }}
-          onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+          onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'var(--border-hover)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
         >
           <X size={16} />
         </button>
@@ -150,8 +152,8 @@ export default function SettingsModal({ onClose, onStartTour }) {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleDateBlur(); }}
                 style={{
                   width: '100%', padding: '12px', borderRadius: '10px',
-                  border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)',
-                  color: 'white', outline: 'none', colorScheme: 'dark',
+                  border: '1px solid var(--border-color)', background: 'transparent',
+                  color: 'var(--text-main)', outline: 'none', colorScheme: 'inherit',
                   fontFamily: 'inherit', fontSize: '0.9rem', transition: 'border-color 0.2s', boxSizing: 'border-box'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'rgba(79,142,247,0.5)'}
@@ -194,16 +196,50 @@ export default function SettingsModal({ onClose, onStartTour }) {
                   onClick={() => setSimulationSpeed(opt.speed)}
                   style={{ 
                     flex: 1, padding: '10px 4px', borderRadius: '8px', border: 'none', 
-                    backgroundColor: simulationSpeedMs === opt.speed ? 'rgba(255,255,255,0.1)' : 'transparent', 
-                    color: simulationSpeedMs === opt.speed ? 'white' : 'var(--text-muted)', 
+                    backgroundColor: simulationSpeedMs === opt.speed ? 'var(--border-hover)' : 'transparent', 
+                    color: simulationSpeedMs === opt.speed ? 'var(--text-main)' : 'var(--text-muted)', 
                     cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                     transition: 'all 0.2s'
                   }}
-                  onMouseOver={(e) => { if (simulationSpeedMs !== opt.speed) e.currentTarget.style.color = 'white'; }}
+                  onMouseOver={(e) => { if (simulationSpeedMs !== opt.speed) e.currentTarget.style.color = 'var(--text-main)'; }}
                   onMouseOut={(e) => { if (simulationSpeedMs !== opt.speed) e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >
                   <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{opt.label}</span>
                   <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{opt.sub}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Theme Selector */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+              App Theme
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[
+                { id: 'midnight', label: 'Midnight Purple' },
+                { id: 'wallstreet', label: 'Wall Street Classic' },
+                { id: 'oled', label: 'OLED Pitch Black' },
+                { id: 'cyberpunk', label: 'Neon Cyberpunk' },
+                { id: 'arctic', label: 'Arctic / Nord' }
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTheme(t.id)}
+                  style={{
+                    padding: '10px 12px', borderRadius: '8px', border: '1px solid',
+                    borderColor: theme === t.id ? 'var(--accent-primary)' : 'var(--border-color)',
+                    backgroundColor: theme === t.id ? 'var(--accent-glow)' : 'transparent',
+                    color: theme === t.id ? 'var(--accent-primary)' : 'var(--text-muted)',
+                    cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem', fontWeight: theme === t.id ? 'bold' : 'normal',
+                    transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px'
+                  }}
+                  onMouseOver={(e) => { if (theme !== t.id) e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+                  onMouseOut={(e) => { if (theme !== t.id) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                >
+                  <Palette size={14} style={{ color: theme === t.id ? 'var(--accent-primary)' : 'inherit' }} />
+                  {t.label}
                 </button>
               ))}
             </div>

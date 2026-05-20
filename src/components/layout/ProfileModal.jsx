@@ -132,7 +132,7 @@ export default function ProfileModal({ onClose }) {
               </select>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-              <button onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-color)', color: 'white', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleSave} style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', border: 'none', color: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Save Changes</button>
             </div>
           </div>
@@ -173,11 +173,11 @@ export default function ProfileModal({ onClose }) {
             <button 
               onClick={() => setIsEditing(true)}
               style={{
-                width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', color: 'white',
-                border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s'
+                width: '100%', padding: '12px', background: 'transparent', color: 'var(--text-main)',
+                border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s'
               }}
               onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
             >
               Edit Profile Settings
             </button>
@@ -211,7 +211,7 @@ const inputStyle = {
   background: 'rgba(255,255,255,0.05)',
   border: '1px solid var(--border-color)',
   borderRadius: '8px',
-  color: 'white',
+  color: 'var(--text-main)',
   outline: 'none',
   boxSizing: 'border-box'
 };

@@ -261,7 +261,7 @@ export default function AssetDetails() {
             <span style={{ display: getLogoUrl(symbol) ? 'none' : 'block' }}>{symbol[0]}</span>
           </div>
           <div>
-            <h2 className="text-gradient" style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em' }}>{symbol.replace(/_/g, ' ')}</h2>
+            <h2 style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>{symbol.replace(/_/g, ' ')}</h2>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Historical Data up to {new Date(currentSimulatedDate).toLocaleDateString('en-GB')}</span>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function AssetDetails() {
                 className="focus-ring"
                 style={{ 
                   width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.3)', 
-                  color: 'white', border: '1px solid var(--border-color)', fontSize: '1.5rem', fontWeight: 'bold',
+                  color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '1.5rem', fontWeight: 'bold',
                   textAlign: 'center', transition: 'all 0.2s', boxSizing: 'border-box'
                 }} 
               />
@@ -377,7 +377,7 @@ export default function AssetDetails() {
                 className="focus-ring"
                 style={{ 
                   width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.3)', 
-                  color: 'white', border: '1px solid var(--border-color)', fontSize: '1.2rem',
+                  color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '1.2rem',
                   textAlign: 'center', transition: 'all 0.2s', boxSizing: 'border-box'
                 }} 
               />

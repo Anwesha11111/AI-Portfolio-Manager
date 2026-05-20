@@ -192,7 +192,7 @@ export default function Layout() {
               width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+            onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
             onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
             title="Profile & Settings"
           >
@@ -207,7 +207,7 @@ export default function Layout() {
               width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+            onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
             onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
             title="Simulation Speed & Time Controls"
           >

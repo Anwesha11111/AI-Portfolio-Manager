@@ -67,7 +67,7 @@ export default function LessonView() {
       const parts = str.split(/(\*\*.*?\*\*)/g);
       return parts.map((part, j) => 
         part.startsWith('**') && part.endsWith('**') 
-          ? <strong key={j} style={{ color: 'white', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
+          ? <strong key={j} style={{ color: 'var(--text-main)', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
           : part
       );
     };
@@ -75,7 +75,7 @@ export default function LessonView() {
     const flushList = () => {
       if (currentList.length > 0) {
         elements.push(
-          <ul key={`ul-${elements.length}`} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+          <ul key={`ul-${elements.length}`} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {currentList.map((item, i) => (
               <li key={i} style={{ marginBottom: '12px' }}>{parseBold(item)}</li>
             ))}
@@ -91,7 +91,7 @@ export default function LessonView() {
       if (line.startsWith('### ')) {
         flushList();
         elements.push(
-          <h3 key={`h3-${idx}`} style={{ marginTop: '40px', marginBottom: '20px', color: 'white', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
+          <h3 key={`h3-${idx}`} style={{ marginTop: '40px', marginBottom: '20px', color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
             {line.replace('### ', '')}
           </h3>
         );
@@ -108,7 +108,7 @@ export default function LessonView() {
       } else {
         flushList();
         elements.push(
-          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {parseBold(line)}
           </p>
         );
@@ -125,7 +125,7 @@ export default function LessonView() {
       <button 
         onClick={() => navigate('/academy')}
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '32px', padding: 0, fontSize: '1rem', fontWeight: '600' }}
-        onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+        onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-main)'}
         onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
       >
         <ChevronLeft size={20} /> Back to Academy

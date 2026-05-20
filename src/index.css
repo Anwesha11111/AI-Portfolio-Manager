@@ -222,3 +222,105 @@ body {
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
 }
+
+/* =========================================
+   THEMES
+   ========================================= */
+
+/* Theme 1: Midnight Purple (Default is defined in :root, this is explicit if needed) */
+[data-theme="midnight"] {
+  --bg-dark: #000000;
+  --bg-card: rgba(10, 10, 20, 0.8);
+  --bg-card-hover: rgba(18, 18, 35, 0.95);
+  --text-main: #e8eaf6;
+  --text-muted: #8892aa;
+  --text-subtle: #52607a;
+  --accent-primary: #4f8ef7;
+  --accent-secondary: #9d6ff5;
+  --accent-tertiary: #34d399;
+  --accent-glow: rgba(79, 142, 247, 0.35);
+  --accent-glow-purple: rgba(157, 111, 245, 0.3);
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(255, 255, 255, 0.15);
+}
+
+/* Theme 2: Wall Street Classic (Light) */
+[data-theme="wallstreet"] {
+  --bg-dark: #f0f2f5;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --accent-primary: #2563eb;
+  --accent-secondary: #0f172a;
+  --accent-tertiary: #059669;
+  --accent-glow: rgba(37, 99, 235, 0.2);
+  --accent-glow-purple: rgba(15, 23, 42, 0.2);
+  --success: #16a34a;
+  --success-glow: rgba(22, 163, 74, 0.2);
+  --danger: #dc2626;
+  --danger-glow: rgba(220, 38, 38, 0.2);
+  --warning: #d97706;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-hover: rgba(0, 0, 0, 0.2);
+}
+
+/* Theme 3: OLED Pitch Black */
+[data-theme="oled"] {
+  --bg-dark: #000000;
+  --bg-card: rgba(0, 0, 0, 0.95);
+  --bg-card-hover: rgba(20, 20, 20, 1);
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
+  --text-subtle: #52525b;
+  --accent-primary: #ffffff;
+  --accent-secondary: #d4d4d8;
+  --accent-tertiary: #34d399;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(255, 255, 255, 0.3);
+}
+
+/* Theme 4: Neon Cyberpunk */
+[data-theme="cyberpunk"] {
+  --bg-dark: #09090b;
+  --bg-card: rgba(16, 16, 20, 0.9);
+  --bg-card-hover: rgba(24, 24, 32, 1);
+  --text-main: #e0f2fe;
+  --text-muted: #bae6fd;
+  --text-subtle: #7dd3fc;
+  --accent-primary: #06b6d4;
+  --accent-secondary: #db2777;
+  --accent-tertiary: #84cc16;
+  --accent-glow: rgba(6, 182, 212, 0.4);
+  --accent-glow-purple: rgba(219, 39, 119, 0.4);
+  --success: #39ff14;
+  --success-glow: rgba(57, 255, 20, 0.3);
+  --danger: #ff003c;
+  --danger-glow: rgba(255, 0, 60, 0.3);
+  --warning: #facc15;
+  --border-color: rgba(6, 182, 212, 0.2);
+  --border-hover: rgba(219, 39, 119, 0.4);
+}
+
+/* Theme 5: Arctic / Nord */
+[data-theme="arctic"] {
+  --bg-dark: #2e3440;
+  --bg-card: rgba(59, 66, 82, 0.8);
+  --bg-card-hover: rgba(67, 76, 94, 0.95);
+  --text-main: #eceff4;
+  --text-muted: #d8dee9;
+  --text-subtle: #4c566a;
+  --accent-primary: #88c0d0;
+  --accent-secondary: #81a1c1;
+  --accent-tertiary: #a3be8c;
+  --accent-glow: rgba(136, 192, 208, 0.3);
+  --accent-glow-purple: rgba(129, 161, 193, 0.3);
+  --success: #a3be8c;
+  --success-glow: rgba(163, 190, 140, 0.25);
+  --danger: #bf616a;
+  --danger-glow: rgba(191, 97, 106, 0.25);
+  --warning: #ebcb8b;
+  --border-color: rgba(216, 222, 233, 0.1);
+  --border-hover: rgba(216, 222, 233, 0.25);
+}

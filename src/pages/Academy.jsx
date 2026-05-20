@@ -109,7 +109,7 @@ export default function Academy() {
                     {lesson.readTime}
                   </span>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: isCompleted ? 'var(--text-main)' : '#e2e8f0' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>
                   {lesson.title}
                 </h3>
               </div>
