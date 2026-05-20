@@ -72,7 +72,7 @@ export default function Dashboard() {
         <p>Track your simulated investments and capital</p>
       </div>
       
-      <div className="metric-grid">
+      <div className="metric-grid" id="tour-metrics">
         {/* Net Worth */}
         <div className="glass-panel stat-card stat-card-blue">
           <div className="stat-card-label">

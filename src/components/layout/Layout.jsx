@@ -163,12 +163,12 @@ export default function Layout() {
     <div className={styles.layout}>
       {/* Top Navbar */}
       <nav className={styles.navbar}>
-        <div className={styles.logo}>
+        <div className={styles.logo} id="tour-logo">
           <div className={styles.logoIcon}>TW</div>
           <h2>Trade<span className={styles.accent}>Wise</span></h2>
         </div>
         
-        <div className={styles.navLinks}>
+        <div className={styles.navLinks} id="tour-nav">
           <NavLink to="/dashboard" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
             <Briefcase size={18} /> Portfolio
           </NavLink>
@@ -185,6 +185,7 @@ export default function Layout() {
 
         <div className={styles.navRight} style={{ display: 'flex', gap: '12px' }}>
           <button 
+            id="tour-profile"
             onClick={() => setIsProfileOpen(true)}
             style={{
               background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%',
@@ -199,6 +200,7 @@ export default function Layout() {
           </button>
 
           <button 
+            id="tour-settings"
             onClick={() => setIsSettingsOpen(true)}
             style={{
               background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '50%',
