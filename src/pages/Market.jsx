@@ -161,64 +161,52 @@ export default function Market() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', position: 'relative' }}>
+    <div className="page-container" style={{ position: 'relative' }}>
       
       {/* Header Area */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h2 style={{ marginBottom: '8px', fontSize: '2rem', fontWeight: '800' }}>Market Discovery</h2>
-          <p style={{ color: 'var(--text-muted)' }}>
-            Select a company to view detailed historical charts and execute trades.
-          </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h2>Market Discovery</h2>
+          <p>Select a company to view detailed charts and execute trades.</p>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="controls-bar">
           <button 
             onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
-            className="glass-panel"
             style={{
-              background: isAiPanelOpen ? 'rgba(139, 92, 246, 0.4)' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))',
-              border: '1px solid rgba(139, 92, 246, 0.4)',
-              color: 'white', padding: '10px 20px', borderRadius: '8px',
+              background: isAiPanelOpen ? 'rgba(157,111,245,0.35)' : 'linear-gradient(135deg, rgba(157,111,245,0.2), rgba(79,142,247,0.2))',
+              border: '1px solid rgba(157,111,245,0.4)',
+              color: 'white', padding: '9px 16px', borderRadius: '8px',
               display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-              fontWeight: 'bold', transition: 'all 0.3s', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)'
+              fontWeight: '600', fontSize: '0.875rem', transition: 'all 0.3s',
+              boxShadow: '0 0 12px rgba(157,111,245,0.2)', whiteSpace: 'nowrap'
             }}
-            onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 25px rgba(139, 92, 246, 0.6)'}
-            onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'}
+            onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 20px rgba(157,111,245,0.5)'}
+            onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 0 12px rgba(157,111,245,0.2)'}
           >
-            <Sparkles size={18} color={isAiPanelOpen ? "#fff" : "#c084fc"} />
-            {isAiPanelOpen ? "Close AI Architect" : "AI Portfolio Architect"}
+            <Sparkles size={16} color={isAiPanelOpen ? '#fff' : '#c084fc'} />
+            {isAiPanelOpen ? 'Close AI' : 'AI Architect'}
           </button>
 
           <select 
             value={timeframe} 
             onChange={(e) => { setTimeframe(e.target.value); localStorage.setItem('market_timeframe', e.target.value); }}
-            className="glass-panel"
-            style={{
-              padding: '10px 16px', borderRadius: '8px', color: 'white', border: '1px solid var(--border-color)',
-              background: 'rgba(0,0,0,0.5)', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
-            }}
           >
-            <option value="1W">Change: 1 Week</option>
-            <option value="1M">Change: 1 Month</option>
-            <option value="3M">Change: 3 Months</option>
-            <option value="6M">Change: 6 Months</option>
-            <option value="1Y">Change: 1 Year</option>
+            <option value="1W">1 Week</option>
+            <option value="1M">1 Month</option>
+            <option value="3M">3 Months</option>
+            <option value="6M">6 Months</option>
+            <option value="1Y">1 Year</option>
           </select>
 
           <select 
             value={sortBy} 
             onChange={(e) => { setSortBy(e.target.value); localStorage.setItem('market_sortBy', e.target.value); }}
-            className="glass-panel"
-            style={{
-              padding: '10px 16px', borderRadius: '8px', color: 'white', border: '1px solid var(--border-color)',
-              background: 'rgba(0,0,0,0.5)', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
-            }}
           >
-            <option value="gainers">Sort: Top Gainers</option>
-            <option value="losers">Sort: Top Losers</option>
-            <option value="alpha-asc">Sort: A-Z</option>
-            <option value="alpha-desc">Sort: Z-A</option>
+            <option value="gainers">Top Gainers</option>
+            <option value="losers">Top Losers</option>
+            <option value="alpha-asc">A → Z</option>
+            <option value="alpha-desc">Z → A</option>
           </select>
         </div>
       </div>
@@ -332,58 +320,47 @@ export default function Market() {
             <div 
               key={asset.symbol}
               onClick={() => navigate(`/market/${encodeURIComponent(asset.symbol)}`)}
-              className="glass-panel"
-              style={{
-                borderRadius: '12px', padding: '16px 24px', cursor: 'pointer', transition: 'all 0.2s ease',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap'
-              }}
+              className="glass-panel asset-row"
+              style={{ justifyContent: 'space-between' }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateX(5px)';
-                e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(79,142,247,0.3)';
+                e.currentTarget.style.background = 'var(--bg-card-hover)';
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
                 e.currentTarget.style.borderColor = 'var(--border-color)';
                 e.currentTarget.style.background = 'var(--bg-card)';
               }}
             >
               {/* Left: Logo & Name */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 250px' }}>
-                <div style={{
-                  width: '42px', height: '42px',
-                  background: getGradientForSymbol(asset.symbol),
-                  borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 'bold', fontSize: '1.2rem', color: 'white',
-                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)', flexShrink: 0, overflow: 'hidden'
-                }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 200px', minWidth: 0 }}>
+                <div className="asset-logo" style={{ background: getGradientForSymbol(asset.symbol) }}>
                   {getLogoUrl(asset.symbol) ? (
-                      <img src={getLogoUrl(asset.symbol)} alt={asset.symbol} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'white', padding: '2px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                      <img src={getLogoUrl(asset.symbol)} alt={asset.symbol} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
                   ) : null}
                   <span style={{ display: getLogoUrl(asset.symbol) ? 'none' : 'block' }}>{asset.symbol[0]}</span>
                 </div>
-                <div style={{ overflow: 'hidden' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name}</h3>
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name}</h3>
                 </div>
               </div>
 
               {/* Right: Price & Change */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '32px', justifyContent: 'flex-end', flex: '1 1 200px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-end', flex: '0 0 auto' }}>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sim Price</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                  <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700' }}>
                     {asset.price > 0 ? `₹${asset.price.toFixed(2)}` : 'N/A'}
                   </span>
                 </div>
                 <div style={{ 
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  backgroundColor: asset.price === 0 ? 'rgba(255,255,255,0.05)' : (asset.change >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'),
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  backgroundColor: asset.price === 0 ? 'rgba(255,255,255,0.04)' : (asset.change >= 0 ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)'),
                   color: asset.price === 0 ? 'var(--text-muted)' : (asset.change >= 0 ? 'var(--success)' : 'var(--danger)'),
-                  padding: '8px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', minWidth: '100px', justifyContent: 'center'
+                  padding: '6px 10px', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', minWidth: '88px', justifyContent: 'center'
                 }}>
                   {asset.price === 0 ? 'No Data' : (
                     <>
-                      {asset.change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                      {asset.change >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                       {asset.change > 0 ? '+' : ''}{asset.change.toFixed(2)}%
                     </>
                   )}
