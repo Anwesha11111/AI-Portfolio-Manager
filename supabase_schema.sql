@@ -57,6 +57,11 @@ alter table public.users enable row level security;
 alter table public.holdings enable row level security;
 alter table public.transactions enable row level security;
 
+-- Grants
+grant select, insert, update, delete on public.users to authenticated;
+grant select, insert, update, delete on public.holdings to authenticated;
+grant select, insert, update, delete on public.transactions to authenticated;
+
 -- Policies
 create policy "Users can view their own profile." on users for select using (auth.uid() = id);
 create policy "Users can update their own profile." on users for update using (auth.uid() = id);

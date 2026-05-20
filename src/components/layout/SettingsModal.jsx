@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X, Clock, Zap, BrainCircuit, Play, Pause } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Clock, Zap, Play, Pause, RotateCcw, Trash2, Compass } from 'lucide-react';
 import useSimulationStore from '../../store/useSimulationStore';
+import useAuthStore from '../../store/useAuthStore';
+import { supabase } from '../../lib/supabase';
 
-export default function SettingsModal({ onClose }) {
+export default function SettingsModal({ onClose, onStartTour }) {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuthStore();
   const { 
     currentSimulatedDate, isRunning, simulationSpeedMs, 
     toggleSimulation, setSimulationSpeed, setSimulatedDate
@@ -26,14 +31,11 @@ export default function SettingsModal({ onClose }) {
 
   const handleDateChange = (e) => {
     let val = e.target.value;
-    // Only auto-add slashes when input is growing (not on backspace)
     if (val.length > inputValue.length) {
-      // Strip non-digit and non-slash chars
       const digitsOnly = val.replace(/[^\d]/g, '');
       if (digitsOnly.length >= 2 && val.length === 2) val += '/';
       if (digitsOnly.length >= 4 && val.length === 5 && (val.match(/\//g) || []).length === 1) val += '/';
     }
-    // Max length DD/MM/YYYY = 10 chars
     if (val.length <= 10) {
       setInputValue(val);
     }
@@ -51,8 +53,43 @@ export default function SettingsModal({ onClose }) {
         return;
       }
     }
-    // Revert if invalid
     setInputValue(displayDate);
+  };
+
+  const handleReset = async () => {
+    const confirmed = window.confirm('⚠️ Are you sure you want to reset your account?\n\nThis will:\n• Reset your balance, salary, and expenses\n• Delete all your holdings and transactions\n• Reset your tutorial progress\n• Take you back to the onboarding screen\n\nThis action cannot be undone.');
+    if (!confirmed) return;
+    const doubleConfirm = window.confirm('This is your last chance. All your portfolio data will be permanently deleted. Continue?');
+    if (!doubleConfirm) return;
+    try {
+      await supabase.from('holdings').delete().eq('user_id', user.id);
+      await supabase.from('transactions').delete().eq('user_id', user.id);
+      await supabase.from('users').update({
+        virtual_balance: 1000000, monthly_income: 0, monthly_expenses: 0, total_savings: 0,
+        current_simulated_date: 1104537600000, time_horizon: 'long', drawdown_tolerance: 'medium',
+        primary_objective: 'growth', completed_lessons: '{}', last_ai_recommendation_date: 0
+      }).eq('id', user.id);
+      onClose();
+      navigate('/onboarding');
+    } catch (err) {
+      console.error('Reset failed:', err);
+      alert('Failed to reset account. Please try again.');
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm('🚨 DANGER: Are you sure you want to permanently delete your account?\n\nThis will:\n• Delete your entire profile\n• Delete all holdings and transactions\n• Remove your account completely\n\nThis action is IRREVERSIBLE.');
+    if (!confirmed) return;
+    const doubleConfirm = window.confirm('Final confirmation: Are you absolutely sure you want to delete your account forever?');
+    if (!doubleConfirm) return;
+    try {
+      await supabase.rpc('delete_user');
+      await signOut();
+      navigate('/');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete account. Please try again.');
+    }
   };
 
   return (
@@ -64,7 +101,8 @@ export default function SettingsModal({ onClose }) {
     }}>
       <div className="glass-panel animate-fade-in-scale" style={{
         width: '100%', maxWidth: '440px', padding: '32px', borderRadius: '20px',
-        position: 'relative', boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
+        position: 'relative', boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)',
+        maxHeight: '90vh', overflowY: 'auto'
       }}>
         <button 
           onClick={onClose}
@@ -82,15 +120,15 @@ export default function SettingsModal({ onClose }) {
         </button>
 
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', fontSize: '1.5rem', fontWeight: '800' }}>
-          <Zap size={24} className="text-accent" /> Control Center
+          <Zap size={24} className="text-accent" /> Settings
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '32px' }}>
-          Manage your simulation engine and time travel settings.
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '28px' }}>
+          Manage simulation, time travel, and account settings.
         </p>
 
-        {/* Time Machine Controls */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
+          {/* Current Date */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>Current Date</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
@@ -99,6 +137,7 @@ export default function SettingsModal({ onClose }) {
             </div>
           </div>
           
+          {/* Jump + Engine */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>Jump to Date</label>
@@ -107,26 +146,15 @@ export default function SettingsModal({ onClose }) {
                 placeholder="DD/MM/YYYY"
                 value={inputValue}
                 onChange={handleDateChange}
-                onBlur={handleDateBlur}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleDateBlur();
-                }}
+                onBlur={(e) => { handleDateBlur(); e.target.style.borderColor = 'var(--border-color)'; }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleDateBlur(); }}
                 style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border-color)',
-                  background: 'rgba(255,255,255,0.03)',
-                  color: 'white',
-                  outline: 'none',
-                  colorScheme: 'dark',
-                  fontFamily: 'inherit',
-                  fontSize: '0.9rem',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box'
+                  width: '100%', padding: '12px', borderRadius: '10px',
+                  border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)',
+                  color: 'white', outline: 'none', colorScheme: 'dark',
+                  fontFamily: 'inherit', fontSize: '0.9rem', transition: 'border-color 0.2s', boxSizing: 'border-box'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'rgba(79,142,247,0.5)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
             
@@ -141,12 +169,8 @@ export default function SettingsModal({ onClose }) {
                   transition: 'all 0.2s',
                   border: `1px solid ${isRunning ? 'rgba(248, 113, 113, 0.3)' : 'rgba(52, 211, 153, 0.3)'}`
                 }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.25)' : 'rgba(52, 211, 153, 0.25)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.15)' : 'rgba(52, 211, 153, 0.15)';
-                }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.25)' : 'rgba(52, 211, 153, 0.25)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.15)' : 'rgba(52, 211, 153, 0.15)'; }}
               >
                 {isRunning ? <Pause size={18} /> : <Play size={18} />}
                 {isRunning ? 'Pause Engine' : 'Start Engine'}
@@ -154,6 +178,7 @@ export default function SettingsModal({ onClose }) {
             </div>
           </div>
           
+          {/* Speed */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
               Simulation Speed
@@ -181,6 +206,57 @@ export default function SettingsModal({ onClose }) {
                   <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{opt.sub}</span>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid var(--border-color)' }} />
+
+          {/* Tour */}
+          <button 
+            onClick={() => { onClose(); if (onStartTour) onStartTour(); }}
+            style={{
+              width: '100%', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-primary)', border: '1px solid rgba(59, 130, 246, 0.25)',
+              borderRadius: '10px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'; }}
+          >
+            <Compass size={18} />
+            Take a Tour of TradeWise
+          </button>
+
+          {/* Danger Zone */}
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', fontWeight: '600' }}>Danger Zone</span>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={handleReset}
+                style={{
+                  flex: 1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  backgroundColor: 'rgba(245, 158, 11, 0.08)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)',
+                  borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.85rem'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.15)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.08)'; }}
+              >
+                <RotateCcw size={15} />
+                Reset Account
+              </button>
+              <button 
+                onClick={handleDelete}
+                style={{
+                  flex: 1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.08)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.85rem'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)'; }}
+              >
+                <Trash2 size={15} />
+                Delete Account
+              </button>
             </div>
           </div>
         </div>
