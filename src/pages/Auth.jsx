@@ -33,9 +33,7 @@ export default function Auth() {
         navigate('/dashboard');
       } else {
         await signUp(email, password, username);
-        // Always show confirmation message — user must verify email before logging in
-        setSuccessMsg('Registration successful! We\'ve sent a confirmation link to your email. Please verify your email before logging in.');
-        setIsLogin(true); // Switch to login view
+        navigate('/onboarding');
       }
     } catch (err) {
       setErrorMsg(err.message);
