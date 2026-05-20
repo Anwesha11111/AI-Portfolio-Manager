@@ -26,10 +26,17 @@ export default function SettingsModal({ onClose }) {
 
   const handleDateChange = (e) => {
     let val = e.target.value;
-    // Auto-add slashes for user convenience
-    if (val.length === 2 && !val.includes('/')) val += '/';
-    if (val.length === 5 && (val.match(/\//g) || []).length === 1) val += '/';
-    setInputValue(val);
+    // Only auto-add slashes when input is growing (not on backspace)
+    if (val.length > inputValue.length) {
+      // Strip non-digit and non-slash chars
+      const digitsOnly = val.replace(/[^\d]/g, '');
+      if (digitsOnly.length >= 2 && val.length === 2) val += '/';
+      if (digitsOnly.length >= 4 && val.length === 5 && (val.match(/\//g) || []).length === 1) val += '/';
+    }
+    // Max length DD/MM/YYYY = 10 chars
+    if (val.length <= 10) {
+      setInputValue(val);
+    }
   };
 
   const handleDateBlur = () => {

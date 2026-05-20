@@ -33,10 +33,12 @@ export default function Layout() {
     return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
-  // Monthly Income Accrual — credit surplus when simulation crosses a month boundary
+  // Monthly Income Accrual — credit surplus when simulation crosses month boundaries
   useEffect(() => {
     const simDate = new Date(currentSimulatedDate);
-    const monthKey = `${simDate.getFullYear()}-${simDate.getMonth()}`;
+    const currentYear = simDate.getFullYear();
+    const currentMonth = simDate.getMonth();
+    const monthKey = `${currentYear}-${currentMonth}`;
     
     if (lastCreditedMonth.current === null) {
       // First render, just set the ref without crediting
@@ -45,23 +47,31 @@ export default function Layout() {
     }
 
     if (monthKey !== lastCreditedMonth.current) {
+      // Calculate how many months were skipped
+      const [prevYear, prevMonth] = lastCreditedMonth.current.split('-').map(Number);
+      const monthsSkipped = (currentYear - prevYear) * 12 + (currentMonth - prevMonth);
+      
       lastCreditedMonth.current = monthKey;
-      // Credit monthly surplus
-      (async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
-          const { data: userData } = await supabase.from('users').select('virtual_balance, monthly_income, monthly_expenses').eq('id', user.id).maybeSingle();
-          if (!userData) return;
-          const surplus = Math.max(0, (userData.monthly_income || 0) - (userData.monthly_expenses || 0));
-          if (surplus > 0) {
-            const newBalance = Number(userData.virtual_balance) + surplus;
-            await supabase.from('users').update({ virtual_balance: newBalance }).eq('id', user.id);
+      
+      // Only credit if we moved forward (not backward)
+      if (monthsSkipped > 0) {
+        (async () => {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data: userData } = await supabase.from('users').select('virtual_balance, monthly_income, monthly_expenses').eq('id', user.id).maybeSingle();
+            if (!userData) return;
+            const surplus = Math.max(0, (userData.monthly_income || 0) - (userData.monthly_expenses || 0));
+            if (surplus > 0) {
+              const totalCredit = surplus * monthsSkipped;
+              const newBalance = Number(userData.virtual_balance) + totalCredit;
+              await supabase.from('users').update({ virtual_balance: newBalance }).eq('id', user.id);
+            }
+          } catch (err) {
+            console.error('Monthly accrual failed:', err);
           }
-        } catch (err) {
-          console.error('Monthly accrual failed:', err);
-        }
-      })();
+        })();
+      }
     }
   }, [currentSimulatedDate]);
 

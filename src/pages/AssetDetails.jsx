@@ -177,7 +177,10 @@ export default function AssetDetails() {
         if (holding) {
           const newQty = holding.quantity + qty;
           const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
-          await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg, stop_loss_pct: sl }).eq('id', holding.id);
+          const updateData = { quantity: newQty, average_buy_price: newAvg };
+          // Only overwrite stop-loss if user explicitly provided a new value
+          if (sl !== null) updateData.stop_loss_pct = sl;
+          await supabase.from('holdings').update(updateData).eq('id', holding.id);
         } else {
           await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: assetData.currentPrice, stop_loss_pct: sl });
         }

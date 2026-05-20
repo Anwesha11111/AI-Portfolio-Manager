@@ -44,7 +44,6 @@ export default function Analysis() {
             primary_objective: profile.primary_objective,
             monthly_income: profile.monthly_income,
             monthly_expenses: profile.monthly_expenses,
-            total_savings: profile.total_savings,
           }
         })
       });
@@ -137,7 +136,6 @@ export default function Analysis() {
             <ProfileRow label="Monthly Income" value={`₹${(profile?.monthly_income || 0).toLocaleString()}`} />
             <ProfileRow label="Monthly Expenses" value={`₹${(profile?.monthly_expenses || 0).toLocaleString()}`} />
             <ProfileRow label="Monthly Surplus" value={`₹${monthlySurplus.toLocaleString()}`} color={monthlySurplus > 0 ? 'var(--success)' : 'var(--danger)'} />
-            <ProfileRow label="Total Savings" value={`₹${(profile?.total_savings || 0).toLocaleString()}`} />
             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '4px' }} />
             <ProfileRow label="Time Horizon" value={profile?.time_horizon || 'Long'} />
             <ProfileRow label="Risk Appetite" value={profile?.drawdown_tolerance || 'Medium'} />

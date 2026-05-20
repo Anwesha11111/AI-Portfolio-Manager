@@ -83,7 +83,6 @@ export default function Market() {
           profile: {
             monthly_income: userData.monthly_income,
             monthly_expenses: userData.monthly_expenses,
-            total_savings: userData.total_savings,
             virtual_balance: userData.virtual_balance,
           }
         })
