@@ -1,3 +1,4 @@
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
@@ -67,52 +68,58 @@ export default function LessonView() {
     const elements = [];
     let currentList = [];
 
-    const parseBold = (str) => {
-      const parts = str.split(/(\*\*.*?\*\*)/g);
-      return parts.map((part, j) => 
-        part.startsWith('**') && part.endsWith('**') 
-          ? <strong key={j} style={{ color: 'var(--text-main)', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
-          : part
-      );
-    };
-
-    const flushList = () => {
-      if (currentList.length > 0) {
-        elements.push(
-          <ul key={`ul-${elements.length}`} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
-            {currentList.map((item, i) => (
-              <li key={i} style={{ marginBottom: '12px' }}>{parseBold(item)}</li>
-            ))}
-          </ul>
-        );
-        currentList = [];
-      }
-    };
+    // ... (Keep your existing parseBold and flushList helper functions) ...
 
     lines.forEach((line, idx) => {
       const imageMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/);
       
       if (line.startsWith('### ')) {
-        flushList();
-        elements.push(
-          <h3 key={`h3-${idx}`} style={{ marginTop: '40px', marginBottom: '20px', color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
-            {line.replace('### ', '')}
-          </h3>
-        );
+        // ... (Keep existing H3 logic)
       } else if (line.startsWith('- ')) {
-        currentList.push(line.replace(/^- /, ''));
+        // ... (Keep existing List logic)
       } else if (imageMatch) {
+        // ... (Keep existing Image logic)
+      } else if (line.startsWith('> 💡 PRO-TIP:')) {
         flushList();
         elements.push(
-          <div key={`img-${idx}`} style={{ margin: '32px 0', textAlign: 'center' }}>
-            <img src={imageMatch[2]} alt={imageMatch[1]} style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--border-color)' }} />
-            <span style={{ display: 'block', marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{imageMatch[1]}</span>
+          <div key={`tip-${idx}`} style={{ margin: '24px 0', padding: '16px 20px', background: 'rgba(16, 185, 129, 0.1)', borderLeft: '4px solid var(--success)', borderRadius: '0 8px 8px 0' }}>
+            <strong style={{ color: 'var(--success)', display: 'block', marginBottom: '8px' }}>💡 PRO-TIP</strong>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)' }}>{parseBold(line.replace('> 💡 PRO-TIP:', ''))}</p>
+          </div>
+        );
+      } else if (line.startsWith('> ⚠️ WARNING:')) {
+        flushList();
+        elements.push(
+          <div key={`warn-${idx}`} style={{ margin: '24px 0', padding: '16px 20px', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', borderRadius: '0 8px 8px 0' }}>
+            <strong style={{ color: '#ef4444', display: 'block', marginBottom: '8px' }}>⚠️ WARNING</strong>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)' }}>{parseBold(line.replace('> ⚠️ WARNING:', ''))}</p>
+          </div>
+        );
+      } else if (line === '[CHART:COMPOUNDING]') {
+        flushList();
+        // Sample data for the interactive chart
+        const data = [
+          { year: 'Year 1', value: 115000 }, { year: 'Year 5', value: 201135 },
+          { year: 'Year 10', value: 404555 }, { year: 'Year 20', value: 1636653 },
+          { year: 'Year 30', value: 6621177 }
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '300px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="year" stroke="rgba(255,255,255,0.5)" />
+                <YAxis stroke="rgba(255,255,255,0.5)" tickFormatter={(val) => \`₹\${val/100000}L\`} />
+                <Tooltip contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', color: 'white' }} />
+                <Line type="monotone" dataKey="value" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 6 }} activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         );
       } else {
         flushList();
         elements.push(
-          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {parseBold(line)}
           </p>
         );
@@ -122,6 +129,7 @@ export default function LessonView() {
     flushList();
     return elements;
   };
+  
   const Icon = lesson.icon;
 
   return (
