@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ChevronRight, CheckCircle2 } from 'lucide-react';
+// IMPORT THE LOCK ICON
+import { GraduationCap, ChevronRight, CheckCircle2, Lock } from 'lucide-react'; 
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import { LESSONS } from '../data/lessons';
@@ -11,66 +12,26 @@ export default function Academy() {
   const [completedLessons, setCompletedLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProgress = async () => {
-      if (!user) return;
-      try {
-        const { data } = await supabase
-          .from('users')
-          .select('completed_lessons')
-          .eq('id', user.id)
-          .single();
-        
-        if (data && data.completed_lessons) {
-          setCompletedLessons(data.completed_lessons);
-        }
-      } catch (err) {
-        console.error("Error fetching progress:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProgress();
-  }, [user]);
+  // ... (keep your existing useEffect fetch progress logic) ...
 
   const progressPercentage = Math.round((completedLessons.length / LESSONS.length) * 100) || 0;
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', width: '100%', paddingBottom: '64px' }}>
-      <div style={{ marginBottom: '40px' }} id="tour-academy">
-        <h2 style={{ marginBottom: '8px', fontSize: '2.2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <GraduationCap size={36} color="var(--accent-primary)" /> Academy
-        </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '32px' }}>
-          Master the fundamentals of investing before executing your strategy.
-        </p>
-
-        {/* Progress Bar */}
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-            <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>Course Progress</span>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>{progressPercentage}%</span>
-          </div>
-          <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden' }}>
-            <div style={{ 
-              height: '100%', 
-              background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))',
-              width: `${progressPercentage}%`,
-              transition: 'width 0.5s ease-out'
-            }} />
-          </div>
-        </div>
-      </div>
+      {/* ... (keep your existing header and progress bar) ... */}
 
       <div style={{ display: 'grid', gap: '16px' }}>
         {LESSONS.map((lesson, index) => {
           const Icon = lesson.icon;
           const isCompleted = completedLessons.includes(lesson.id);
+          
+          // GAMIFICATION LOGIC: Unlocked if it's the first lesson, OR the previous lesson is completed
+          const isLocked = index > 0 && !completedLessons.includes(LESSONS[index - 1].id);
 
           return (
             <div 
               key={lesson.id}
-              onClick={() => navigate(`/academy/${lesson.id}`)}
+              onClick={() => { if (!isLocked) navigate(`/academy/${lesson.id}`); }}
               className="glass-panel"
               style={{ 
                 padding: '24px', 
@@ -78,18 +39,23 @@ export default function Academy() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '20px',
-                cursor: 'pointer',
+                cursor: isLocked ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 border: isCompleted ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)',
-                backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.02)' : 'var(--bg-card)'
+                backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.02)' : 'var(--bg-card)',
+                opacity: isLocked ? 0.5 : 1 // Dim locked modules
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.6)' : 'rgba(255,255,255,0.2)';
+                if (!isLocked) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.6)' : 'rgba(255,255,255,0.2)';
+                }
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-color)';
+                if (!isLocked) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-color)';
+                }
               }}
             >
               <div style={{
@@ -109,18 +75,20 @@ export default function Academy() {
                     {lesson.readTime}
                   </span>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: isCompleted ? 'var(--text-main)' : (isLocked ? 'var(--text-muted)' : '#e2e8f0') }}>
                   {lesson.title}
                 </h3>
               </div>
 
+              {/* DYNAMIC ICON RENDER */}
               {isCompleted ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
                   <CheckCircle2 size={20} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 'bold', display: 'none', '@media(minWidth: 600px)': { display: 'block' } }}>Done</span>
                 </div>
+              ) : isLocked ? (
+                <Lock size={20} color="var(--text-muted)" />
               ) : (
-                <ChevronRight size={24} color="var(--text-muted)" />
+                <ChevronRight size={24} color="var(--accent-primary)" />
               )}
             </div>
           );
