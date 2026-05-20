@@ -26,6 +26,12 @@ const useSimulationStore = create((set, get) => ({
     }
     return { currentSimulatedDate: newDate };
   }),
+  
+  setSimulatedDate: (dateString) => set((state) => {
+    const timestamp = new Date(dateString).getTime();
+    if (isNaN(timestamp) || timestamp < START_DATE || timestamp > END_DATE) return state;
+    return { currentSimulatedDate: timestamp };
+  }),
 
   // Load saved date from Supabase
   loadSavedDate: async () => {
