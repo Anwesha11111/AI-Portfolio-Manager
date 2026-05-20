@@ -35,7 +35,7 @@ export default function Auth() {
         const data = await signUp(email, password, username);
         // If email confirmation is enabled, Supabase returns data.user but data.session is null.
         if (data?.user && !data.session) {
-          setSuccessMsg('Registration successful! Please check your email inbox to verify your account before logging in.');
+          setSuccessMsg('Registration successful! We\'ve sent a confirmation link to your email. Please verify your email before logging in.');
           setIsLogin(true); // Switch to login view for when they come back
         } else {
           // If no email confirmation is required, they are automatically logged in
@@ -125,11 +125,14 @@ export default function Auth() {
         {successMsg && (
           <div style={{
             background: 'rgba(52,211,153,0.08)', color: '#34d399',
-            padding: '12px 16px', borderRadius: '10px', marginBottom: '20px',
-            fontSize: '0.9rem', textAlign: 'center',
-            border: '1px solid rgba(52,211,153,0.2)'
+            padding: '16px', borderRadius: '10px', marginBottom: '20px',
+            fontSize: '0.875rem', textAlign: 'center',
+            border: '1px solid rgba(52,211,153,0.2)',
+            display: 'flex', flexDirection: 'column', gap: '8px'
           }}>
-            {successMsg}
+            <span style={{ fontSize: '1.2rem' }}>✉️</span>
+            <span style={{ fontWeight: '600' }}>{successMsg}</span>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(52,211,153,0.7)' }}>Don't see it? Check your spam or junk folder.</span>
           </div>
         )}
 
