@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Timer, User } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import { supabase } from '../../lib/supabase';
@@ -191,9 +191,9 @@ export default function Layout() {
             }}
             onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
             onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-            title="Simulation Controls"
+            title="Simulation Speed & Time Controls"
           >
-            <Settings size={20} />
+            <Timer size={20} />
           </button>
         </div>
       </nav>

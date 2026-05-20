@@ -50,100 +50,157 @@ export default function Auth() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#000000', color: 'var(--text-main)', padding: '20px'
+      background: 'var(--bg-dark)', color: 'var(--text-main)', padding: '20px',
+      backgroundImage: `
+        radial-gradient(ellipse 70% 50% at 20% 20%, rgba(79, 142, 247, 0.1), transparent),
+        radial-gradient(ellipse 60% 60% at 80% 80%, rgba(157, 111, 245, 0.08), transparent)
+      `
     }}>
       <div style={{
-        background: 'var(--bg-card)', padding: '40px', borderRadius: '12px',
-        border: '1px solid var(--border-color)', width: '100%', maxWidth: '400px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
+        background: 'rgba(10, 10, 22, 0.85)',
+        backdropFilter: 'blur(24px)',
+        padding: '48px 40px',
+        borderRadius: '20px',
+        border: '1px solid rgba(255,255,255,0.07)',
+        width: '100%', maxWidth: '420px',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(79,142,247,0.05)',
+        animation: 'fadeInScale 0.4s cubic-bezier(0.16,1,0.3,1) forwards'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px', justifyContent: 'center' }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '36px', justifyContent: 'center' }}>
           <div style={{
-            width: '32px', height: '32px',
-            background: 'linear-gradient(135deg, var(--accent-primary), #60a5fa)',
-            borderRadius: '6px',
+            width: '36px', height: '36px',
+            background: 'linear-gradient(135deg, #4f8ef7, #9d6ff5)',
+            borderRadius: '10px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 'bold', fontSize: '0.9rem', color: 'white'
+            fontWeight: '800', fontSize: '0.85rem', color: 'white',
+            boxShadow: '0 0 20px rgba(79,142,247,0.4)'
           }}>AI</div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '700', margin: 0 }}>PortfolioSim</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, letterSpacing: '-0.03em' }}>
+            Portfolio<span style={{ color: '#4f8ef7' }}>Sim</span>
+          </h2>
         </div>
 
-        <h3 style={{ textAlign: 'center', marginBottom: '24px', fontSize: '1.2rem' }}>
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h3>
+        {/* Title + subtitle */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: '700', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            {isLogin ? 'Welcome back' : 'Create your account'}
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+            {isLogin ? 'Sign in to your portfolio' : 'Start your investing journey today'}
+          </p>
+        </div>
+
+        {/* Mode toggle tabs */}
+        <div style={{
+          display: 'flex', marginBottom: '28px',
+          background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px',
+          border: '1px solid rgba(255,255,255,0.06)'
+        }}>
+          {['Sign In', 'Register'].map((label, i) => {
+            const active = isLogin === (i === 0);
+            return (
+              <button key={label} type="button"
+                onClick={() => { setIsLogin(i === 0); setErrorMsg(''); setSuccessMsg(''); }}
+                style={{
+                  flex: 1, padding: '9px', border: 'none', borderRadius: '8px',
+                  fontWeight: '600', fontSize: '0.875rem', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  background: active ? 'linear-gradient(135deg, rgba(79,142,247,0.2), rgba(157,111,245,0.15))' : 'transparent',
+                  color: active ? '#7bb3fa' : 'var(--text-muted)',
+                  boxShadow: active ? '0 0 0 1px rgba(79,142,247,0.2)' : 'none'
+                }}
+              >{label}</button>
+            );
+          })}
+        </div>
 
         {errorMsg && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '10px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+          <div style={{
+            background: 'rgba(248,113,113,0.08)', color: '#f87171',
+            padding: '12px 16px', borderRadius: '10px', marginBottom: '20px',
+            fontSize: '0.875rem', textAlign: 'center',
+            border: '1px solid rgba(248,113,113,0.2)'
+          }}>
             {errorMsg}
           </div>
         )}
 
         {successMsg && (
-          <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.95rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          <div style={{
+            background: 'rgba(52,211,153,0.08)', color: '#34d399',
+            padding: '12px 16px', borderRadius: '10px', marginBottom: '20px',
+            fontSize: '0.9rem', textAlign: 'center',
+            border: '1px solid rgba(52,211,153,0.2)'
+          }}>
             {successMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {!isLogin && (
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>USERNAME</label>
+              <input
+                type="text"
+                placeholder="e.g. investor_pro"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={inputStyle}
+              />
+            </div>
+          )}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>EMAIL</label>
             <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               style={inputStyle}
             />
-          )}
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={inputStyle}
-          />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>PASSWORD</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          </div>
           <button type="submit" disabled={loading} style={{
-            padding: '12px', background: 'var(--accent-primary)', color: 'white',
-            border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1, marginTop: '10px'
+            marginTop: '8px',
+            padding: '13px',
+            background: loading ? 'rgba(79,142,247,0.5)' : 'linear-gradient(135deg, #4f8ef7, #9d6ff5)',
+            color: 'white', border: 'none', borderRadius: '10px',
+            fontWeight: '700', fontSize: '0.95rem',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: loading ? 'none' : '0 0 20px rgba(79,142,247,0.3)',
+            letterSpacing: '-0.01em'
           }}>
-            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading ? 'Processing...' : isLogin ? 'Sign In →' : 'Create Account →'}
           </button>
         </form>
-
-        <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setErrorMsg('');
-              setSuccessMsg('');
-            }} 
-            style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 'bold' }}
-          >
-            {isLogin ? 'Register' : 'Log in'}
-          </button>
-        </p>
       </div>
     </div>
   );
 }
 
 const inputStyle = {
-  padding: '12px',
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid var(--border-color)',
-  borderRadius: '6px',
-  color: 'white',
-  outline: 'none'
+  width: '100%',
+  padding: '12px 16px',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '10px',
+  color: '#e8eaf6',
+  outline: 'none',
+  fontSize: '0.95rem',
+  transition: 'border-color 0.2s',
+  boxSizing: 'border-box'
 };

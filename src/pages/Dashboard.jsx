@@ -67,51 +67,65 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-      <h2 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '800' }}>My Portfolio</h2>
+      <div style={{ marginBottom: '28px' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.03em', margin: 0 }} className="text-gradient">My Portfolio</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>Track your simulated investments and capital</p>
+      </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+        {/* Net Worth */}
+        <div className="glass-panel stat-card-blue" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <Wallet size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Net Worth</span>
+            <Wallet size={16} color="var(--accent-primary)" className="glow-blue" />
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: '600' }}>Net Worth</span>
           </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{netWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <h3 style={{ fontSize: '1.7rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>₹{netWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>Portfolio + Cash</span>
         </div>
 
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Market Value */}
+        <div className="glass-panel stat-card-purple" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Market Value</span>
+            <PieChart size={16} color="var(--accent-secondary)" className="glow-purple" />
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: '600' }}>Market Value</span>
           </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Cost Basis: ₹{investedValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+          <h3 style={{ fontSize: '1.7rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>Cost: ₹{investedValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
         </div>
 
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Total P&L */}
+        <div className={`glass-panel ${totalPandL >= 0 ? 'stat-card-green' : 'stat-card-red'}`} style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <Activity size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Total P&L</span>
+            <Activity size={16} color={totalPandL >= 0 ? 'var(--success)' : 'var(--danger)'} />
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: '600' }}>Total P&L</span>
           </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0, color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+          <h3 style={{ fontSize: '1.7rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em', color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
             {totalPandL >= 0 ? '+' : ''}₹{totalPandL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </h3>
-          <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {totalPandL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {totalPandL >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
             {totalPandLPct.toFixed(2)}%
           </span>
         </div>
 
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Available Capital */}
+        <div className="glass-panel stat-card-green" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <Coins size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Available Capital</span>
+            <Coins size={16} color="var(--success)" className="glow-green" />
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: '600' }}>Available Capital</span>
           </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Cash Ready to Invest</span>
+          <h3 style={{ fontSize: '1.7rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>Cash ready to invest</span>
         </div>
 
-        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Holdings count */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '2px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <PieChart size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Holdings</span>
+            <PieChart size={16} color="var(--text-muted)" />
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: '600' }}>Holdings</span>
           </div>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{holdings.length}</h3>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Active positions</span>
+          <h3 style={{ fontSize: '1.7rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>{holdings.length}</h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>Active positions</span>
         </div>
       </div>
 
