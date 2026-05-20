@@ -17,39 +17,50 @@ export default function SettingsModal({ onClose }) {
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
+      backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000
+      zIndex: 1000, padding: '20px'
     }}>
-      <div className="glass-panel" style={{
-        width: '100%', maxWidth: '500px', padding: '32px', borderRadius: '16px',
-        position: 'relative'
+      <div className="glass-panel animate-fade-in-scale" style={{
+        width: '100%', maxWidth: '440px', padding: '32px', borderRadius: '20px',
+        position: 'relative', boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
       }}>
         <button 
           onClick={onClose}
-          style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          style={{ 
+            position: 'absolute', top: '24px', right: '24px', 
+            background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', 
+            borderRadius: '50%', width: '32px', height: '32px', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
         >
-          <X size={24} />
+          <X size={16} />
         </button>
 
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', fontSize: '1.5rem', fontWeight: '800' }}>
           <Zap size={24} className="text-accent" /> Control Center
         </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '32px' }}>
+          Manage your simulation engine and time travel settings.
+        </p>
 
         {/* Time Machine Controls */}
-        <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={16} /> Time Machine Engine
-          </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          <div style={{ padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Current Simulated Date</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{formattedDate}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>Current Date</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '12px' }}>
+              <Clock size={20} className="text-accent" />
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{formattedDate}</span>
             </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Jump to Date</span>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>Jump to Date</label>
               <input 
                 type="date" 
                 value={isoDate}
@@ -61,48 +72,75 @@ export default function SettingsModal({ onClose }) {
                   }
                 }}
                 style={{
-                  padding: '8px',
-                  borderRadius: '6px',
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '10px',
                   border: '1px solid var(--border-color)',
-                  background: 'rgba(0,0,0,0.5)',
+                  background: 'rgba(255,255,255,0.03)',
                   color: 'white',
                   outline: 'none',
-                  colorScheme: 'dark'
+                  colorScheme: 'dark',
+                  fontFamily: 'inherit',
+                  fontSize: '0.9rem',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
                 }}
+                onFocus={(e) => e.target.style.borderColor = 'rgba(79,142,247,0.5)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
             
-            <button 
-              onClick={toggleSimulation}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer',
-                backgroundColor: isRunning ? 'rgba(239, 68, 68, 0.2)' : 'var(--accent-primary)',
-                color: isRunning ? 'var(--danger)' : 'white'
-              }}
-            >
-              {isRunning ? <Pause size={18} /> : <Play size={18} />}
-              {isRunning ? 'PAUSE ENGINE' : 'START ENGINE'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={toggleSimulation}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  padding: '12px', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: 'pointer',
+                  backgroundColor: isRunning ? 'rgba(248, 113, 113, 0.15)' : 'rgba(52, 211, 153, 0.15)',
+                  color: isRunning ? 'var(--danger)' : 'var(--success)',
+                  transition: 'all 0.2s',
+                  border: `1px solid ${isRunning ? 'rgba(248, 113, 113, 0.3)' : 'rgba(52, 211, 153, 0.3)'}`
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.25)' : 'rgba(52, 211, 153, 0.25)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = isRunning ? 'rgba(248, 113, 113, 0.15)' : 'rgba(52, 211, 153, 0.15)';
+                }}
+              >
+                {isRunning ? <Pause size={18} /> : <Play size={18} />}
+                {isRunning ? 'Pause Engine' : 'Start Engine'}
+              </button>
+            </div>
           </div>
           
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
               Simulation Speed
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setSimulationSpeed(60000)}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 60000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-              >Slow (1d = 60s)</button>
-              <button 
-                onClick={() => setSimulationSpeed(10000)}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 10000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-              >Fast (1d = 10s)</button>
-              <button 
-                onClick={() => setSimulationSpeed(1000)}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: simulationSpeedMs === 1000 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-              >Hyper (1d = 1s)</button>
+            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              {[
+                { speed: 60000, label: 'Slow', sub: '1d=60s' },
+                { speed: 10000, label: 'Fast', sub: '1d=10s' },
+                { speed: 1000, label: 'Hyper', sub: '1d=1s' }
+              ].map((opt) => (
+                <button 
+                  key={opt.speed}
+                  onClick={() => setSimulationSpeed(opt.speed)}
+                  style={{ 
+                    flex: 1, padding: '10px 4px', borderRadius: '8px', border: 'none', 
+                    backgroundColor: simulationSpeedMs === opt.speed ? 'rgba(255,255,255,0.1)' : 'transparent', 
+                    color: simulationSpeedMs === opt.speed ? 'white' : 'var(--text-muted)', 
+                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => { if (simulationSpeedMs !== opt.speed) e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={(e) => { if (simulationSpeedMs !== opt.speed) e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >
+                  <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{opt.label}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{opt.sub}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
