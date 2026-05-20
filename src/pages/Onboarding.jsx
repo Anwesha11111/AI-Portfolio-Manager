@@ -88,7 +88,7 @@ export default function Onboarding() {
               icon={Wallet}
             />
             <InputField 
-              label="Initial Capital to Invest in Simulation" 
+              label="Initial Capital" 
               value={initialCapital} 
               onChange={setInitialCapital} 
               placeholder="e.g. 50000"
