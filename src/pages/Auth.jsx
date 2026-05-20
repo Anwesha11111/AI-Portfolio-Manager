@@ -6,6 +6,7 @@ export default function Auth() {
   const { state } = useLocation();
   const [isLogin, setIsLogin] = useState(state?.isLogin ?? true);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -31,7 +32,7 @@ export default function Auth() {
         await signIn(email, password);
         navigate('/dashboard');
       } else {
-        const data = await signUp(email, password);
+        const data = await signUp(email, password, username);
         // If email confirmation is enabled, Supabase returns data.user but data.session is null.
         if (data?.user && !data.session) {
           setSuccessMsg('Registration successful! Please check your email inbox to verify your account before logging in.');
@@ -84,6 +85,16 @@ export default function Auth() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          )}
           <input
             type="email"
             placeholder="Email Address"

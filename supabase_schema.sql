@@ -13,6 +13,7 @@ create extension if not exists "uuid-ossp";
 create table public.users (
   id uuid primary key references auth.users(id),
   email text not null,
+  username text,
   virtual_balance numeric not null default 1000000.00,
   current_simulated_date bigint not null default 1104537600000, -- Default: Jan 1, 2005 in milliseconds
   monthly_income numeric default 0,
@@ -34,6 +35,7 @@ create table public.holdings (
   symbol text not null,
   quantity integer not null,
   average_buy_price numeric not null,
+  stop_loss_pct numeric default null, -- e.g., 5.0 for 5%
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, symbol) -- A user can only have one active holding record per symbol
 );
@@ -75,8 +77,8 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.users (id, email)
-  values (new.id, new.email);
+  insert into public.users (id, email, username)
+  values (new.id, new.email, new.raw_user_meta_data->>'username');
   return new;
 end;
 $$;

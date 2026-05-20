@@ -22,6 +22,7 @@ export default function AssetDetails() {
   
   // Trading States
   const [quantity, setQuantity] = useState('');
+  const [stopLossPct, setStopLossPct] = useState('');
   const [isTrading, setIsTrading] = useState(false);
   const [virtualBalance, setVirtualBalance] = useState(1000000);
 
@@ -171,13 +172,14 @@ export default function AssetDetails() {
         await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
         await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'BUY', quantity: qty, price_per_unit: assetData.currentPrice, simulated_date: currentSimulatedDate });
 
+        const sl = stopLossPct ? parseFloat(stopLossPct) : null;
         const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).single();
         if (holding) {
           const newQty = holding.quantity + qty;
           const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
-          await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg }).eq('id', holding.id);
+          await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg, stop_loss_pct: sl }).eq('id', holding.id);
         } else {
-          await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: assetData.currentPrice });
+          await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: assetData.currentPrice, stop_loss_pct: sl });
         }
 
         setVirtualBalance(balance - cost);
@@ -229,7 +231,7 @@ export default function AssetDetails() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '24px' }}>
       {/* Header Back Button & Asset Info */}
-      <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px' }}>
+      <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px', flexWrap: 'wrap' }}>
         <button 
           onClick={() => navigate('/market')}
           style={{ 
@@ -277,10 +279,10 @@ export default function AssetDetails() {
 
       <div style={{ display: 'flex', gap: '24px', flex: 1, flexWrap: 'wrap' }}>
         {/* Left: Chart & Stats */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', minWidth: '400px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 'min(100%, 300px)' }}>
           {/* Chart Container */}
           <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'flex', gap: '8px', padding: '16px 24px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', gap: '8px', padding: '16px 24px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
               {['1W', '1M', '3M', '6M', '1Y', 'ALL'].map(tf => (
                 <button 
                   key={tf} 
@@ -355,7 +357,25 @@ export default function AssetDetails() {
                 style={{ 
                   width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.3)', 
                   color: 'white', border: '1px solid var(--border-color)', fontSize: '1.5rem', fontWeight: 'bold',
-                  textAlign: 'center', transition: 'all 0.2s'
+                  textAlign: 'center', transition: 'all 0.2s', boxSizing: 'border-box'
+                }} 
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', fontWeight: '600' }}>STOP-LOSS % (Optional)</label>
+              <input 
+                type="number" 
+                value={stopLossPct}
+                onChange={(e) => setStopLossPct(e.target.value)}
+                placeholder="e.g. 5" 
+                min="0"
+                step="0.1"
+                className="focus-ring"
+                style={{ 
+                  width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.3)', 
+                  color: 'white', border: '1px solid var(--border-color)', fontSize: '1.2rem',
+                  textAlign: 'center', transition: 'all 0.2s', boxSizing: 'border-box'
                 }} 
               />
             </div>

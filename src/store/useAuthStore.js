@@ -25,9 +25,13 @@ const useAuthStore = create((set) => ({
     return data;
   },
 
-  signUp: async (email, password) => {
+  signUp: async (email, password, username) => {
     set({ loading: true });
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: { data: { username } }
+    });
     set({ loading: false });
     if (error) throw error;
     return data;

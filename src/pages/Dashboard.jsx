@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import useSimulationStore from '../store/useSimulationStore';
 import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
-import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity } from 'lucide-react';
+import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity, Coins } from 'lucide-react';
 
 export default function Dashboard() {
   const { currentSimulatedDate } = useSimulationStore();
@@ -96,6 +96,14 @@ export default function Dashboard() {
             {totalPandL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
             {totalPandLPct.toFixed(2)}%
           </span>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+            <Coins size={18} /> <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.85rem' }}>Available Capital</span>
+          </div>
+          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Cash Ready to Invest</span>
         </div>
 
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

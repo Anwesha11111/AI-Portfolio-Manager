@@ -13,7 +13,6 @@ export default function Onboarding() {
   // Step 1: Financial Profile
   const [monthlyIncome, setMonthlyIncome] = useState('');
   const [monthlyExpenses, setMonthlyExpenses] = useState('');
-  const [totalSavings, setTotalSavings] = useState('');
   const [initialCapital, setInitialCapital] = useState('');
 
   // Step 2: Risk Profile
@@ -24,7 +23,6 @@ export default function Onboarding() {
   // Initial capital chosen by user. Monthly surplus will be credited each sim month.
   const income = Number(monthlyIncome) || 0;
   const expenses = Number(monthlyExpenses) || 0;
-  const savings = Number(totalSavings) || 0;
   const initialCap = Number(initialCapital) || 0;
   const monthlySurplus = Math.max(0, income - expenses);
 
@@ -39,7 +37,6 @@ export default function Onboarding() {
           .update({
             monthly_income: income,
             monthly_expenses: expenses,
-            total_savings: savings,
             virtual_balance: initialCap,
             time_horizon: horizon,
             drawdown_tolerance: tolerance,
@@ -88,13 +85,6 @@ export default function Onboarding() {
               value={monthlyExpenses} 
               onChange={setMonthlyExpenses} 
               placeholder="e.g. 45000"
-              icon={Wallet}
-            />
-            <InputField 
-              label="Total Available Savings" 
-              value={totalSavings} 
-              onChange={setTotalSavings} 
-              placeholder="e.g. 300000"
               icon={Wallet}
             />
             <InputField 
