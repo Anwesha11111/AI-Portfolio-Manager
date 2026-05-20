@@ -119,7 +119,7 @@ export default function Dashboard() {
         </div>
 
         {/* Holdings count */}
-        <div className="glass-panel stat-card" style={{ borderTop: '2px solid rgba(255,255,255,0.08)' }}>
+        <div className="glass-panel stat-card">
           <div className="stat-card-label">
             <PieChart size={14} color="var(--text-muted)" />
             Holdings

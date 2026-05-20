@@ -178,11 +178,11 @@ body {
   min-height: 60vh;
 }
 
-/* Metric stat card accent lines */
-.stat-card-blue  { border-top: 2px solid var(--accent-primary); }
-.stat-card-green { border-top: 2px solid var(--success); }
-.stat-card-red   { border-top: 2px solid var(--danger); }
-.stat-card-purple{ border-top: 2px solid var(--accent-secondary); }
+/* Metric stat card accent lines — uniform style */
+.stat-card-blue,
+.stat-card-green,
+.stat-card-red,
+.stat-card-purple { border-top: none; }
 
 /* Glow utility for icons */
 .glow-blue   { filter: drop-shadow(0 0 6px var(--accent-glow)); }
