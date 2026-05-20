@@ -54,31 +54,28 @@ export const LESSONS = [
     id: 'compounding',
     icon: TrendingUp,
     title: 'The Math of Wealth: Compounding',
-    readTime: '5 min read',
+    readTime: '8 min read',
     content: `
       ### The Eighth Wonder of the World
       Albert Einstein supposedly called compound interest *"the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."*
       
       Simple interest pays you returns only on your principal amount. **Compounding** happens when the returns on your investments start generating their own returns. It is the snowball effect applied to money.
 
-      ### The Exponential Curve
-      Let's look at the math. If you invest a lump sum of ₹1,00,000 at a realistic 15% annual return:
-      
-      - **Year 1:** You make ₹15,000 in profit. Your total portfolio is now ₹1,15,000.
-      - **Year 2:** You don't just make 15% on your initial ₹1 Lakh. You make 15% on the new ₹1.15 Lakh. That's ₹17,250 in profit. Your total is ₹1,32,250.
-      - **Year 10:** Your investment is worth ₹4,04,555.
-      - **Year 20:** Your investment is worth ₹16,36,653.
-      - **Year 30:** Your investment is worth ₹66,21,177.
-      
-      Notice the exponential nature of the curve. It took 10 years to make the first ₹3 Lakh in profit, but between Year 20 and Year 30, the portfolio grew by nearly ₹50 Lakhs doing absolutely nothing new. The vast majority of wealth is generated in the later years of compounding.
+      > 💡 PRO-TIP: Warren Buffett made 99% of his wealth AFTER his 50th birthday. That is not because he suddenly became a better investor, but because his capital base had compounded for 40 years prior.
+
+      ### The Exponential Curve (Interactive)
+      Let's look at the math. If you invest a lump sum of ₹1,00,000 in a NIFTY 50 ETF at a realistic 15% annual return, hover over the chart below to see the exponential growth:
+
+      [CHART:COMPOUNDING]
+
+      Notice the exponential nature of the curve. It took 10 years to make the first ₹3 Lakh in profit, but between Year 20 and Year 30, the portfolio grew by nearly ₹50 Lakhs doing absolutely nothing new. 
+
+      > ⚠️ WARNING: Compounding works both ways. If you are paying 36% annual interest on credit card debt, compounding is working aggressively against you, destroying your wealth at the exact same exponential rate.
 
       ### The Ultimate Weapon: Time
       Because compounding is an exponential function, **time** is the most powerful weapon an investor possesses—far more powerful than a high salary. 
       
       A 25-year-old investing just ₹5,000 a month will end up with significantly more wealth by age 60 than a 40-year-old investing ₹25,000 a month, assuming identical returns. The 40-year-old can never buy back those 15 lost years of compounding.
-
-      ### Dividend Reinvestment Programs (DRIP)
-      When a company pays you a dividend, you have a choice: spend it on a nice dinner, or use it to buy more shares of that company. Reinvesting your dividends accelerates the compounding process drastically because you are constantly increasing the base number of shares that will generate future dividends. Over a multi-decade period, reinvested dividends can account for more than 50% of a portfolio's total return.
     `
   },
   {
