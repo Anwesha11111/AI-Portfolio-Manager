@@ -50,11 +50,7 @@ export default function Auth() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg-dark)', color: 'var(--text-main)', padding: '20px',
-      backgroundImage: `
-        radial-gradient(ellipse 70% 50% at 20% 20%, rgba(79, 142, 247, 0.1), transparent),
-        radial-gradient(ellipse 60% 60% at 80% 80%, rgba(157, 111, 245, 0.08), transparent)
-      `
+      background: 'var(--bg-dark)', color: 'var(--text-main)', padding: '20px'
     }}>
       <div style={{
         background: 'rgba(10, 10, 22, 0.85)',
