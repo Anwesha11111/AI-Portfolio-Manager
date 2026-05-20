@@ -88,25 +88,39 @@ export default function TourOverlay({ onEnd }) {
     const el = document.querySelector(current.target);
     if (el) {
       el.scrollIntoView({ behavior: 'instant', block: 'nearest' });
-      // Read rect immediately after instant scroll
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-    } else {
-      setRect(null);
+      setTransitioning(false);
+      return true;
     }
-    setTransitioning(false);
+    return false;
   }, [current.target]);
 
-  // Navigate and find target
+  // Navigate and find target, with retry for slow-loading pages
   useEffect(() => {
     setTransitioning(true);
     const needsNavigation = current.route && location.pathname !== current.route;
     if (needsNavigation) {
       navigate(current.route);
     }
-    // Short delay for DOM to render after navigation, instant if same page
-    const timer = setTimeout(measureTarget, needsNavigation ? 250 : 50);
-    return () => clearTimeout(timer);
+
+    let attempts = 0;
+    const maxAttempts = 8;
+    const tryMeasure = () => {
+      attempts++;
+      if (measureTarget()) return; // found it
+      if (attempts < maxAttempts) {
+        retryTimer = setTimeout(tryMeasure, 200);
+      } else {
+        // Give up — show tooltip centered without highlight
+        setRect(null);
+        setTransitioning(false);
+      }
+    };
+
+    let retryTimer;
+    const initialTimer = setTimeout(tryMeasure, needsNavigation ? 200 : 30);
+    return () => { clearTimeout(initialTimer); clearTimeout(retryTimer); };
   }, [step]);
 
   // Recalculate on window resize
@@ -133,9 +147,19 @@ export default function TourOverlay({ onEnd }) {
 
   // Calculate tooltip position — never overlap the highlighted element
   const getTooltipStyle = () => {
-    if (!rect) return { opacity: 0 };
-    
     const tooltipWidth = Math.min(380, window.innerWidth - 40);
+
+    if (!rect) {
+      // No target found — center the tooltip on screen
+      return {
+        position: 'fixed',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: `${tooltipWidth}px`,
+        opacity: transitioning ? 0 : 1,
+        transition: 'opacity 0.3s ease'
+      };
+    }
     const gap = 16; // space between highlight box and tooltip
     const pad = 8; // the spotlight padding around the element
 
