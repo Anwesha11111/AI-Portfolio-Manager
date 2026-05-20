@@ -85,21 +85,27 @@ export default function TourOverlay({ onEnd }) {
   const tooltipRef = useRef(null);
 
   const findAndHighlight = useCallback(() => {
-    // Small delay for DOM to settle after navigation
-    const timer = setTimeout(() => {
+    // First pass: scroll element into view
+    const scrollTimer = setTimeout(() => {
+      const el = document.querySelector(current.target);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 300);
+
+    // Second pass: measure after scroll settles
+    const measureTimer = setTimeout(() => {
       const el = document.querySelector(current.target);
       if (el) {
         const r = el.getBoundingClientRect();
         setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-        // Scroll element into view if needed
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
-        // Fallback: center of screen
-        setRect({ top: window.innerHeight / 2 - 50, left: window.innerWidth / 2 - 150, width: 300, height: 100 });
+        setRect(null);
       }
       setTransitioning(false);
-    }, 400);
-    return () => clearTimeout(timer);
+    }, 700);
+
+    return () => { clearTimeout(scrollTimer); clearTimeout(measureTimer); };
   }, [current.target]);
 
   // Navigate and find target
@@ -136,29 +142,43 @@ export default function TourOverlay({ onEnd }) {
     }
   };
 
-  // Calculate tooltip position
+  // Calculate tooltip position — never overlap the highlighted element
   const getTooltipStyle = () => {
     if (!rect) return { opacity: 0 };
     
-    const tooltipWidth = 380;
-    const tooltipPad = 16;
-    const pos = current.position || 'bottom';
+    const tooltipWidth = Math.min(380, window.innerWidth - 40);
+    const gap = 16; // space between highlight box and tooltip
+    const pad = 8; // the spotlight padding around the element
+
+    // Measure actual tooltip height
+    const tooltipEl = tooltipRef.current;
+    const tooltipHeight = tooltipEl ? tooltipEl.getBoundingClientRect().height : 220;
+
+    // Boundaries of the spotlight box
+    const spotlightTop = rect.top - pad;
+    const spotlightBottom = rect.top + rect.height + pad;
+
+    // Space available above and below the spotlight
+    const spaceBelow = window.innerHeight - spotlightBottom - gap;
+    const spaceAbove = spotlightTop - gap;
+
     let top, left;
 
-    if (pos === 'bottom' || pos === 'bottom-end') {
-      top = rect.top + rect.height + tooltipPad;
-      left = pos === 'bottom-end' 
-        ? Math.min(rect.left + rect.width - tooltipWidth, window.innerWidth - tooltipWidth - 20)
-        : rect.left;
+    // Prefer below, but if tooltip doesn't fit below, place above
+    if (spaceBelow >= tooltipHeight || spaceBelow >= spaceAbove) {
+      // Place below
+      top = spotlightBottom + gap;
     } else {
-      // top
-      top = rect.top - tooltipPad - 250; // approximate tooltip height
-      left = rect.left;
+      // Place above
+      top = spotlightTop - gap - tooltipHeight;
     }
 
-    // Clamp to viewport
+    // Horizontal: center on the element, clamped to viewport
+    left = rect.left + rect.width / 2 - tooltipWidth / 2;
     left = Math.max(20, Math.min(left, window.innerWidth - tooltipWidth - 20));
-    top = Math.max(20, Math.min(top, window.innerHeight - 300));
+
+    // Clamp vertical to viewport
+    top = Math.max(10, Math.min(top, window.innerHeight - tooltipHeight - 10));
 
     return {
       position: 'fixed', top: `${top}px`, left: `${left}px`,
