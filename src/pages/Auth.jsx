@@ -9,7 +9,6 @@ export default function Auth() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
   
   const { signIn, signUp, loading } = useAuthStore();
   const navigate = useNavigate();
@@ -18,14 +17,12 @@ export default function Auth() {
     if (state?.isLogin !== undefined) {
       setIsLogin(state.isLogin);
       setErrorMsg('');
-      setSuccessMsg('');
     }
   }, [state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-    setSuccessMsg('');
     
     try {
       if (isLogin) {
@@ -115,19 +112,7 @@ export default function Auth() {
           </div>
         )}
 
-        {successMsg && (
-          <div style={{
-            background: 'rgba(52,211,153,0.08)', color: '#34d399',
-            padding: '16px', borderRadius: '10px', marginBottom: '20px',
-            fontSize: '0.875rem', textAlign: 'center',
-            border: '1px solid rgba(52,211,153,0.2)',
-            display: 'flex', flexDirection: 'column', gap: '8px'
-          }}>
-            <span style={{ fontSize: '1.2rem' }}>✉️</span>
-            <span style={{ fontWeight: '600' }}>{successMsg}</span>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(52,211,153,0.7)' }}>Don't see it? Check your spam or junk folder.</span>
-          </div>
-        )}
+
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {!isLogin && (
