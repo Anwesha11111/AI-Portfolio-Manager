@@ -86,3 +86,17 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 5. Account Deletion RPC
+-- Allows a user to delete their own account (auth + public data) from the client
+create or replace function public.delete_user()
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  -- public.users row deletion cascades to holdings and transactions
+  delete from public.users where id = auth.uid();
+  delete from auth.users where id = auth.uid();
+end;
+$$;

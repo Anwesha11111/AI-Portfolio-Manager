@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, User as UserIcon, LogOut, Wallet, Target, Clock, AlertTriangle } from 'lucide-react';
+import { X, User as UserIcon, LogOut, Wallet, Target, Clock, AlertTriangle, RotateCcw, Trash2 } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
 import { supabase } from '../../lib/supabase';
 
@@ -30,6 +30,57 @@ export default function ProfileModal({ onClose }) {
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleReset = async () => {
+    const confirmed = window.confirm('⚠️ Are you sure you want to reset your account?\n\nThis will:\n• Reset your balance, salary, and expenses\n• Delete all your holdings and transactions\n• Reset your tutorial progress\n• Take you back to the onboarding screen\n\nThis action cannot be undone.');
+    if (!confirmed) return;
+
+    const doubleConfirm = window.confirm('This is your last chance. All your portfolio data will be permanently deleted. Continue?');
+    if (!doubleConfirm) return;
+
+    try {
+      // Delete holdings and transactions
+      await supabase.from('holdings').delete().eq('user_id', user.id);
+      await supabase.from('transactions').delete().eq('user_id', user.id);
+      
+      // Reset user profile to defaults
+      await supabase.from('users').update({
+        virtual_balance: 1000000,
+        monthly_income: 0,
+        monthly_expenses: 0,
+        total_savings: 0,
+        current_simulated_date: 1104537600000,
+        time_horizon: 'long',
+        drawdown_tolerance: 'medium',
+        primary_objective: 'growth',
+        completed_lessons: '{}',
+        last_ai_recommendation_date: 0
+      }).eq('id', user.id);
+
+      onClose();
+      navigate('/onboarding');
+    } catch (err) {
+      console.error('Reset failed:', err);
+      alert('Failed to reset account. Please try again.');
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm('🚨 DANGER: Are you sure you want to permanently delete your account?\n\nThis will:\n• Delete your entire profile\n• Delete all holdings and transactions\n• Remove your account completely\n\nThis action is IRREVERSIBLE.');
+    if (!confirmed) return;
+
+    const doubleConfirm = window.confirm('Final confirmation: Type-to-confirm is not available. Are you absolutely sure you want to delete your account forever?');
+    if (!doubleConfirm) return;
+
+    try {
+      await supabase.rpc('delete_user');
+      await signOut();
+      navigate('/');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete account. Please try again.');
+    }
   };
 
   const handleSave = async () => {
@@ -184,19 +235,53 @@ export default function ProfileModal({ onClose }) {
         )}
 
         {!isEditing && (
-          <button 
-            onClick={handleLogout}
-            style={{
-              width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)' }}
-            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)' }}
-          >
-            <LogOut size={18} />
-            Log Out
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button 
+              onClick={handleLogout}
+              style={{
+                width: '100%', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)' }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)' }}
+            >
+              <LogOut size={18} />
+              Log Out
+            </button>
+
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '6px' }}>
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', fontWeight: '600' }}>Danger Zone</span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={handleReset}
+                  style={{
+                    flex: 1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    backgroundColor: 'rgba(245, 158, 11, 0.08)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)',
+                    borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.85rem'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.15)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.08)' }}
+                >
+                  <RotateCcw size={15} />
+                  Reset Account
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  style={{
+                    flex: 1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                    borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.85rem'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)' }}
+                >
+                  <Trash2 size={15} />
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
       </div>
