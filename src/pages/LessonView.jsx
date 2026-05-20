@@ -86,6 +86,8 @@ export default function LessonView() {
     };
 
     lines.forEach((line, idx) => {
+      const imageMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/);
+      
       if (line.startsWith('### ')) {
         flushList();
         elements.push(
@@ -95,10 +97,18 @@ export default function LessonView() {
         );
       } else if (line.startsWith('- ')) {
         currentList.push(line.replace(/^- /, ''));
+      } else if (imageMatch) {
+        flushList();
+        elements.push(
+          <div key={`img-${idx}`} style={{ margin: '32px 0', textAlign: 'center' }}>
+            <img src={imageMatch[2]} alt={imageMatch[1]} style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--border-color)' }} />
+            <span style={{ display: 'block', marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{imageMatch[1]}</span>
+          </div>
+        );
       } else {
         flushList();
         elements.push(
-          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem', letterSpacing: '0.01em' }}>
+          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {parseBold(line)}
           </p>
         );
@@ -108,7 +118,6 @@ export default function LessonView() {
     flushList();
     return elements;
   };
-
   const Icon = lesson.icon;
 
   return (
