@@ -228,6 +228,8 @@ export default function SettingsModal({ onClose, onStartTour }) {
                   key={t.id}
                   onClick={() => setTheme(t.id)}
                   style={{
+                    gridColumn: t.id === 'arctic' ? '1 / -1' : 'auto',
+                    justifyContent: t.id === 'arctic' ? 'center' : 'flex-start',
                     padding: '10px 12px', borderRadius: '8px', border: '1px solid',
                     borderColor: theme === t.id ? 'var(--accent-primary)' : 'var(--border-color)',
                     backgroundColor: theme === t.id ? 'var(--accent-glow)' : 'transparent',
