@@ -40,7 +40,10 @@ export default function LessonView() {
     if (!user || isCompleted) return;
     setUpdating(true);
     
-    const newCompleted = [...completedLessons, lesson.id];
+    // Safety check: ensure it's a flat array and prevent duplicates
+    const currentCompleted = Array.isArray(completedLessons) ? completedLessons : [];
+    const newCompleted = [...new Set([...currentCompleted, lesson.id])]; 
+
     const { error } = await supabase
       .from('users')
       .update({ completed_lessons: newCompleted })
@@ -48,9 +51,10 @@ export default function LessonView() {
       
     if (!error) {
       setCompletedLessons(newCompleted);
+      // Give Supabase an extra half-second to sync before navigating
       setTimeout(() => {
-        navigate('/academy');
-      }, 800);
+        navigate('/academy', { state: { refresh: true } }); 
+      }, 1000);
     } else {
       console.error("Error marking lesson complete:", error);
     }
