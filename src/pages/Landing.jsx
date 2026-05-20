@@ -52,7 +52,7 @@ export default function Landing() {
             <TrendingUp size={18} color="white" />
           </div>
           <h2 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.4rem)', fontWeight: '800', margin: 0, letterSpacing: '-0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Portfolio<span className="text-gradient-accent">Sim</span>
+            Trade<span className="text-gradient-accent">Wise</span>
           </h2>
         </div>
 

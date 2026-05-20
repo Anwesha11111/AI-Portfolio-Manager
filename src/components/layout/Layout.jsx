@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Timer, User } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import { supabase } from '../../lib/supabase';
 import SettingsModal from './SettingsModal';
 import ProfileModal from './ProfileModal';
+import TourOverlay from './TourOverlay';
 
 export default function Layout() {
   const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate, currentSimulatedDate, initialized } = useSimulationStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isTourActive, setIsTourActive] = useState(false);
   const lastCreditedMonth = useRef(null);
   
   // Load saved simulation date on mount
@@ -162,8 +164,8 @@ export default function Layout() {
       {/* Top Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.logo}>
-          <div className={styles.logoIcon}>AI</div>
-          <h2>Portfolio<span className={styles.accent}>Sim</span></h2>
+          <div className={styles.logoIcon}>TW</div>
+          <h2>Trade<span className={styles.accent}>Wise</span></h2>
         </div>
         
         <div className={styles.navLinks}>
@@ -207,7 +209,7 @@ export default function Layout() {
             onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
             title="Simulation Speed & Time Controls"
           >
-            <Timer size={20} />
+            <Settings size={20} />
           </button>
         </div>
       </nav>
@@ -219,8 +221,9 @@ export default function Layout() {
         </div>
       </main>
 
-      {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
+      {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} onStartTour={() => setIsTourActive(true)} />}
       {isProfileOpen && <ProfileModal onClose={() => setIsProfileOpen(false)} />}
+      {isTourActive && <TourOverlay onEnd={() => setIsTourActive(false)} />}
     </div>
   );
 }

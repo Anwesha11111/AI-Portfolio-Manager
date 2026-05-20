@@ -64,9 +64,9 @@ export default function Auth() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: '800', fontSize: '0.85rem', color: 'white',
             boxShadow: '0 0 20px rgba(79,142,247,0.4)'
-          }}>AI</div>
+          }}>TW</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, letterSpacing: '-0.03em' }}>
-            Portfolio<span style={{ color: '#4f8ef7' }}>Sim</span>
+            Trade<span style={{ color: '#4f8ef7' }}>Wise</span>
           </h2>
         </div>
 
