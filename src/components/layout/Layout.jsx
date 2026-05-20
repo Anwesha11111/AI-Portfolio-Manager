@@ -8,7 +8,7 @@ import SettingsModal from './SettingsModal';
 import ProfileModal from './ProfileModal';
 
 export default function Layout() {
-  const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate, currentSimulatedDate } = useSimulationStore();
+  const { isRunning, simulationSpeedMs, advanceTime, loadSavedDate, saveDate, currentSimulatedDate, initialized } = useSimulationStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const lastCreditedMonth = useRef(null);
@@ -35,13 +35,17 @@ export default function Layout() {
 
   // Monthly Income Accrual — credit surplus when simulation crosses month boundaries
   useEffect(() => {
+    // Don't run until the saved date has been loaded from Supabase
+    // Otherwise we'd compare default START_DATE with the loaded date and credit phantom months
+    if (!initialized) return;
+
     const simDate = new Date(currentSimulatedDate);
     const currentYear = simDate.getFullYear();
     const currentMonth = simDate.getMonth();
     const monthKey = `${currentYear}-${currentMonth}`;
     
     if (lastCreditedMonth.current === null) {
-      // First render, just set the ref without crediting
+      // First run after initialization, just set the ref without crediting
       lastCreditedMonth.current = monthKey;
       return;
     }
@@ -73,7 +77,7 @@ export default function Layout() {
         })();
       }
     }
-  }, [currentSimulatedDate]);
+  }, [currentSimulatedDate, initialized]);
 
   // Stop-Loss Automation Engine
   const lastStopLossCheck = useRef(0);
