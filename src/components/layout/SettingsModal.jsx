@@ -4,12 +4,15 @@ import useSimulationStore from '../../store/useSimulationStore';
 export default function SettingsModal({ onClose }) {
   const { 
     currentSimulatedDate, isRunning, simulationSpeedMs, 
-    toggleSimulation, setSimulationSpeed 
+    toggleSimulation, setSimulationSpeed, setSimulatedDate
   } = useSimulationStore();
 
   const formattedDate = new Date(currentSimulatedDate).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
+
+  const dateObj = new Date(currentSimulatedDate);
+  const isoDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
   return (
     <div style={{
@@ -43,6 +46,30 @@ export default function SettingsModal({ onClose }) {
             <div>
               <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Current Simulated Date</span>
               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{formattedDate}</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Jump to Date</span>
+              <input 
+                type="date" 
+                value={isoDate}
+                min="2005-01-01"
+                max="2023-12-31"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSimulatedDate(e.target.value);
+                  }
+                }}
+                style={{
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'rgba(0,0,0,0.5)',
+                  color: 'white',
+                  outline: 'none',
+                  colorScheme: 'dark'
+                }}
+              />
             </div>
             
             <button 
