@@ -1,5 +1,4 @@
-import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown, ShieldCheck, Briefcase, Search } from 'lucide-react';
-
+import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown, ShieldCheck, Briefcase, Search, Activity, Lock } from 'lucide-react';
 export const LESSONS = [
   {
     id: 'indian-market-ecosystem',
