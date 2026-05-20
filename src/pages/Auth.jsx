@@ -32,15 +32,10 @@ export default function Auth() {
         await signIn(email, password);
         navigate('/dashboard');
       } else {
-        const data = await signUp(email, password, username);
-        // If email confirmation is enabled, Supabase returns data.user but data.session is null.
-        if (data?.user && !data.session) {
-          setSuccessMsg('Registration successful! We\'ve sent a confirmation link to your email. Please verify your email before logging in.');
-          setIsLogin(true); // Switch to login view for when they come back
-        } else {
-          // If no email confirmation is required, they are automatically logged in
-          navigate('/onboarding');
-        }
+        await signUp(email, password, username);
+        // Always show confirmation message — user must verify email before logging in
+        setSuccessMsg('Registration successful! We\'ve sent a confirmation link to your email. Please verify your email before logging in.');
+        setIsLogin(true); // Switch to login view
       }
     } catch (err) {
       setErrorMsg(err.message);
