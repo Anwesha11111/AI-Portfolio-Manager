@@ -65,6 +65,73 @@ export default function Layout() {
     }
   }, [currentSimulatedDate]);
 
+  // Stop-Loss Automation Engine
+  const lastStopLossCheck = useRef(0);
+  const { fetchMarketData } = useSimulationStore(state => state);
+
+  useEffect(() => {
+    const checkStopLosses = async () => {
+      // Throttle to max 1 check per 1500ms of real time to avoid API spam during fast simulation
+      const now = Date.now();
+      if (now - lastStopLossCheck.current < 1500) return;
+      lastStopLossCheck.current = now;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Get holdings with active stop losses
+        const { data: holdings } = await supabase.from('holdings').select('*').eq('user_id', user.id).not('stop_loss_pct', 'is', null);
+        if (!holdings || holdings.length === 0) return;
+
+        // Fetch current market prices
+        const marketData = await fetchMarketData('1M');
+        if (!marketData || marketData.length === 0) return;
+
+        const priceMap = {};
+        marketData.forEach(item => { priceMap[item.symbol] = item.price; });
+
+        // Get user balance for updates
+        const { data: userData } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
+        let currentBalance = Number(userData?.virtual_balance || 0);
+        let balanceUpdated = false;
+
+        for (const holding of holdings) {
+          const currentPrice = priceMap[holding.symbol];
+          if (!currentPrice || currentPrice === 0) continue;
+
+          const thresholdPrice = holding.average_buy_price * (1 - (holding.stop_loss_pct / 100));
+          
+          if (currentPrice <= thresholdPrice) {
+            // Trigger Stop Loss Sell
+            const saleProceeds = holding.quantity * currentPrice;
+            currentBalance += saleProceeds;
+            balanceUpdated = true;
+
+            await supabase.from('holdings').delete().eq('id', holding.id);
+            await supabase.from('transactions').insert({ 
+              user_id: user.id, symbol: holding.symbol, type: 'SELL', 
+              quantity: holding.quantity, price_per_unit: currentPrice, 
+              simulated_date: currentSimulatedDate 
+            });
+
+            alert(`🛑 STOP LOSS EXECUTED: Sold ${holding.quantity} shares of ${holding.symbol} at ₹${currentPrice.toFixed(2)} (Dropped below ${holding.stop_loss_pct}% loss limit)`);
+          }
+        }
+
+        if (balanceUpdated) {
+          await supabase.from('users').update({ virtual_balance: currentBalance }).eq('id', user.id);
+        }
+      } catch (err) {
+        console.error("Stop Loss check failed:", err);
+      }
+    };
+
+    if (isRunning) {
+      checkStopLosses();
+    }
+  }, [currentSimulatedDate, isRunning]);
+
   // The Core Time Engine Loop
   useEffect(() => {
     let interval;

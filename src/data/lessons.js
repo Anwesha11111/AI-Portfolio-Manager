@@ -1,4 +1,4 @@
-import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp } from 'lucide-react';
+import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 
 export const LESSONS = [
   {
@@ -172,6 +172,38 @@ export const LESSONS = [
 
       ### Why Candlesticks Matter
       Candlesticks visualize the battle between buyers and sellers. By looking at the size of the body and the length of the wicks over consecutive days, experienced traders can identify momentum shifts, panic selling, or aggressive institutional buying before the fundamentals even change.
+    `
+  },
+  {
+    id: 'market-crashes',
+    icon: TrendingDown,
+    title: 'Surviving Market Crashes',
+    readTime: '7 min read',
+    content: `
+      ### The Anatomy of a Market Crash
+      A market crash is a sudden, dramatic decline of stock prices across a significant cross-section of a stock market. Unlike a simple "correction" (a drop of 10%), crashes usually involve sudden double-digit drops fueled by panic selling. 
+      
+      Historically, crashes are triggered by:
+      - **Economic Bubbles:** When an asset's price rises far beyond its intrinsic value (e.g., the 2000 Dot-Com bubble).
+      - **Systemic Financial Failure:** When core banking or financial institutions collapse, freezing global credit (e.g., the 2008 Financial Crisis).
+      - **Black Swan Events:** Unpredictable, catastrophic world events that halt economic activity (e.g., the 2020 COVID-19 pandemic).
+
+      ### The Psychology of Panic
+      When the market drops 20% in a week, the instinctual human reaction is to sell everything to stop the bleeding. **This is usually the worst possible decision.**
+      
+      When you panic sell during a crash, you lock in your temporary "paper losses" and turn them into permanent, realized losses. You also guarantee that you will miss the subsequent recovery. Historically, the stock market's best single days of performance almost always occur *during* or immediately after brutal bear markets. Missing just a few of these top days can decimate your long-term returns.
+
+      ### How to Stabilize Your Portfolio
+      You cannot prevent a crash, but you can build a portfolio designed to survive one:
+      
+      1. **Diversification:** Don't put all your eggs in one sector. If the IT sector crashes, your FMCG (Fast-Moving Consumer Goods) and Pharma stocks might hold steady because people still buy toothpaste and medicine during a recession.
+      2. **Cash Reserves (Dry Powder):** Always keep a portion of your wealth in cash or liquid assets. When the market crashes, high-quality businesses go on "sale." Having cash allows you to buy these incredible assets at a massive discount.
+      3. **Defensive Stocks:** Companies with strong balance sheets, low debt, and consistent dividend payouts tend to fall much less than high-growth, speculative tech stocks during a panic.
+
+      ### The "Buy the Dip" Opportunity
+      Warren Buffett famously advises: *"Be fearful when others are greedy, and greedy when others are fearful."*
+      
+      A market crash is a wealth-transfer event. Weak, panicked investors sell their shares at dirt-cheap prices to disciplined, patient investors. If you hold strong companies that will survive the economic shock, the best strategy is often to hold firm, ignore the noise, and use your available capital to slowly accumulate more shares while they are cheap (a strategy known as Dollar-Cost Averaging).
     `
   }
 ];
