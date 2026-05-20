@@ -205,7 +205,7 @@ export const LESSONS = [
       
       A market crash is a wealth-transfer event. Weak, panicked investors sell their shares at dirt-cheap prices to disciplined, patient investors. If you hold strong companies that will survive the economic shock, the best strategy is often to hold firm, ignore the noise, and use your available capital to slowly accumulate more shares while they are cheap (a strategy known as Dollar-Cost Averaging).
     `
-  };
+  },
   {
     id: 'indian-market-ecosystem',
     icon: ShieldCheck,
