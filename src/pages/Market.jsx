@@ -169,7 +169,7 @@ export default function Market() {
           <p>Select a company to view detailed charts and execute trades.</p>
         </div>
         
-        <div className="controls-bar">
+        <div className="controls-bar" id="tour-market-controls">
           <button 
             onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
             style={{
