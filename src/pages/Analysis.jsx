@@ -201,7 +201,10 @@ export default function Analysis() {
         <Layers size={20} color="var(--accent-primary)" /> Current Market Exposure
       </h3>
       <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-        <AlertTriangle size={36} color="#f59e0b" style={{ flexShrink: 0, marginTop: '4px' }} />
+        {holdings.length === 0 
+          ? <AlertTriangle size={36} color="#f59e0b" style={{ flexShrink: 0, marginTop: '4px' }} />
+          : <Layers size={36} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: '4px' }} />
+        }
         <div style={{ flex: 1 }}>
           <h4 style={{ margin: '0 0 12px 0', fontSize: '1.2rem' }}>Active Holdings ({holdings.length})</h4>
           {holdings.length === 0 ? (
