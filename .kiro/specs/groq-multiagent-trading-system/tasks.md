@@ -18,7 +18,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Add helper function to calculate daily returns from price series
   - _Requirements: 2.1, 2.2, 3.1, 3.2, 3.3_
 
-  - [ ]* 1.1 Write unit tests for technical indicator calculations
+  - [x]* 1.1 Write unit tests for technical indicator calculations
     - Test RSI calculation with known values
     - Test SMA calculation with edge cases (insufficient data)
     - Test volatility calculation with various price series
@@ -34,7 +34,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Generate mock agent dialogue referencing computed metrics and simulated date
   - _Requirements: 1.3, 1.7, 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7_
 
-  - [ ]* 2.1 Write unit tests for fallback engine
+  - [x]* 2.1 Write unit tests for fallback engine
     - Test risk score calculation and rating assignment
     - Test sentiment score calculation with various technical indicator combinations
     - Test strategy action selection logic
@@ -51,7 +51,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Parse JSON response and validate required fields (risk, sentiment, strategy, conversation)
   - _Requirements: 1.1, 1.2, 5.1, 5.2, 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8_
 
-  - [ ]* 3.1 Write unit tests for Groq API integration
+  - [x]* 3.1 Write unit tests for Groq API integration
     - Mock Groq API responses and test parsing
     - Test error handling for API failures
     - Test timeout handling
@@ -74,7 +74,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Ensure response includes: symbol, date, risk (score/rating/rationale), sentiment (score/rating/rationale), strategy (action/targetPrice/stopLoss/rationale), conversation array
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 11.1, 11.2, 11.3, 11.4, 11.5, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8_
 
-  - [ ]* 4.1 Write integration tests for multi-agent endpoint
+  - [x]* 4.1 Write integration tests for multi-agent endpoint
     - Test successful Groq API call and response parsing
     - Test fallback to algorithmic engine when Groq unavailable
     - Test error handling for missing symbol/date
@@ -105,7 +105,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Implement close button and click-outside-to-close functionality
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10_
 
-  - [ ]* 6.1 Write component tests for Consultation Drawer
+  - [x]* 6.1 Write component tests for Consultation Drawer
     - Test rendering of loading state
     - Test rendering of recommendation display
     - Test badge color coding for different ratings
@@ -122,7 +122,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Make component reusable for market listing and watchlist pages
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12_
 
-  - [ ]* 7.1 Write component tests for Rating Badges
+  - [x]* 7.1 Write component tests for Rating Badges
     - Test badge rendering for all rating combinations
     - Test color coding correctness
     - Test tooltip display on hover
@@ -158,7 +158,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Ensure atomic execution: all updates succeed or all fail (no partial updates)
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10_
 
-  - [ ]* 10.1 Write unit tests for trade execution logic
+  - [x]* 10.1 Write unit tests for trade execution logic
     - Test capital calculation
     - Test balance checking
     - Test successful trade execution
@@ -210,7 +210,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Handle database errors in trade execution (rollback and return error message)
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
 
-  - [ ]* 15.1 Write tests for error handling and edge cases
+  - [x]* 15.1 Write tests for error handling and edge cases
     - Test invalid symbol handling
     - Test invalid date handling
     - Test missing data handling
@@ -247,7 +247,7 @@ This implementation plan breaks down the Groq multi-agent AI trading system into
   - Test data filtering by simulation date (no future data leaks)
   - _Requirements: 1.1, 1.2, 1.3, 1.6, 1.7, 11.1, 11.2, 11.3, 11.4, 11.5, 13.1, 13.2, 13.3_
 
-  - [ ]* 18.1 Write integration tests for complete workflow
+  - [x]* 18.1 Write integration tests for complete workflow
     - Test consultation request → recommendation → trade execution
     - Test error handling in each step
     - Test portfolio updates after trade
