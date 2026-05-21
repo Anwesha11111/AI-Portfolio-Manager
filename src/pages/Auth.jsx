@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
@@ -13,18 +13,10 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [country, setCountry] = useState('IN');
-  const [documentNumber, setDocumentNumber] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
   const { signIn, signUp, loading } = useAuthStore();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (state?.isLogin !== undefined) {
-      setIsLogin(state.isLogin);
-      setErrorMsg('');
-    }
-  }, [state]);
 
   const isPasswordValid = (pw) => {
     const minLength = pw.length >= 8;
@@ -32,35 +24,6 @@ export default function Auth() {
     const hasLower = /[a-z]/.test(pw);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pw);
     return minLength && hasUpper && hasLower && hasSpecial;
-  };
-
-  const isDocumentValid = () => {
-    if (isLogin) return true;
-    if (country === 'IN') return /^\d{12}$/.test(documentNumber);
-    if (country === 'US') return /^(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}$/.test(documentNumber);
-    if (country === 'UK') return /^[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D\s]$/i.test(documentNumber);
-    return documentNumber.length >= 4;
-  };
-
-  const getDocPlaceholder = () => {
-    if (country === 'IN') return '12-digit Aadhaar Number';
-    if (country === 'US') return 'XXX-XX-XXXX (SSN)';
-    if (country === 'UK') return 'National Insurance Number';
-    return 'Document ID';
-  };
-
-  const getDocLabel = () => {
-    if (country === 'IN') return 'AADHAAR NUMBER';
-    if (country === 'US') return 'SOCIAL SECURITY NUMBER';
-    if (country === 'UK') return 'NATIONAL INSURANCE NUMBER';
-    return 'DOCUMENT NUMBER';
-  };
-
-  const getDocRequirement = () => {
-    if (country === 'IN') return 'Must be exactly 12 digits';
-    if (country === 'US') return 'Format: XXX-XX-XXXX';
-    if (country === 'UK') return 'Format: AB123456C';
-    return 'Must be at least 4 characters';
   };
 
   const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em', textTransform: 'uppercase' };
@@ -82,11 +45,7 @@ export default function Auth() {
           setErrorMsg("Password does not meet the security requirements.");
           return;
         }
-        if (!isDocumentValid()) {
-          setErrorMsg(`Invalid document format for ${country}. Please check and try again.`);
-          return;
-        }
-        await signUp(email, password, username, country, documentNumber);
+        await signUp(email, password, username, country, '');
         navigate('/onboarding');
       }
     } catch (err) {
@@ -144,7 +103,7 @@ export default function Auth() {
             const active = isLogin === (i === 0);
             return (
               <button key={label} type="button"
-                onClick={() => { setIsLogin(i === 0); setErrorMsg(''); setSuccessMsg(''); }}
+                onClick={() => { setIsLogin(i === 0); setErrorMsg(''); }}
                 style={{
                   flex: 1, padding: '9px', border: 'none', borderRadius: '8px',
                   fontWeight: '600', fontSize: '0.875rem', cursor: 'pointer',
@@ -186,41 +145,19 @@ export default function Auth() {
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: '1' }}>
-                  <label style={labelStyle}>COUNTRY</label>
-                  <select 
-                    value={country} 
-                    onChange={(e) => { setCountry(e.target.value); setDocumentNumber(''); }}
-                    style={{ ...inputStyle, colorScheme: 'dark' }}
-                  >
-                    <option value="IN" style={{ background: '#1a1a2e', color: '#fff' }}>🇮🇳 India</option>
-                    <option value="US" style={{ background: '#1a1a2e', color: '#fff' }}>🇺🇸 USA</option>
-                    <option value="UK" style={{ background: '#1a1a2e', color: '#fff' }}>🇬🇧 UK</option>
-                    <option value="CA" style={{ background: '#1a1a2e', color: '#fff' }}>🇨🇦 Canada</option>
-                    <option value="AU" style={{ background: '#1a1a2e', color: '#fff' }}>🇦🇺 Australia</option>
-                  </select>
-                </div>
-                <div style={{ flex: '2' }}>
-                  <label style={labelStyle}>{getDocLabel()}</label>
-                  <input
-                    type="text"
-                    placeholder={getDocPlaceholder()}
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    required
-                    style={inputStyle}
-                  />
-                  {!isLogin && documentNumber && (
-                    <div style={{ marginTop: '6px', fontSize: '0.75rem' }}>
-                      {isDocumentValid() ? (
-                        <span style={{ color: 'var(--success)' }}>✓ Valid format</span>
-                      ) : (
-                        <span style={{ color: 'var(--danger)' }}>✗ {getDocRequirement()}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
+              <div>
+                <label style={labelStyle}>COUNTRY</label>
+                <select 
+                  value={country} 
+                  onChange={(e) => setCountry(e.target.value)}
+                  style={{ ...inputStyle, colorScheme: 'dark' }}
+                >
+                  <option value="IN" style={{ background: '#1a1a2e', color: '#fff' }}>🇮🇳 India</option>
+                  <option value="US" style={{ background: '#1a1a2e', color: '#fff' }}>🇺🇸 USA</option>
+                  <option value="UK" style={{ background: '#1a1a2e', color: '#fff' }}>🇬🇧 UK</option>
+                  <option value="CA" style={{ background: '#1a1a2e', color: '#fff' }}>🇨🇦 Canada</option>
+                  <option value="AU" style={{ background: '#1a1a2e', color: '#fff' }}>🇦🇺 Australia</option>
+                </select>
               </div>
             </>
           )}
