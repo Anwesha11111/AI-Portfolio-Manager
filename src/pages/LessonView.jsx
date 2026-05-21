@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
@@ -63,28 +63,60 @@ export default function LessonView() {
   };
 
   // Robust line-by-line Markdown Parser
+  // Robust line-by-line Markdown Parser
   const renderContent = (text) => {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
     const elements = [];
     let currentList = [];
 
-    // ... (Keep your existing parseBold and flushList helper functions) ...
+    const parseBold = (str) => {
+      const parts = str.split(/(\*\*.*?\*\*)/g);
+      return parts.map((part, j) => 
+        part.startsWith('**') && part.endsWith('**') 
+          ? <strong key={j} style={{ color: 'var(--text-main)', fontWeight: '700' }}>{part.slice(2, -2)}</strong>
+          : part
+      );
+    };
+
+    const flushList = () => {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`ul-${elements.length}`} style={{ paddingLeft: '24px', marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+            {currentList.map((item, i) => (
+              <li key={i} style={{ marginBottom: '12px' }}>{parseBold(item)}</li>
+            ))}
+          </ul>
+        );
+        currentList = [];
+      }
+    };
 
     lines.forEach((line, idx) => {
       const imageMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/);
       
       if (line.startsWith('### ')) {
-        // ... (Keep existing H3 logic)
+        flushList();
+        elements.push(
+          <h3 key={`h3-${idx}`} style={{ marginTop: '40px', marginBottom: '20px', color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '700', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
+            {line.replace('### ', '')}
+          </h3>
+        );
       } else if (line.startsWith('- ')) {
-        // ... (Keep existing List logic)
+        currentList.push(line.replace(/^- /, ''));
       } else if (imageMatch) {
-        // ... (Keep existing Image logic)
+        flushList();
+        elements.push(
+          <div key={`img-${idx}`} style={{ margin: '32px 0', textAlign: 'center' }}>
+            <img src={imageMatch[2]} alt={imageMatch[1]} style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--border-color)' }} />
+            <span style={{ display: 'block', marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{imageMatch[1]}</span>
+          </div>
+        );
       } else if (line.startsWith('> 💡 PRO-TIP:')) {
         flushList();
         elements.push(
           <div key={`tip-${idx}`} style={{ margin: '24px 0', padding: '16px 20px', background: 'rgba(16, 185, 129, 0.1)', borderLeft: '4px solid var(--success)', borderRadius: '0 8px 8px 0' }}>
             <strong style={{ color: 'var(--success)', display: 'block', marginBottom: '8px' }}>💡 PRO-TIP</strong>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)' }}>{parseBold(line.replace('> 💡 PRO-TIP:', ''))}</p>
+            <p style={{ margin: 0, color: 'var(--text-main)' }}>{parseBold(line.replace('> 💡 PRO-TIP:', ''))}</p>
           </div>
         );
       } else if (line.startsWith('> ⚠️ WARNING:')) {
@@ -92,12 +124,11 @@ export default function LessonView() {
         elements.push(
           <div key={`warn-${idx}`} style={{ margin: '24px 0', padding: '16px 20px', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', borderRadius: '0 8px 8px 0' }}>
             <strong style={{ color: '#ef4444', display: 'block', marginBottom: '8px' }}>⚠️ WARNING</strong>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)' }}>{parseBold(line.replace('> ⚠️ WARNING:', ''))}</p>
+            <p style={{ margin: 0, color: 'var(--text-main)' }}>{parseBold(line.replace('> ⚠️ WARNING:', ''))}</p>
           </div>
         );
       } else if (line === '[CHART:COMPOUNDING]') {
         flushList();
-        // Sample data for the interactive chart
         const data = [
           { year: 'Year 1', value: 115000 }, { year: 'Year 5', value: 201135 },
           { year: 'Year 10', value: 404555 }, { year: 'Year 20', value: 1636653 },
@@ -108,18 +139,112 @@ export default function LessonView() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="year" stroke="rgba(255,255,255,0.5)" />
-                <YAxis stroke="rgba(255,255,255,0.5)" tickFormatter={(val) => \`₹\${val/100000}L\`} />
-                <Tooltip contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', color: 'white' }} />
+                <XAxis dataKey="year" stroke="var(--text-muted)" />
+                <YAxis stroke="var(--text-muted)" tickFormatter={(val) => `₹${val/100000}L`} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
                 <Line type="monotone" dataKey="value" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 6 }} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         );
-      } else {
+      } else if (line === '[CHART:PORTFOLIO]') {
+        flushList();
+        const data = [
+          { name: 'Large Cap (Stable)', value: 50 },
+          { name: 'Mid Cap (Growth)', value: 25 },
+          { name: 'Small Cap (Risk)', value: 10 },
+          { name: 'Bonds/Gold (Hedge)', value: 15 },
+        ];
+        const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+        
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '300px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                  {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text-main)' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      } else if (line === '[CHART:RSI]') {
+        flushList();
+        const data = [
+          { day: 'Mon', rsi: 45 }, { day: 'Tue', rsi: 55 }, { day: 'Wed', rsi: 75 }, 
+          { day: 'Thu', rsi: 60 }, { day: 'Fri', rsi: 25 }, { day: 'Mon', rsi: 40 }
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '300px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="day" stroke="var(--text-muted)" />
+                <YAxis domain={[0, 100]} stroke="var(--text-muted)" />
+                <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="3 3" label={{ position: 'top', value: 'Overbought', fill: '#ef4444' }} />
+                <ReferenceLine y={30} stroke="#10b981" strokeDasharray="3 3" label={{ position: 'bottom', value: 'Oversold', fill: '#10b981' }} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Line type="monotone" dataKey="rsi" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      } } else if (line === '[CHART:FUNDAMENTALS]') {
+        flushList();
+        const data = [
+          { metric: 'Revenue', EliteCorp: 120, RiskyInc: 140 },
+          { metric: 'Net Profit', EliteCorp: 45, RiskyInc: -15 },
+          { metric: 'Free Cash Flow', EliteCorp: 35, RiskyInc: -30 },
+          { metric: 'Total Debt', EliteCorp: 10, RiskyInc: 180 },
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '350px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ color: 'var(--text-main)', textAlign: 'center', marginBottom: '16px', fontSize: '1.1rem' }}>EliteCorp (Green) vs RiskyInc (Red)</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="metric" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
+                <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
+                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                <Bar dataKey="EliteCorp" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="RiskyInc" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      } else if (line === '[CHART:MARKET_CYCLES]') {
+        flushList();
+        const data = [
+          { phase: 'Accumulation', price: 100 }, { phase: 'Markup', price: 140 },
+          { phase: 'Euphoria (Peak)', price: 250 }, { phase: 'Distribution', price: 220 }, 
+          { phase: 'Panic (Crash)', price: 90 }, { phase: 'Despair', price: 85 },
+          { phase: 'New Cycle', price: 110 }
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '300px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="phase" stroke="var(--text-muted)" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} angle={-20} textAnchor="end" height={60} />
+                <YAxis stroke="var(--text-muted)" />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Area type="monotone" dataKey="price" stroke="var(--accent-primary)" fillOpacity={1} fill="url(#colorPrice)" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ); else {
         flushList();
         elements.push(
-          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.85', fontSize: '1.1rem' }}>
+          <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
             {parseBold(line)}
           </p>
         );

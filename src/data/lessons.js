@@ -82,28 +82,25 @@ export const LESSONS = [
     id: 'fundamental-analysis',
     icon: BookOpen,
     title: 'Valuing a Business (Fundamentals)',
-    readTime: '8 min read',
+    readTime: '9 min read',
     content: `
       ### Price vs Value
-      Warren Buffett's golden rule is simple: *"Price is what you pay. Value is what you get."* Just because a stock's price is going up rapidly does not mean it is a good investment. You must understand the underlying business fundamentals to determine if you are buying a ₹100 bill for ₹80, or a ₹50 bill for ₹120.
+      Warren Buffett's golden rule is simple: *"Price is what you pay. Value is what you get."* Just because a stock's price is going up rapidly does not mean it is a good investment. 
 
-      ### Core Valuation Metrics
-      To analyze a company, you must look at its financial statements (Income Statement, Balance Sheet, Cash Flow Statement). Here are the most critical metrics:
+      > ⚠️ WARNING: Never buy a stock purely based on its price tag. A ₹50 stock might be vastly more expensive than a ₹5,000 stock if the ₹50 company is bleeding cash and drowning in debt.
+
+      ### Reading the Financials (Interactive)
+      To analyze a company, you must look at its financial statements. Revenue growth is meaningless if it doesn't translate to net profit and free cash flow. 
       
-      - **P/E Ratio (Price-to-Earnings):** This ratio tells you how much you are paying for ₹1 of the company's profit. Calculated as: \`Current Stock Price / Earnings Per Share\`. If a stock trades at ₹1,000 and earns ₹50 per share, its P/E is 20. A very high P/E (like 100) means the market expects massive future growth. A low P/E (like 10) might indicate a bargain, or a business in severe decline.
-      - **ROE (Return on Equity):** This measures how efficiently management uses shareholders' capital to generate profit. Calculated as: \`Net Income / Shareholder's Equity\`. If a company has an ROE of 20%, it generates ₹20 of profit for every ₹100 invested in it. Consistently high ROE (15%+) without excessive debt is a hallmark of an elite business.
-      - **Debt-to-Equity Ratio:** This measures financial risk and leverage. A company with massive debt might go bankrupt during an economic downturn because it cannot meet its interest payments. Look for companies with a D/E ratio of less than 1.0.
-      - **Free Cash Flow (FCF):** Net income can be manipulated by accounting tricks. Free Cash Flow is the actual, hard cash left over after a company has paid all its expenses and capital expenditures (like buying new equipment). It is the truest measure of profitability.
+      Hover over the bar chart below comparing two hypothetical companies. Notice how "RiskyInc" has higher revenue, but is a terrible investment compared to "EliteCorp":
 
-      ### The Economic Moat
-      A fundamental investor looks for an **"economic moat"**—a structural competitive advantage that protects a company's profits from competitors. 
-      
-      Moats come in several forms:
-      - **Brand Power:** People willingly pay a premium for an Apple iPhone over an Android with similar specs.
-      - **Network Effects:** A credit card network like Visa becomes more valuable to merchants as more consumers use it, and vice versa.
-      - **Switching Costs:** Once an enterprise integrates Microsoft Azure or AWS into its infrastructure, the cost and headache of switching to a competitor is astronomically high.
+      [CHART:FUNDAMENTALS]
 
-      Before buying a stock, ask yourself: *Does this company have a moat? Is revenue growing? Is debt manageable? Is the P/E ratio reasonable compared to its peers?* If you cannot answer these questions, you are gambling, not investing.
+      - **P/E Ratio (Price-to-Earnings):** Tells you how much you are paying for ₹1 of the company's profit. A high P/E (like 100) means the market expects massive future growth.
+      - **ROE (Return on Equity):** Measures how efficiently management uses shareholders' capital to generate profit. Consistently high ROE (15%+) without excessive debt is a hallmark of an elite business.
+      - **Free Cash Flow (FCF):** Net income can be manipulated by accounting tricks. Free Cash Flow is the actual, hard cash left over. It is the truest measure of profitability.
+
+      > 💡 PRO-TIP: Always check the Debt-to-Equity Ratio. A company with massive debt might go bankrupt during an economic downturn because it cannot meet its interest payments. Look for companies with a ratio of less than 1.0.
     `
   },
   {
@@ -184,30 +181,27 @@ export const LESSONS = [
     id: 'market-cycles',
     icon: BarChart3,
     title: 'Market Cycles: Bulls and Bears',
-    readTime: '6 min read',
+    readTime: '7 min read',
     content: `
       ### The Inevitable Rhythm
-      The stock market does not move in a straight line. It moves in cyclical waves driven by macroeconomic conditions, central bank policies, and extreme human psychology. Understanding these cycles is the only way to prevent yourself from panicking at the worst possible times.
+      The stock market does not move in a straight line. It moves in cyclical waves driven by macroeconomic conditions, central bank policies, and extreme human psychology. 
 
-      ### The Bull Market
-      A **bull market** occurs when the economy is strong, unemployment is low, and corporate profits are rising. Investor confidence is incredibly high, and stock prices trend upward for years. 
-      
-      During the late stages of a bull market, euphoria and greed take over. People begin buying terrible companies purely because the prices are rising. Valuations stretch to absurd levels, creating a "bubble."
+      > 💡 PRO-TIP: Understanding these cycles is the only way to prevent yourself from panicking at the worst possible times. The market is a mechanism for transferring wealth from the impatient to the patient.
 
-      ### The Bear Market & Recessions
-      Eventually, the bubble bursts. A **bear market** is defined as a 20% or greater decline in major indices from their recent highs. It is often triggered by a catalyst: a spike in interest rates, runaway inflation, or a global crisis (like the 2008 Financial Crisis or the 2020 Pandemic).
-      
-      Fear completely dominates the market. Investors sell their stocks indiscriminately, regardless of whether the underlying company is actually struggling or not. 
+      ### The Anatomy of a Bubble (Interactive)
+      Every market cycle follows a predictable psychological pattern, moving from quiet accumulation by institutional investors, to public euphoria, and finally to panic. Hover over the phases in the chart below:
 
-      ### The Psychology of Wealth Creation
-      The greatest generational wealth is built during severe bear markets. When everyone else is panicking and selling, high-quality, elite businesses go on a massive "sale." 
-      
-      As Baron Rothschild famously advised in the 18th century: *"Buy when there is blood in the streets, even if the blood is your own."* 
-      
-      Unfortunately, human nature makes us do the exact opposite: we buy at the absolute peak of a bull market out of FOMO (Fear Of Missing Out), and we sell at the rock bottom of a bear market out of terror. 
+      [CHART:MARKET_CYCLES]
 
-      ### Your Strategy
-      Expect the market to crash by 30-50% at least 3 to 4 times during your investing lifetime. It is a mathematical certainty. Your goal is not to predict when the crash will happen, but to survive it without selling your assets, and ideally, having cash reserves ready to deploy when prices bottom out.
+      ### The Bull Market (Markup & Euphoria)
+      A **bull market** occurs when the economy is strong. During the late stages ("Euphoria"), greed takes over. People begin buying terrible companies purely because the prices are rising. Valuations stretch to absurd levels, creating a "bubble."
+
+      ### The Bear Market (Panic & Despair)
+      Eventually, the bubble bursts. A **bear market** is defined as a 20% or greater decline in major indices from their recent highs. Fear completely dominates the market. Investors sell their stocks indiscriminately. 
+
+      > ⚠️ WARNING: Human nature makes us buy at the absolute peak of a bull market out of FOMO (Fear Of Missing Out), and sell at the rock bottom of a bear market out of terror. 
+
+      The greatest generational wealth is built during severe bear markets. When everyone else is panicking and selling, high-quality, elite businesses go on a massive "sale."
     `
   },
   {
