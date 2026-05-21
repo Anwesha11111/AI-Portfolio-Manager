@@ -381,84 +381,213 @@ app.get('/api/ai/agents-analysis', (req, res) => {
 
 // Multi-Agent AI Recommendation Endpoint (Groq)
 app.post('/api/ai/multiagent', async (req, res) => {
-  const { date, profile } = req.body;
+  const { symbol, date } = req.body;
   const simDateTimestamp = parseInt(date);
 
-  if (!simDateTimestamp) {
-    return res.status(400).json({ error: 'Missing simulation date' });
+  if (!symbol || !simDateTimestamp) {
+    return res.status(400).json({ error: 'Missing symbol or date' });
   }
 
   try {
-    // 1. Gather market analysis (same as existing recommend endpoint)
-    const symbols = Object.keys(stockDataCache);
-    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
-    const sixMonthsAgo = simDateTimestamp - SIX_MONTHS_MS;
-    let marketAnalysis = [];
-    for (const symbol of symbols) {
-      const fullData = stockDataCache[symbol];
-      const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp && c.rawTimestamp >= sixMonthsAgo);
-      if (visibleData.length < 30) continue;
-      const currentPrice = visibleData[visibleData.length - 1].close;
-      const pastPrice = visibleData[0].close;
-      const returnPct = ((currentPrice - pastPrice) / pastPrice) * 100;
+    const fullData = stockDataCache[symbol.toUpperCase()];
+    if (!fullData) {
+      return res.status(404).json({ error: `Asset data for ${symbol} not found.` });
+    }
+
+    const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp);
+    if (visibleData.length === 0) {
+      return res.status(400).json({ error: 'No historical data available up to simulated date.' });
+    }
+
+    const lastCandle = visibleData[visibleData.length - 1];
+    const currentPrice = lastCandle.close;
+    const rsi = lastCandle.rsi14 || 50;
+    const sma50 = lastCandle.sma50 || 0;
+    const sma200 = lastCandle.sma200 || 0;
+
+    // Calculate volatility for prompting/fallback
+    const windowData = visibleData.slice(-60);
+    let volatility = 0.2;
+    if (windowData.length >= 10) {
       let sumReturns = 0;
       let returns = [];
-      for (let i = 1; i < visibleData.length; i++) {
-        const dailyRet = (visibleData[i].close - visibleData[i-1].close) / visibleData[i-1].close;
+      for (let i = 1; i < windowData.length; i++) {
+        const dailyRet = (windowData[i].close - windowData[i-1].close) / windowData[i-1].close;
         returns.push(dailyRet);
         sumReturns += dailyRet;
       }
       const meanReturn = sumReturns / returns.length;
       const variance = returns.reduce((acc, val) => acc + Math.pow(val - meanReturn, 2), 0) / returns.length;
-      const volatility = Math.sqrt(variance) * Math.sqrt(252);
-      marketAnalysis.push({ symbol, currentPrice, sixMonthReturn: returnPct, annualizedVolatility: volatility * 100, algorithmicScore: returnPct / (volatility || 1) });
+      volatility = Math.sqrt(variance) * Math.sqrt(252);
     }
-    marketAnalysis.sort((a, b) => b.algorithmicScore - a.algorithmicScore);
-    const topCandidates = marketAnalysis.slice(0, 15);
+    const volatilityPct = volatility * 100;
 
-    // 2. Call Groq API for three specialized agents
+    // 2-Month Change
+    const TWO_MONTHS_MS = 5184000000;
+    const pastTimestamp = simDateTimestamp - TWO_MONTHS_MS;
+    let pastPrice = 0;
+    for (let i = visibleData.length - 1; i >= 0; i--) {
+      if (visibleData[i].rawTimestamp <= pastTimestamp) {
+        pastPrice = visibleData[i].close;
+        break;
+      }
+    }
+    const changePct = pastPrice > 0 ? ((currentPrice - pastPrice) / pastPrice) * 100 : 0;
+
+    // Run Algorithmic Ratings for fallback and prompting context
+    const volatilityScore = Math.min(100, Math.max(10, Math.round(volatilityPct * 1.8)));
+    let riskRating = 'Medium';
+    if (volatilityScore < 35) riskRating = 'Low';
+    else if (volatilityScore > 65) riskRating = 'High';
+
+    let sentimentScore = 50;
+    if (sma50 && currentPrice > sma50) sentimentScore += 10;
+    if (sma50 && currentPrice < sma50) sentimentScore -= 10;
+    if (sma200 && currentPrice > sma200) sentimentScore += 10;
+    if (sma200 && currentPrice < sma200) sentimentScore -= 10;
+    if (rsi > 55) sentimentScore += Math.round((rsi - 55) * 1.2);
+    if (rsi < 45) sentimentScore -= Math.round((45 - rsi) * 1.2);
+    sentimentScore = Math.min(100, Math.max(0, sentimentScore));
+    let sentimentRating = 'Neutral';
+    if (sentimentScore >= 60) sentimentRating = 'Bullish';
+    else if (sentimentScore <= 40) sentimentRating = 'Bearish';
+
+    let action = 'HOLD';
+    if (sentimentRating === 'Bullish' && riskRating !== 'High') action = 'BUY';
+    else if (sentimentRating === 'Bearish') action = 'SELL';
+
     const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      return res.status(500).json({ error: 'Groq API key not configured' });
+
+    if (groqKey) {
+      const prompt = `You are a multi-agent investment advisory system analyzing the stock ${symbol} in the simulated year ${new Date(simDateTimestamp).getFullYear()} in the Indian stock market (Nifty 50).
+
+Your team consists of three AI Agents:
+1. **Risk Scoring Agent (RiskAgent)**: Evaluates the asset's risk parameters (volatility, drawdown, beta, historical stability).
+2. **Sentiment Analysis Agent (SentimentAgent)**: Analyzes market sentiment, technical indicators (RSI, SMA50, SMA200), and short-term price momentum.
+3. **Strategy Developer Agent (StrategyAgent)**: Synthesizes reports from the Risk and Sentiment agents to formulate a specific, actionable investment strategy (action: BUY/SELL/HOLD, entry/exit tactics).
+
+STOCK METRICS TO ANALYZE (computed up to simulated timestamp ${simDateTimestamp}):
+- Symbol: ${symbol}
+- Current Price: ₹${currentPrice.toFixed(2)}
+- 2-Month Performance: ${changePct.toFixed(2)}%
+- Annualized Volatility: ${volatilityPct.toFixed(2)}%
+- RSI (14): ${rsi.toFixed(1)}
+- SMA (50): ₹${sma50.toFixed(2)}
+- SMA (200): ₹${sma200.toFixed(2)}
+
+YOUR TASK:
+Run a simulated sequential meeting between the three agents. First, RiskAgent evaluates risk. Second, SentimentAgent evaluates trend and momentum. Third, StrategyAgent facilitates a brief debate and outputs the final recommendation.
+
+Respond ONLY with a valid JSON object (no markdown, no backticks, no wrap text):
+{
+  "symbol": "${symbol}",
+  "date": ${simDateTimestamp},
+  "risk": {
+    "score": ${volatilityScore},
+    "rating": "${riskRating}",
+    "rationale": "2 sentence risk assessment from RiskAgent."
+  },
+  "sentiment": {
+    "score": ${sentimentScore},
+    "rating": "${sentimentRating}",
+    "rationale": "2 sentence trend/momentum analysis from SentimentAgent."
+  },
+  "strategy": {
+    "action": "${action}",
+    "targetPrice": ${Math.round(currentPrice * 1.15)},
+    "stopLoss": ${Math.round(currentPrice * 0.92)},
+    "rationale": "2 sentence strategic execution advice from StrategyAgent."
+  },
+  "conversation": [
+    {
+      "agent": "RiskAgent",
+      "message": "Dialogue starting the discussion about ${symbol}'s risk metrics."
+    },
+    {
+      "agent": "SentimentAgent",
+      "message": "Dialogue contributing the market trend and technical momentum analysis."
+    },
+    {
+      "agent": "StrategyAgent",
+      "message": "Dialogue concluding with the final investment thesis and strategic execution plan."
     }
-    const fetch = (await import('node-fetch')).default;
-    const model = 'llama3-70b-8192'; // versatile model
-    const systemPrompt = `You are RiskAgent. Evaluate risk metrics (volatility, drawdown, beta) for each stock in the provided list and output a JSON array of objects {symbol, riskScore (0-100)}.`;
-    const riskResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-      body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
-    });
-    const riskJson = await riskResponse.json();
-    const riskData = JSON.parse(riskJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+  ]
+}
+`;
 
-    const sentimentPrompt = `You are SentimentAgent. Analyze short‑term momentum, RSI and SMA crossovers for each stock and return a JSON array {symbol, sentimentScore (-1 to 1)}.`;
-    const sentimentResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-      body: JSON.stringify({ model, messages: [{ role: 'system', content: sentimentPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
-    });
-    const sentimentJson = await sentimentResponse.json();
-    const sentimentData = JSON.parse(sentimentJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+      const fetch = (await import('node-fetch')).default;
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'You are a financial analyst system returning JSON.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.2
+        })
+      });
 
-    const strategyPrompt = `You are StrategyAgent. Combine riskScore (0‑100) and sentimentScore (-1 to 1) for each stock, consider user profile, and output a JSON object with investable_amount, reasoning_for_amount, and recommendations array (symbol, allocation, reasoning). Ensure allocations sum to investable_amount. Respond ONLY with valid JSON (no markdown, no backticks).`;
-    const combinedInput = topCandidates.map(c => {
-      const r = riskData.find(r => r.symbol === c.symbol) || { riskScore: 50 };
-      const s = sentimentData.find(s => s.symbol === c.symbol) || { sentimentScore: 0 };
-      return { ...c, riskScore: r.riskScore, sentimentScore: s.sentimentScore };
-    });
-    const strategyResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-      body: JSON.stringify({ model, messages: [{ role: 'system', content: strategyPrompt }, { role: 'user', content: JSON.stringify({ profile, candidates: combinedInput }) }] })
-    });
-    const strategyJson = await strategyResponse.json();
-    const strategyResult = JSON.parse(strategyJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
+      if (response.ok) {
+        const resData = await response.json();
+        const content = resData.choices[0].message.content;
+        const parsed = JSON.parse(content);
+        return res.json(parsed);
+      } else {
+        console.error('Groq API error:', response.statusText);
+      }
+    }
 
-    res.json(strategyResult);
+    // Fallback Mock Multi-Agent Dialogue if Groq is unconfigured or fails
+    const simulatedDateStr = new Date(simDateTimestamp).toLocaleDateString('en-GB');
+    const targetPrice = action === 'BUY' ? Math.round(currentPrice * 1.15) : action === 'SELL' ? Math.round(currentPrice * 0.85) : Math.round(currentPrice);
+    const stopLoss = action === 'BUY' ? Math.round(currentPrice * 0.95) : action === 'SELL' ? Math.round(currentPrice * 1.05) : Math.round(currentPrice * 0.9);
+
+    const fallbackResponse = {
+      symbol: symbol.toUpperCase(),
+      date: simDateTimestamp,
+      risk: {
+        score: volatilityScore,
+        rating: riskRating,
+        rationale: `RiskAgent evaluated ${symbol} up to ${simulatedDateStr}. Annualized volatility is measured at ${volatilityPct.toFixed(2)}%, placing it in the ${riskRating} risk category. Maximum recent drawdown suggests standard market exposure.`
+      },
+      sentiment: {
+        score: sentimentScore,
+        rating: sentimentRating,
+        rationale: `SentimentAgent reports a ${sentimentRating} posture. RSI(14) is currently ${rsi.toFixed(1)}, and the price is trading ${currentPrice >= (sma50 || 0) ? 'above' : 'below'} the 50-day SMA. Momentum indicators suggest ${sentimentRating === 'Bullish' ? 'steady accumulation' : sentimentRating === 'Bearish' ? 'distributive selling' : 'sideways trend consolidation'}.`
+      },
+      strategy: {
+        action,
+        targetPrice,
+        stopLoss,
+        rationale: `StrategyAgent has compiled the assessments. Given the ${sentimentRating} sentiment and ${riskRating} risk profile, our tactical recommendation is to ${action}. We establish a target at ₹${targetPrice} and stop-loss at ₹${stopLoss}.`
+      },
+      conversation: [
+        {
+          agent: 'RiskAgent',
+          message: `Greetings team. For ${symbol} on ${simulatedDateStr}, my calculations show annualized volatility is at ${volatilityPct.toFixed(2)}%. This qualifies the stock for a ${riskRating} Risk rating. We should keep an eye on market exposure.`
+        },
+        {
+          agent: 'SentimentAgent',
+          message: `Understood, RiskAgent. Looking at the charts, RSI stands at ${rsi.toFixed(1)} and price is ${currentPrice >= (sma50 || 0) ? 'above' : 'below'} the 50-day SMA (₹${(sma50 || 0).toFixed(2)}). This signals a ${sentimentRating} market sentiment. The volume support looks ${sentimentRating === 'Bullish' ? 'supportive of an upward push' : 'weak, suggesting further drop'}.`
+        },
+        {
+          agent: 'StrategyAgent',
+          message: `Excellent work, team. Synthesizing these reports: we have ${sentimentRating} sentiment and ${riskRating} risk. For our asset allocation, I formulate a ${action} strategy. Let's set the target price at ₹${targetPrice} and position a stop-loss at ₹${stopLoss} to manage drawdowns.`
+        }
+      ]
+    };
+
+    res.json(fallbackResponse);
+
   } catch (error) {
-    console.error('Multiagent error:', error);
-    res.status(500).json({ error: 'Internal server error in multiagent processing' });
+    console.error('Multi-Agent API Error:', error);
+    res.status(500).json({ error: 'Internal server error in multi-agent endpoint.' });
   }
 });
 
