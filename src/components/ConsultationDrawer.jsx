@@ -111,10 +111,25 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError) throw authError;
       if (!user) { setTradeError('Must be logged in to execute trades.'); setIsTrading(false); return; }
+      
+      // First, ensure user record exists (create if not)
       const { data: userData, error: userError } = await supabase.from('users').select('virtual_balance').eq('id', user.id).maybeSingle();
       if (userError) throw userError;
-      if (!userData) { setTradeError('Unable to load account balance.'); setIsTrading(false); return; }
-      let balance = Number(userData.virtual_balance || 0);
+      
+      let balance;
+      if (!userData) {
+        // Create user record if it doesn't exist
+        const { error: createError } = await supabase.from('users').insert({
+          id: user.id,
+          email: user.email,
+          virtual_balance: 1000000
+        });
+        if (createError) throw createError;
+        balance = 1000000;
+      } else {
+        balance = Number(userData.virtual_balance || 0);
+      }
+      
       const qty = parseInt(tradeQuantity, 10);
       if (!qty || qty <= 0 || Number.isNaN(qty)) { setTradeError('Please enter a valid quantity.'); setIsTrading(false); return; }
       const cost = qty * currentPrice;
