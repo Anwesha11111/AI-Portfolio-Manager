@@ -38,6 +38,7 @@ app.get('/api/market', (req, res) => {
 });
 
 // Batch Endpoint (already exists here)
+// Batch Endpoint (with RSI algorithmic engine)
 app.get('/api/market/batch', (req, res) => {
   const simDateTimestamp = parseInt(req.query.date);
   const timeframe = req.query.timeframe || '2M';
@@ -66,9 +67,11 @@ app.get('/api/market/batch', (req, res) => {
     const batchData = validSymbols.map(symbol => {
       const fullData = stockDataCache[symbol];
 
+      // Filter data up to the simulated date
       const visibleData = fullData.filter(candle => candle.rawTimestamp <= simDateTimestamp);
       const currentPrice = visibleData.length > 0 ? visibleData[visibleData.length - 1].close : 0;
       
+      // Calculate % Change based on timeframe
       const pastTimestamp = simDateTimestamp - timeframeMs;
       let pastPrice = 0;
       for (let i = visibleData.length - 1; i >= 0; i--) {
@@ -79,10 +82,50 @@ app.get('/api/market/batch', (req, res) => {
       }
       const changePct = pastPrice > 0 ? ((currentPrice - pastPrice) / pastPrice) * 100 : 0;
 
+      // ==========================================
+      // NEW: 14-Day RSI Algorithmic Calculation
+      // ==========================================
+      let rsi = null;
+      let rsiSignal = 'HOLD';
+
+      // We need at least 15 days of data to calculate a 14-day RSI (1 day for initial difference)
+      if (visibleData.length >= 15) {
+        const recentData = visibleData.slice(-15);
+        let gains = 0;
+        let losses = 0;
+
+        // Calculate differences
+        for (let i = 1; i < recentData.length; i++) {
+          const difference = recentData[i].close - recentData[i - 1].close;
+          if (difference > 0) {
+            gains += difference;
+          } else {
+            losses -= difference; // Convert to positive number
+          }
+        }
+
+        const avgGain = gains / 14;
+        const avgLoss = losses / 14;
+
+        if (avgLoss === 0) {
+          rsi = 100;
+        } else {
+          const rs = avgGain / avgLoss;
+          rsi = 100 - (100 / (1 + rs));
+        }
+
+        // Generate algorithmic signal based on standard thresholds
+        if (rsi < 30) rsiSignal = 'BUY';
+        else if (rsi > 70) rsiSignal = 'SELL';
+      }
+      // ==========================================
+
       return {
         symbol,
         price: currentPrice,
-        change: changePct
+        change: changePct,
+        rsi: rsi,
+        rsiSignal: rsiSignal
       };
     });
 
@@ -92,7 +135,6 @@ app.get('/api/market/batch', (req, res) => {
     res.status(500).json({ error: 'Internal server error processing batch data.' });
   }
 });
-
 // AI Recommendation Endpoint
 app.post('/api/ai/recommend', async (req, res) => {
   const { date, timeHorizon, drawdownTolerance, primaryObjective, profile } = req.body;
