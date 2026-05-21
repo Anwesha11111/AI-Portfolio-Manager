@@ -27,23 +27,56 @@ const DATA_DIR = path.join(__dirname, 'data');
 
 // In-Memory Cache for all historical stock data
 let stockDataCache = {};
+let nifty50Data = null; // Store benchmark index separately
 
 function initializeCache() {
   if (!fs.existsSync(DATA_DIR)) return;
   const files = fs.readdirSync(DATA_DIR);
   for (const file of files) {
-    if (file.endsWith('.json') && file !== 'NIFTY_50_STOCKS.json') {
+    if (file.endsWith('.json')) {
       const symbol = file.split('.')[0];
       try {
         const rawData = fs.readFileSync(path.join(DATA_DIR, file), 'utf8');
-        stockDataCache[symbol] = JSON.parse(rawData);
+        
+        // Stop ignoring NIFTY_50_STOCKS, load it as the benchmark
+        if (file === 'NIFTY_50_STOCKS.json') {
+          nifty50Data = JSON.parse(rawData);
+        } else {
+          stockDataCache[symbol] = JSON.parse(rawData);
+        }
       } catch (err) {
         console.error(`Failed to load ${file} into cache:`, err);
       }
     }
   }
-  console.log(`Cache initialized with ${Object.keys(stockDataCache).length} assets.`);
+  console.log(`Cache initialized. Benchmark Loaded: ${nifty50Data ? 'Yes' : 'No'}`);
 }
+
+// Dedicated Market Benchmark Endpoint
+app.get('/api/market/benchmark', (req, res) => {
+  const simDateTimestamp = parseInt(req.query.date);
+  
+  if (!simDateTimestamp || !nifty50Data) {
+    return res.status(404).json({ error: 'Benchmark data not available' });
+  }
+
+  const visibleData = nifty50Data.filter(candle => candle.rawTimestamp <= simDateTimestamp);
+  if (visibleData.length === 0) {
+    return res.status(404).json({ error: 'No benchmark data for this date' });
+  }
+
+  const currentPrice = visibleData[visibleData.length - 1].close;
+  
+  // Calculate 1-Day change for the ticker
+  const pastPrice = visibleData.length > 1 ? visibleData[visibleData.length - 2].close : currentPrice;
+  const changePct = pastPrice > 0 ? ((currentPrice - pastPrice) / pastPrice) * 100 : 0;
+
+  res.json({
+    symbol: 'NIFTY 50',
+    price: currentPrice,
+    change: changePct
+  });
+});
 
 // Discover all available symbols
 app.get('/api/market', (req, res) => {

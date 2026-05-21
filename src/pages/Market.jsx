@@ -2,12 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
 import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search, Info, X } from 'lucide-react';
-import AiDisclaimer from '../components/AiDisclaimer';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
-import { fetchQuote } from '../utils/finnhub';
-import ConsultationDrawer from '../components/ConsultationDrawer';
-import RatingBadges from '../components/RatingBadges';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -18,7 +14,6 @@ export default function Market() {
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
   const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '3M');
   const [searchQuery, setSearchQuery] = useState('');
-  const [quotes, setQuotes] = useState({});
   const [infoModalAsset, setInfoModalAsset] = useState(null);
   
   // AI Panel States
@@ -26,10 +21,6 @@ export default function Market() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [isTrading, setIsTrading] = useState(false);
-
-  // Multi-Agent Consultation Drawer States
-  const [isConsultationDrawerOpen, setIsConsultationDrawerOpen] = useState(false);
-  const [selectedStockForConsultation, setSelectedStockForConsultation] = useState(null);
 
   const debounceRef = useRef(null);
   const isFirstLoad = useRef(true);
@@ -48,7 +39,6 @@ export default function Market() {
             name: asset.symbol.replace(/_/g, ' '),
           }));
           setAssets(formattedAssets);
-    
         } else {
           console.error("Backend returned non-array data:", data);
           setAssets([]);
@@ -63,27 +53,8 @@ export default function Market() {
     return () => clearTimeout(debounceRef.current);
   }, [currentSimulatedDate, timeframe]);
 
-  // Fetch Finnhub quotes for all assets
-  useEffect(() => {
-    if (assets.length === 0) return;
-    const fetchAll = async () => {
-      const map = {};
-      for (const asset of assets) {
-        try {
-          const q = await fetchQuote(asset.symbol);
-          map[asset.symbol] = q;
-        } catch (e) {
-          console.error('Finnhub fetch error', asset.symbol, e);
-        }
-      }
-      setQuotes(map);
-    };
-    fetchAll();
-  }, [assets]);
 
-
-  // Fetch AI Multi-Agent Recommendation (Groq) - Single Stock Consultation
-  const fetchMultiAgentRecommendation = async (symbol) => {
+  const fetchAiRecommendation = async () => {
     setAiLoading(true);
     setAiRecommendations(null);
     try {
@@ -93,18 +64,38 @@ export default function Market() {
       const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
       if (!userData) { setAiLoading(false); return; }
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/multiagent`, {
+      // Once-per-month check
+      const lastRecommDate = userData.last_ai_recommendation_date || 0;
+      const lastMonth = new Date(lastRecommDate).getMonth() + '-' + new Date(lastRecommDate).getFullYear();
+      const currentMonth = new Date(currentSimulatedDate).getMonth() + '-' + new Date(currentSimulatedDate).getFullYear();
+      if (lastRecommDate > 0 && lastMonth === currentMonth) {
+        alert('You can only get AI recommendations once per simulated month. Wait for the next month.');
+        setAiLoading(false);
+        return;
+      }
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          symbol: symbol,
-          date: currentSimulatedDate
+          date: currentSimulatedDate,
+          timeHorizon: userData.time_horizon,
+          drawdownTolerance: userData.drawdown_tolerance,
+          primaryObjective: userData.primary_objective,
+          profile: {
+            monthly_income: userData.monthly_income,
+            monthly_expenses: userData.monthly_expenses,
+            virtual_balance: userData.virtual_balance,
+          }
         })
       });
       const data = await res.json();
       setAiRecommendations(data);
+
+      // Mark this month as used
+      await supabase.from('users').update({ last_ai_recommendation_date: currentSimulatedDate }).eq('id', user.id);
     } catch (err) {
-      console.error('Failed to get AI multi-agent recommendation:', err);
+      console.error('Failed to get AI recommendation:', err);
     }
     setAiLoading(false);
   };
@@ -175,16 +166,6 @@ export default function Market() {
     }
   };
 
-  const handleConsultStock = (symbol) => {
-    setSelectedStockForConsultation(symbol);
-    setIsConsultationDrawerOpen(true);
-  };
-
-  const closeConsultationDrawer = () => {
-    setIsConsultationDrawerOpen(false);
-    setSelectedStockForConsultation(null);
-  };
-
   return (
     <div className="page-container" style={{ position: 'relative' }}>
       
@@ -222,7 +203,7 @@ export default function Market() {
           </div>
 
           <button 
-            onClick={() => { setIsAiPanelOpen(!isAiPanelOpen); if (!isAiPanelOpen) fetchMultiAgentRecommendation('RELIANCE'); }}
+            onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
             style={{
               background: isAiPanelOpen ? 'rgba(157,111,245,0.35)' : 'linear-gradient(135deg, rgba(157,111,245,0.2), rgba(79,142,247,0.2))',
               border: '1px solid rgba(157,111,245,0.4)',
@@ -282,7 +263,7 @@ export default function Market() {
               </p>
               
               <button 
-                onClick={fetchMultiAgentRecommendation}
+                onClick={fetchAiRecommendation}
                 style={{ padding: '16px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 <BrainCircuit size={20} /> Get Monthly AI Plan
@@ -355,21 +336,9 @@ export default function Market() {
                   </div>
                 )}
               </div>
-              <AiDisclaimer />
             </div>
           )}
         </div>
-      )}
-
-      {/* Multi-Agent Consultation Drawer */}
-      {isConsultationDrawerOpen && selectedStockForConsultation && (
-        <ConsultationDrawer 
-          isOpen={isConsultationDrawerOpen}
-          onClose={closeConsultationDrawer}
-          symbol={selectedStockForConsultation}
-          currentPrice={assets.find(a => a.symbol === selectedStockForConsultation)?.price || 0}
-          currentSimulatedDate={currentSimulatedDate}
-        />
       )}
 
       {loading ? (
@@ -416,7 +385,7 @@ export default function Market() {
               </div>
 
               {/* Right: Price & Change */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', flex: '0 0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-end', flex: '0 0 auto' }}>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</span>
                   <span style={{ fontSize: '1rem', fontWeight: '700' }}>
@@ -436,42 +405,6 @@ export default function Market() {
                     </>
                   )}
                 </div>
-                <RatingBadges 
-                  risk={asset.risk} 
-                  sentiment={asset.sentiment} 
-                  strategy={asset.strategy} 
-                />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleConsultStock(asset.symbol);
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    background: 'linear-gradient(135deg, rgba(157,111,245,0.2), rgba(79,142,247,0.2))',
-                    border: '1px solid rgba(157,111,245,0.4)',
-                    borderRadius: '8px',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                    fontWeight: '600',
-                    fontSize: '0.75rem',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.boxShadow = '0 0 12px rgba(157,111,245,0.4)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <Sparkles size={14} />
-                  Consult
-                </button>
               </div>
             </div>
           ))}
@@ -498,16 +431,6 @@ export default function Market() {
             <p style={{ color: 'var(--text-main)', lineHeight: '1.5', marginBottom: '24px', fontSize: '0.95rem' }}>
               {getAssetInfo(infoModalAsset.symbol).desc}
             </p>
-{quotes[infoModalAsset?.symbol] && (
-  <div style={{ marginTop: '16px' }}>
-    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-      <strong>Current:</strong> ₹{quotes[infoModalAsset.symbol].c?.toFixed(2)} |
-      <strong>Open:</strong> ₹{quotes[infoModalAsset.symbol].o?.toFixed(2)} |
-      <strong>High:</strong> ₹{quotes[infoModalAsset.symbol].h?.toFixed(2)} |
-      <strong>Low:</strong> ₹{quotes[infoModalAsset.symbol].l?.toFixed(2)}
-    </div>
-  </div>
-)}
             
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
