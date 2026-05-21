@@ -57,6 +57,7 @@ function App() {
           <Route path="/academy/:id" element={<LessonView />} />
           <Route path="/compare" element={<ComparePlatforms />} />
         </Route>
+        <Route path="/agents-dashboard" element={<ProtectedRoute><import('./pages/AgentsDashboard').then(m => <m.default />) />} />
       </Routes>
     </>
   );

@@ -5,8 +5,7 @@ const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 const finnhub = require('finnhub');
-const finnhubClient = new finnhub.DefaultApi();
-finnhubClient.addApiKey(process.env.FINNHUB_API_KEY);
+const finnhubClient = new finnhub.DefaultApi(process.env.FINNHUB_API_KEY);
 
 const app = express();
 app.use(cors());
