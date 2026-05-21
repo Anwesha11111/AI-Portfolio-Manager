@@ -4,6 +4,8 @@ import useSimulationStore from '../store/useSimulationStore';
 import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
 import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity, Coins, X, Info, ShieldAlert, BarChart2, Sparkles, BookOpen } from 'lucide-react';
 import { generateTradeInsights } from '../utils/insightGenerator';
+import { GlobalNewsFeed } from '../components/NewsFeed';
+import AssetClassRadar from '../components/AssetClassRadar';
 
 export default function Dashboard() {
   const { currentSimulatedDate } = useSimulationStore();
@@ -228,6 +230,9 @@ export default function Dashboard() {
           </div>
         );
       })()}
+
+      <GlobalNewsFeed simulatedTimestamp={currentSimulatedDate} />
+      <AssetClassRadar holdings={holdings} marketData={marketData} userProfile={userProfile} simulatedTimestamp={currentSimulatedDate} />
 
       <h3 className="section-heading">Current Holdings</h3>
       

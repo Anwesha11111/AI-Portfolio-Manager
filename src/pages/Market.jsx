@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
 import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search, Info, X } from 'lucide-react';
+import AiDisclaimer from '../components/AiDisclaimer';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 
@@ -336,6 +337,7 @@ export default function Market() {
                   </div>
                 )}
               </div>
+              <AiDisclaimer />
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User, Scale } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import { supabase } from '../../lib/supabase';
@@ -180,6 +180,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/academy" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
             <GraduationCap size={18} /> Academy
+          </NavLink>
+          <NavLink to="/compare" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
+            <Scale size={18} /> Compare
           </NavLink>
         </div>
 
