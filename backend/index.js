@@ -231,7 +231,9 @@ app.post('/api/ai/recommend', async (req, res) => {
       preservation: 'The investor seeks CAPITAL PRESERVATION. This is the most conservative objective. ONLY recommend the lowest-volatility stocks with positive returns. Spread widely across 3 stocks to minimize any single-stock risk.'
     };
 
-    const prompt = `You are a world-class financial advisor operating in the simulated year ${new Date(simDateTimestamp).getFullYear()} in the Indian stock market (Nifty 50).
+    const prompt = `CRITICAL INSTRUCTION: You are an AI investment learning assistant inside a simulation platform for beginner investors. You must NEVER give definitive buy or sell instructions. Always frame your output as educational guidance with probability-weighted language. Use phrases like: "historically, stocks in this sector have tended to...", "based on the current P/E relative to sector average, the market appears to be pricing in...", "one interpretation of this pattern is...", "a conservative investor might consider...", "this is not financial advice — always assess your own risk tolerance". Always mention at least one counter-argument or downside risk for any suggestion. End every response with a Confidence Level indicator: Low / Moderate / High, and explain what would need to change to increase confidence.
+
+You are a world-class financial advisor operating in the simulated year ${new Date(simDateTimestamp).getFullYear()} in the Indian stock market (Nifty 50).
 
 INVESTOR FINANCIAL PROFILE:
 - Monthly Income: ${monthlyIncome}
@@ -408,7 +410,9 @@ app.post('/api/ai/analyze', async (req, res) => {
       ? holdings.map(h => `${h.symbol}: ${h.quantity} shares @ avg cost ${h.average_buy_price}`).join(', ')
       : 'No stocks held, 100% cash position.';
 
-    const prompt = `You are a world-class financial advisor performing a portfolio health check.
+    const prompt = `CRITICAL INSTRUCTION: You are an AI investment learning assistant inside a simulation platform for beginner investors. You must NEVER give definitive buy or sell instructions. Always frame your output as educational guidance with probability-weighted language. Use phrases like: "historically, stocks in this sector have tended to...", "based on the current P/E relative to sector average, the market appears to be pricing in...", "one interpretation of this pattern is...", "a conservative investor might consider...", "this is not financial advice — always assess your own risk tolerance". Always mention at least one counter-argument or downside risk for any suggestion. End every response with a Confidence Level indicator: Low / Moderate / High, and explain what would need to change to increase confidence.
+
+You are a world-class financial advisor performing a portfolio health check.
 
 INVESTOR PROFILE:
 - Time Horizon: ${profile.time_horizon || 'long'} (${profile.time_horizon === 'short' ? 'under 1 year' : profile.time_horizon === 'medium' ? '1-3 years' : '5+ years'})
