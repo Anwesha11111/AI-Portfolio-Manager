@@ -8,7 +8,7 @@ import { getGradientForSymbol } from '../utils/assetMap';
 
 export default function Analysis() {
   const { user } = useAuthStore();
-  const { currentSimulatedDate } = useSimulationStore();
+  useSimulationStore(); // keep store subscription for future use
   const [profile, setProfile] = useState(null);
   const [holdings, setHoldings] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);

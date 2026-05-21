@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, User as UserIcon, LogOut, Wallet, Target, Clock, AlertTriangle } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
@@ -13,7 +13,7 @@ export default function ProfileModal({ onClose }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     setLoading(true);
     if (user) {
       const { data } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
@@ -21,11 +21,12 @@ export default function ProfileModal({ onClose }) {
       setFormData(data || {});
     }
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProfile();
-  }, [user]);
+  }, [fetchProfile]);
 
   const handleLogout = async () => {
     await signOut();

@@ -79,10 +79,24 @@ export default function TourOverlay({ onEnd }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState(null);
   const [transitioning, setTransitioning] = useState(false);
+  const [tooltipHeight, setTooltipHeight] = useState(220);
   const navigate = useNavigate();
   const location = useLocation();
   const current = TOUR_STEPS[step];
   const tooltipRef = useRef(null);
+
+  // Track tooltip height via ResizeObserver so we never read ref during render
+  useEffect(() => {
+    const el = tooltipRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setTooltipHeight(entry.contentRect.height);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const measureTarget = useCallback(() => {
     const el = document.querySelector(current.target);
@@ -98,6 +112,7 @@ export default function TourOverlay({ onEnd }) {
 
   // Navigate and find target, with retry for slow-loading pages
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTransitioning(true);
     const needsNavigation = current.route && location.pathname !== current.route;
     if (needsNavigation) {
@@ -121,7 +136,7 @@ export default function TourOverlay({ onEnd }) {
     let retryTimer;
     const initialTimer = setTimeout(tryMeasure, needsNavigation ? 200 : 30);
     return () => { clearTimeout(initialTimer); clearTimeout(retryTimer); };
-  }, [step]);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Recalculate on window resize
   useEffect(() => {
@@ -150,7 +165,6 @@ export default function TourOverlay({ onEnd }) {
     const tooltipWidth = Math.min(380, window.innerWidth - 40);
 
     if (!rect) {
-      // No target found — center the tooltip on screen
       return {
         position: 'fixed',
         top: '50%', left: '50%',
@@ -160,37 +174,24 @@ export default function TourOverlay({ onEnd }) {
         transition: 'opacity 0.3s ease'
       };
     }
-    const gap = 16; // space between highlight box and tooltip
-    const pad = 8; // the spotlight padding around the element
+    const gap = 16;
+    const pad = 8;
 
-    // Measure actual tooltip height
-    const tooltipEl = tooltipRef.current;
-    const tooltipHeight = tooltipEl ? tooltipEl.getBoundingClientRect().height : 220;
-
-    // Boundaries of the spotlight box
+    // Use tooltipHeight from state (updated by ResizeObserver) — never read ref during render
     const spotlightTop = rect.top - pad;
     const spotlightBottom = rect.top + rect.height + pad;
-
-    // Space available above and below the spotlight
     const spaceBelow = window.innerHeight - spotlightBottom - gap;
     const spaceAbove = spotlightTop - gap;
 
     let top, left;
-
-    // Prefer below, but if tooltip doesn't fit below, place above
     if (spaceBelow >= tooltipHeight || spaceBelow >= spaceAbove) {
-      // Place below
       top = spotlightBottom + gap;
     } else {
-      // Place above
       top = spotlightTop - gap - tooltipHeight;
     }
 
-    // Horizontal: center on the element, clamped to viewport
     left = rect.left + rect.width / 2 - tooltipWidth / 2;
     left = Math.max(20, Math.min(left, window.innerWidth - tooltipWidth - 20));
-
-    // Clamp vertical to viewport
     top = Math.max(10, Math.min(top, window.innerHeight - tooltipHeight - 10));
 
     return {
@@ -326,13 +327,13 @@ export default function TourOverlay({ onEnd }) {
             <button 
               onClick={handleNext}
               style={{
-                padding: '8px 14px', borderRadius: '8px', border: 'none',
+                padding: '8px 14px', borderRadius: '8px',
+                border: step === TOUR_STEPS.length - 1 ? 'none' : '1px solid rgba(59, 130, 246, 0.3)',
                 background: step === TOUR_STEPS.length - 1 
                   ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))' 
                   : 'rgba(59, 130, 246, 0.15)',
                 color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '0.82rem',
-                display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s',
-                border: step === TOUR_STEPS.length - 1 ? 'none' : '1px solid rgba(59, 130, 246, 0.3)'
+                display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s'
               }}
             >
               {step === TOUR_STEPS.length - 1 ? "Let's Go!" : 'Next'} <ChevronRight size={14} />

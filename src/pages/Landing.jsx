@@ -115,6 +115,14 @@ export default function Landing() {
           </button>
         </div>
 
+        {/* Stats Bar */}
+        <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '48px', padding: '24px 40px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <StatItem value="18 Years" label="of Real Market Data" />
+          <StatItem value="46 Stocks" label="Nifty 50 Universe" />
+          <StatItem value="₹0 Risk" label="100% Simulated" />
+          <StatItem value="3 AI Agents" label="Portfolio Advisors" />
+        </div>
+
         {/* How It Works */}
         <div style={{ maxWidth: '1200px', width: '100%', marginTop: '100px' }}>
           <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'center', marginBottom: '48px' }}>

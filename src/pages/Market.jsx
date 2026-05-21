@@ -6,8 +6,6 @@ import AiDisclaimer from '../components/AiDisclaimer';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 import { fetchQuote } from '../utils/finnhub';
-import FinnhubAgent from '../agents/FinnhubAgent';
-import SimulationAgent from '../agents/SimulationAgent';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -77,52 +75,6 @@ export default function Market() {
     fetchAll();
   }, [assets]);
 
-
-  const fetchAiRecommendation = async () => {
-    setAiLoading(true);
-    setAiRecommendations(null);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setAiLoading(false); return; }
-
-      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
-      if (!userData) { setAiLoading(false); return; }
-
-      // Once-per-month check
-      const lastRecommDate = userData.last_ai_recommendation_date || 0;
-      const lastMonth = new Date(lastRecommDate).getMonth() + '-' + new Date(lastRecommDate).getFullYear();
-      const currentMonth = new Date(currentSimulatedDate).getMonth() + '-' + new Date(currentSimulatedDate).getFullYear();
-      if (lastRecommDate > 0 && lastMonth === currentMonth) {
-        alert('You can only get AI recommendations once per simulated month. Wait for the next month.');
-        setAiLoading(false);
-        return;
-      }
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/recommend`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: currentSimulatedDate,
-          timeHorizon: userData.time_horizon,
-          drawdownTolerance: userData.drawdown_tolerance,
-          primaryObjective: userData.primary_objective,
-          profile: {
-            monthly_income: userData.monthly_income,
-            monthly_expenses: userData.monthly_expenses,
-            virtual_balance: userData.virtual_balance,
-          }
-        })
-      });
-      const data = await res.json();
-      setAiRecommendations(data);
-
-      // Mark this month as used
-      await supabase.from('users').update({ last_ai_recommendation_date: currentSimulatedDate }).eq('id', user.id);
-    } catch (err) {
-      console.error('Failed to get AI recommendation:', err);
-    }
-    setAiLoading(false);
-  };
 
   // Fetch AI Multi-Agent Recommendation (Groq)
   const fetchMultiAgentRecommendation = async () => {

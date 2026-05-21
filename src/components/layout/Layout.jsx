@@ -18,7 +18,7 @@ export default function Layout() {
   // Load saved simulation date on mount
   useEffect(() => {
     loadSavedDate();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-save the simulation date every 30 seconds
   useEffect(() => {
@@ -26,14 +26,14 @@ export default function Layout() {
       saveDate();
     }, 30000);
     return () => clearInterval(saveInterval);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save on page unload too
   useEffect(() => {
     const handleUnload = () => saveDate();
     window.addEventListener('beforeunload', handleUnload);
     return () => window.removeEventListener('beforeunload', handleUnload);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Monthly Income Accrual — credit surplus when simulation crosses month boundaries
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function Layout() {
     if (isRunning) {
       checkStopLosses();
     }
-  }, [currentSimulatedDate, isRunning]);
+  }, [currentSimulatedDate, isRunning]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The Core Time Engine Loop
   useEffect(() => {
@@ -177,6 +177,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/analysis" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
             <BrainCircuit size={18} /> AI Analysis
+          </NavLink>
+          <NavLink to="/agents-dashboard" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
+            <BrainCircuit size={18} /> AI Agents
           </NavLink>
           <NavLink to="/academy" className={({isActive}) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
             <GraduationCap size={18} /> Academy

@@ -131,7 +131,6 @@ const MARKET_NEWS = [
  * Returns only news that happened ON or BEFORE the simulated date
  */
 export function getGlobalNews(simulatedTimestamp) {
-  const simDate = new Date(simulatedTimestamp);
   const threeMonthsMs = 90 * 24 * 60 * 60 * 1000;
   const windowStart = simulatedTimestamp - threeMonthsMs;
 

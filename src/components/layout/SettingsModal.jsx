@@ -27,7 +27,9 @@ export default function SettingsModal({ onClose, onStartTour }) {
 
   const [inputValue, setInputValue] = useState(displayDate);
 
+  // Sync input field when the simulated date changes externally (time engine running)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(displayDate);
   }, [displayDate]);
 
@@ -165,7 +167,7 @@ export default function SettingsModal({ onClose, onStartTour }) {
                 onClick={toggleSimulation}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  padding: '12px', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: 'pointer',
+                  padding: '12px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer',
                   backgroundColor: isRunning ? 'rgba(248, 113, 113, 0.15)' : 'rgba(52, 211, 153, 0.15)',
                   color: isRunning ? 'var(--danger)' : 'var(--success)',
                   transition: 'all 0.2s',

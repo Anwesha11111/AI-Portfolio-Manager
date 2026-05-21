@@ -110,8 +110,6 @@ function generateQuarterlyData(ticker, year, quarter) {
   const qNetProfit = Math.round(yearly.net_profit_cr * qFactor * rand(0.75, 1.25));
 
   const monthMap = { 1: '06-30', 2: '09-30', 3: '12-31', 4: '03-31' };
-  const actualYear = quarter === 4 ? year : (quarter === 1 ? year - 1 : year - 1);
-  const dateYear = quarter <= 3 ? year - 1 : year;
 
   return {
     ticker_symbol: ticker,

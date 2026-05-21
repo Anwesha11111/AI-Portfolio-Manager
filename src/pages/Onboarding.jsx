@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 import { supabase } from '../lib/supabase';
-import { Wallet, TrendingUp, Shield } from 'lucide-react';
+import { Wallet, TrendingUp } from 'lucide-react';
 
 export default function Onboarding() {
   const navigate = useNavigate();

@@ -2,6 +2,27 @@ import { useState } from 'react';
 import { Info, TrendingUp, Percent, CircleDollarSign } from 'lucide-react';
 import { getFundamentalsForDate, getValuationBadge, getROEBadge, getDividendBadge } from '../data/stockFundamentals';
 
+function MetricCard({ icon, label, value, suffix, badge, badgeColor, badgeBg, children }) {
+  return (
+    <div style={{ padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+          {icon} {label}
+        </span>
+        {badge && (
+          <span style={{ fontSize: '0.75rem', fontWeight: '600', padding: '3px 10px', borderRadius: '999px', color: badgeColor, background: badgeBg || 'rgba(255,255,255,0.05)', border: `1px solid ${badgeColor}22` }}>
+            {badge}
+          </span>
+        )}
+      </div>
+      <div style={{ fontSize: '1.8rem', fontWeight: '800', color: badgeColor || 'var(--text-main)', letterSpacing: '-0.02em' }}>
+        {value}{suffix && <span style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-muted)', marginLeft: '4px' }}>{suffix}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function FundamentalsPanel({ symbol, simulatedTimestamp }) {
   const [showPeTooltip, setShowPeTooltip] = useState(false);
   const [showRoeTooltip, setShowRoeTooltip] = useState(false);
@@ -21,25 +42,6 @@ export default function FundamentalsPanel({ symbol, simulatedTimestamp }) {
   const valBadge = getValuationBadge(data.pe_ratio, data.sector_pe_avg);
   const roeBadge = getROEBadge(data.roe_percent);
   const divBadge = getDividendBadge(data.dividend_yield_percent);
-
-  const MetricCard = ({ icon, label, value, suffix, badge, badgeColor, badgeBg, children }) => (
-    <div style={{ padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
-          {icon} {label}
-        </span>
-        {badge && (
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', padding: '3px 10px', borderRadius: '999px', color: badgeColor, background: badgeBg || 'rgba(255,255,255,0.05)', border: `1px solid ${badgeColor}22` }}>
-            {badge}
-          </span>
-        )}
-      </div>
-      <div style={{ fontSize: '1.8rem', fontWeight: '800', color: badgeColor || 'var(--text-main)', letterSpacing: '-0.02em' }}>
-        {value}{suffix && <span style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-muted)', marginLeft: '4px' }}>{suffix}</span>}
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <div className="glass-panel animate-fade-in-up" style={{ padding: '24px', borderRadius: '16px' }}>

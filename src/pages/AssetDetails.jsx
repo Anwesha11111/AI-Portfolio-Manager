@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader } from 'lucide-react';
+import { ArrowLeft, Loader, MessageSquare } from 'lucide-react';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import useSimulationStore from '../store/useSimulationStore';
 import { getLogoUrl } from '../utils/assetMap';
@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import FundamentalsPanel from '../components/FundamentalsPanel';
 import FinancialsTab from '../components/FinancialsTab';
 import { StockNewsFeed } from '../components/NewsFeed';
+import ConsultationDrawer from '../components/ConsultationDrawer';
 
 export default function AssetDetails() {
   const rawSymbol = useParams().symbol;
@@ -29,13 +30,20 @@ export default function AssetDetails() {
   const [stopLossPct, setStopLossPct] = useState('');
   const [isTrading, setIsTrading] = useState(false);
   const [virtualBalance, setVirtualBalance] = useState(1000000);
+  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
 
   useEffect(() => {
     const fetchBalance = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
-        if (data) setVirtualBalance(Number(data.virtual_balance));
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        if (!user) return;
+
+        const { data, error } = await supabase.from('users').select('virtual_balance').eq('id', user.id).maybeSingle();
+        if (error) throw error;
+        if (data) setVirtualBalance(Number(data.virtual_balance || 0));
+      } catch (err) {
+        console.error('Unable to fetch account balance:', err);
       }
     };
     fetchBalance();
@@ -149,65 +157,112 @@ export default function AssetDetails() {
   }, [assetData, timeframe, currentSimulatedDate]);
 
   const handleTrade = async (type) => {
-    if (!quantity || quantity <= 0) return;
-    const qty = parseInt(quantity);
-    const cost = qty * (assetData?.currentPrice || 0);
+    const qty = parseInt(quantity, 10);
+    const price = Number(assetData?.currentPrice || 0);
+    const cost = qty * price;
+
+    if (!quantity || qty <= 0 || Number.isNaN(qty)) {
+      alert('Please enter a valid quantity before trading.');
+      return;
+    }
+
+    if (!price || price <= 0) {
+      alert('Unable to determine the current stock price.');
+      return;
+    }
 
     setIsTrading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
       if (!user) {
-        alert("Must be logged in to trade.");
-        setIsTrading(false);
+        alert('Must be logged in to trade.');
         return;
       }
 
-      // Get latest balance
-      const { data: userData } = await supabase.from('users').select('virtual_balance').eq('id', user.id).single();
-      let balance = Number(userData?.virtual_balance || 0);
+      const { data: userData, error: userError } = await supabase.from('users').select('virtual_balance').eq('id', user.id).maybeSingle();
+      if (userError) throw userError;
+      if (!userData) {
+        alert('Unable to load your account balance. Please try again later.');
+        return;
+      }
+
+      let balance = Number(userData.virtual_balance || 0);
 
       if (type === 'BUY') {
         if (cost > balance) {
           alert(`Insufficient funds. You need ₹${cost.toLocaleString()} but only have ₹${balance.toLocaleString()}`);
-          setIsTrading(false);
           return;
         }
-        
-        await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
-        await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'BUY', quantity: qty, price_per_unit: assetData.currentPrice, simulated_date: currentSimulatedDate });
+
+        const { error: updateBalanceError } = await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
+        if (updateBalanceError) throw updateBalanceError;
+
+        const { error: insertTxError } = await supabase.from('transactions').insert({
+          user_id: user.id,
+          symbol,
+          type: 'BUY',
+          quantity: qty,
+          price_per_unit: assetData.currentPrice,
+          simulated_date: currentSimulatedDate
+        });
+        if (insertTxError) throw insertTxError;
 
         const sl = stopLossPct ? parseFloat(stopLossPct) : null;
-        const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).single();
+        const { data: holding, error: holdingError } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).maybeSingle();
+        if (holdingError) throw holdingError;
+
         if (holding) {
           const newQty = holding.quantity + qty;
           const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
           const updateData = { quantity: newQty, average_buy_price: newAvg };
-          // Only overwrite stop-loss if user explicitly provided a new value
           if (sl !== null) updateData.stop_loss_pct = sl;
-          await supabase.from('holdings').update(updateData).eq('id', holding.id);
+
+          const { error: updateHoldingError } = await supabase.from('holdings').update(updateData).eq('id', holding.id);
+          if (updateHoldingError) throw updateHoldingError;
         } else {
-          await supabase.from('holdings').insert({ user_id: user.id, symbol, quantity: qty, average_buy_price: assetData.currentPrice, stop_loss_pct: sl });
+          const { error: insertHoldingError } = await supabase.from('holdings').insert({
+            user_id: user.id,
+            symbol,
+            quantity: qty,
+            average_buy_price: assetData.currentPrice,
+            stop_loss_pct: sl
+          });
+          if (insertHoldingError) throw insertHoldingError;
         }
 
         setVirtualBalance(balance - cost);
         alert(`Successfully bought ${qty} shares of ${symbol}`);
         setQuantity('');
       } else if (type === 'SELL') {
-        const { data: holding } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).single();
+        const { data: holding, error: holdingError } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', symbol).maybeSingle();
+        if (holdingError) throw holdingError;
+
         if (!holding || holding.quantity < qty) {
           alert(`Insufficient shares. You only own ${holding?.quantity || 0} shares of ${symbol}.`);
-          setIsTrading(false);
           return;
         }
 
-        await supabase.from('users').update({ virtual_balance: balance + cost }).eq('id', user.id);
-        await supabase.from('transactions').insert({ user_id: user.id, symbol, type: 'SELL', quantity: qty, price_per_unit: assetData.currentPrice, simulated_date: currentSimulatedDate });
+        const { error: updateBalanceError } = await supabase.from('users').update({ virtual_balance: balance + cost }).eq('id', user.id);
+        if (updateBalanceError) throw updateBalanceError;
+
+        const { error: insertTxError } = await supabase.from('transactions').insert({
+          user_id: user.id,
+          symbol,
+          type: 'SELL',
+          quantity: qty,
+          price_per_unit: assetData.currentPrice,
+          simulated_date: currentSimulatedDate
+        });
+        if (insertTxError) throw insertTxError;
 
         const newQty = holding.quantity - qty;
         if (newQty === 0) {
-          await supabase.from('holdings').delete().eq('id', holding.id);
+          const { error: deleteHoldingError } = await supabase.from('holdings').delete().eq('id', holding.id);
+          if (deleteHoldingError) throw deleteHoldingError;
         } else {
-          await supabase.from('holdings').update({ quantity: newQty }).eq('id', holding.id);
+          const { error: updateHoldingError } = await supabase.from('holdings').update({ quantity: newQty }).eq('id', holding.id);
+          if (updateHoldingError) throw updateHoldingError;
         }
 
         setVirtualBalance(balance + cost);
@@ -215,10 +270,11 @@ export default function AssetDetails() {
         setQuantity('');
       }
     } catch (err) {
-      console.error("Trade failed:", err);
-      alert("Trade failed due to an error.");
+      console.error('Trade failed:', err);
+      alert('Trade failed due to an error. Please try again.');
+    } finally {
+      setIsTrading(false);
     }
-    setIsTrading(false);
   };
 
   if (loading) {
@@ -281,6 +337,22 @@ export default function AssetDetails() {
           }}>
             {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}% (2M Change)
           </span>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              onClick={() => setIsConsultationOpen(true)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '10px 20px', background: 'linear-gradient(135deg, rgba(139,92,246,0.25), rgba(79,142,247,0.25))',
+                border: '1px solid rgba(139,92,246,0.4)', borderRadius: '10px',
+                color: '#c084fc', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer',
+                transition: 'all 0.2s', boxShadow: '0 0 12px rgba(139,92,246,0.15)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 20px rgba(139,92,246,0.4)'}
+              onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 0 12px rgba(139,92,246,0.15)'}
+            >
+              <MessageSquare size={16} /> AI Consultation
+            </button>
+          </div>
         </div>
       </div>
 
@@ -445,6 +517,13 @@ export default function AssetDetails() {
           </div>
         </div>
       </div>
+      <ConsultationDrawer
+        isOpen={isConsultationOpen}
+        onClose={() => setIsConsultationOpen(false)}
+        symbol={symbol}
+        currentPrice={currentPrice}
+        currentSimulatedDate={currentSimulatedDate}
+      />
     </div>
   );
 }

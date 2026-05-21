@@ -8,6 +8,7 @@ import Onboarding from './pages/Onboarding';
 import Market from './pages/Market';
 import AssetDetails from './pages/AssetDetails';
 import Analysis from './pages/Analysis';
+import AgentsDashboard from './pages/AgentsDashboard';
 import Academy from './pages/Academy';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
@@ -56,8 +57,8 @@ function App() {
           <Route path="/academy" element={<Academy />} />
           <Route path="/academy/:id" element={<LessonView />} />
           <Route path="/compare" element={<ComparePlatforms />} />
+          <Route path="/agents-dashboard" element={<AgentsDashboard />} />
         </Route>
-        <Route path="/agents-dashboard" element={<ProtectedRoute><import('./pages/AgentsDashboard').then(m => <m.default />) />} />
       </Routes>
     </>
   );

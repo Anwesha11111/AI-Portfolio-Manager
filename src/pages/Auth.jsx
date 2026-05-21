@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
@@ -13,18 +13,10 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [country, setCountry] = useState('IN');
-  const [documentNumber, setDocumentNumber] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
   const { signIn, signUp, loading } = useAuthStore();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (state?.isLogin !== undefined) {
-      setIsLogin(state.isLogin);
-      setErrorMsg('');
-    }
-  }, [state]);
 
   const isPasswordValid = (pw) => {
     const minLength = pw.length >= 8;

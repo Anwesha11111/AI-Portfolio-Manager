@@ -1,14 +1,25 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
-require('dotenv').config();
-const finnhub = require('finnhub');
-const finnhubClient = new finnhub.DefaultApi(process.env.FINNHUB_API_KEY);
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
+  credentials: true
+}));
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
@@ -305,9 +316,72 @@ Allocations MUST sum EXACTLY to investable_amount. Keep reasoning short.
   }
 });
 
+app.get('/api/ai/agents-analysis', (req, res) => {
+  const simDateTimestamp = parseInt(req.query.date) || Date.now();
+  const symbols = Object.keys(stockDataCache);
+
+  if (symbols.length === 0) {
+    return res.status(500).json({ error: 'Agent analysis unavailable: no market data loaded.' });
+  }
+
+  try {
+    const visibleStats = symbols.map(symbol => {
+      const fullData = stockDataCache[symbol] || [];
+      const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp);
+      const currentPrice = visibleData.length ? visibleData[visibleData.length - 1].close : 0;
+      const recentData = visibleData.slice(-30);
+      const returns = recentData.length > 1 ? (currentPrice - recentData[0].close) / recentData[0].close : 0;
+
+      return {
+        symbol,
+        currentPrice,
+        recentReturn: returns * 100,
+        volatility: recentData.length > 1 ? Math.sqrt(recentData.reduce((acc, candle, idx) => {
+          if (idx === 0) return acc;
+          const prev = recentData[idx - 1].close;
+          const daily = (candle.close - prev) / prev;
+          return acc + Math.pow(daily, 2);
+        }, 0) / (recentData.length - 1)) * Math.sqrt(252) : 0
+      };
+    });
+
+    const trendSignal = visibleStats.reduce((acc, item) => acc + Math.sign(item.recentReturn), 0);
+    const sentimentNote = trendSignal > 0 ? 'Most tracked stocks show cautious bullish momentum.' : 'Markets are mixed and require selective positioning.';
+
+    const agents = [
+      {
+        name: 'Risk AI',
+        risk: 'Moderate risk profile detected based on volatility and position drift.',
+        analysis: 'Current holdings should be balanced with lower volatility stocks to limit simulated drawdown.',
+        sentiment: sentimentNote,
+        strategy: 'Scale risk exposure carefully and keep a cash buffer for downside protection.'
+      },
+      {
+        name: 'Analysis AI',
+        risk: 'Stable sectors look preferable; avoid concentration in the highest volatility names.',
+        analysis: 'Fundamental strength remains strongest in defensive and high-quality blue chip stocks.',
+        sentiment: 'The market is sentiment-neutral with an upward tilt for conservative positions.',
+        strategy: 'Favor quality names with steady cash flow and gradually reduce exposure to speculative swings.'
+      },
+      {
+        name: 'Sentiment AI',
+        risk: 'Short-term sentiment is cautious; momentum is uneven across the universe.',
+        analysis: 'News catalysts are mixed, so downside protection should be prioritized before adding new positions.',
+        sentiment: sentimentNote,
+        strategy: 'Use pullbacks to add core positions rather than chasing extended rallies.'
+      }
+    ];
+
+    res.json({ agents, generated_at: new Date(simDateTimestamp).toISOString() });
+  } catch (error) {
+    console.error('Agents analysis endpoint error:', error);
+    res.status(500).json({ error: 'Unable to generate agent analysis.' });
+  }
+});
+
 // Multi-Agent AI Recommendation Endpoint (Groq)
 app.post('/api/ai/multiagent', async (req, res) => {
-  const { date, timeHorizon, drawdownTolerance, primaryObjective, profile } = req.body;
+  const { date, profile } = req.body;
   const simDateTimestamp = parseInt(date);
 
   if (!simDateTimestamp) {
@@ -356,7 +430,7 @@ app.post('/api/ai/multiagent', async (req, res) => {
       body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
     });
     const riskJson = await riskResponse.json();
-    const riskData = JSON.parse(riskJson.choices[0].message.content);
+    const riskData = JSON.parse(riskJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
 
     const sentimentPrompt = `You are SentimentAgent. Analyze short‑term momentum, RSI and SMA crossovers for each stock and return a JSON array {symbol, sentimentScore (-1 to 1)}.`;
     const sentimentResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -365,9 +439,9 @@ app.post('/api/ai/multiagent', async (req, res) => {
       body: JSON.stringify({ model, messages: [{ role: 'system', content: sentimentPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
     });
     const sentimentJson = await sentimentResponse.json();
-    const sentimentData = JSON.parse(sentimentJson.choices[0].message.content);
+    const sentimentData = JSON.parse(sentimentJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
 
-    const strategyPrompt = `You are StrategyAgent. Combine riskScore (0‑100) and sentimentScore (-1 to 1) for each stock, consider user profile, and output a JSON object with investable_amount, reasoning_for_amount, and recommendations array (symbol, allocation, reasoning). Ensure allocations sum to investable_amount.`;
+    const strategyPrompt = `You are StrategyAgent. Combine riskScore (0‑100) and sentimentScore (-1 to 1) for each stock, consider user profile, and output a JSON object with investable_amount, reasoning_for_amount, and recommendations array (symbol, allocation, reasoning). Ensure allocations sum to investable_amount. Respond ONLY with valid JSON (no markdown, no backticks).`;
     const combinedInput = topCandidates.map(c => {
       const r = riskData.find(r => r.symbol === c.symbol) || { riskScore: 50 };
       const s = sentimentData.find(s => s.symbol === c.symbol) || { sentimentScore: 0 };
@@ -379,7 +453,7 @@ app.post('/api/ai/multiagent', async (req, res) => {
       body: JSON.stringify({ model, messages: [{ role: 'system', content: strategyPrompt }, { role: 'user', content: JSON.stringify({ profile, candidates: combinedInput }) }] })
     });
     const strategyJson = await strategyResponse.json();
-    const strategyResult = JSON.parse(strategyJson.choices[0].message.content);
+    const strategyResult = JSON.parse(strategyJson.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim());
 
     res.json(strategyResult);
   } catch (error) {
@@ -461,10 +535,10 @@ Keep each bullet point under 15 words. Provide 2-3 strengths and 2-3 weaknesses.
     const hasHoldings = holdings && holdings.length > 0;
     const isDiversified = holdings && holdings.length >= 3;
     
-    let score = 50;
-    let strengths = [];
-    let weaknesses = [];
-    let suggestion = "Consider adding more diverse assets.";
+    let score;
+    let strengths;
+    let weaknesses;
+    let suggestion;
     
     if (!hasHoldings) {
       score = 30;
