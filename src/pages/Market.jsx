@@ -42,23 +42,7 @@ export default function Market() {
             name: asset.symbol.replace(/_/g, ' '),
           }));
           setAssets(formattedAssets);
-    // Fetch Finnhub quotes for all assets
-    useEffect(() => {
-      if (assets.length === 0) return;
-      const fetchAll = async () => {
-        const map = {};
-        for (const asset of assets) {
-          try {
-            const q = await fetchQuote(asset.symbol);
-            map[asset.symbol] = q;
-          } catch (e) {
-            console.error('Finnhub fetch error', asset.symbol, e);
-          }
-        }
-        setQuotes(map);
-      };
-      fetchAll();
-    }, [assets]);
+    
         } else {
           console.error("Backend returned non-array data:", data);
           setAssets([]);
