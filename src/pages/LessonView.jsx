@@ -191,7 +191,57 @@ export default function LessonView() {
             </ResponsiveContainer>
           </div>
         );
-      } else {
+      } } else if (line === '[CHART:FUNDAMENTALS]') {
+        flushList();
+        const data = [
+          { metric: 'Revenue', EliteCorp: 120, RiskyInc: 140 },
+          { metric: 'Net Profit', EliteCorp: 45, RiskyInc: -15 },
+          { metric: 'Free Cash Flow', EliteCorp: 35, RiskyInc: -30 },
+          { metric: 'Total Debt', EliteCorp: 10, RiskyInc: 180 },
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '350px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ color: 'var(--text-main)', textAlign: 'center', marginBottom: '16px', fontSize: '1.1rem' }}>EliteCorp (Green) vs RiskyInc (Red)</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="metric" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
+                <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
+                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                <Bar dataKey="EliteCorp" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="RiskyInc" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      } else if (line === '[CHART:MARKET_CYCLES]') {
+        flushList();
+        const data = [
+          { phase: 'Accumulation', price: 100 }, { phase: 'Markup', price: 140 },
+          { phase: 'Euphoria (Peak)', price: 250 }, { phase: 'Distribution', price: 220 }, 
+          { phase: 'Panic (Crash)', price: 90 }, { phase: 'Despair', price: 85 },
+          { phase: 'New Cycle', price: 110 }
+        ];
+        elements.push(
+          <div key={`chart-${idx}`} style={{ height: '300px', width: '100%', margin: '40px 0', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="phase" stroke="var(--text-muted)" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} angle={-20} textAnchor="end" height={60} />
+                <YAxis stroke="var(--text-muted)" />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)' }} />
+                <Area type="monotone" dataKey="price" stroke="var(--accent-primary)" fillOpacity={1} fill="url(#colorPrice)" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ); else {
         flushList();
         elements.push(
           <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
