@@ -8,13 +8,11 @@ import Onboarding from './pages/Onboarding';
 import Market from './pages/Market';
 import AssetDetails from './pages/AssetDetails';
 import Analysis from './pages/Analysis';
-import AgentsDashboard from './pages/AgentsDashboard';
 import Academy from './pages/Academy';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import LessonView from './pages/LessonView';
 import SplashScreen from './components/SplashScreen';
-import ComparePlatforms from './pages/ComparePlatforms';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuthStore();
@@ -56,8 +54,6 @@ function App() {
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/academy" element={<Academy />} />
           <Route path="/academy/:id" element={<LessonView />} />
-          <Route path="/compare" element={<ComparePlatforms />} />
-          <Route path="/agents-dashboard" element={<AgentsDashboard />} />
         </Route>
       </Routes>
     </>

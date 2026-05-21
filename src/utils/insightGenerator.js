@@ -51,12 +51,12 @@ export function generateTradeInsights(holding, currentPrice, simulatedDate, firs
   const assetRisk = getAssetRiskScore(holding.symbol);
   const suitability = getSuitabilityScore(holding.symbol, userProfile);
   
-  let reason;
-  let pattern;
-  let riskLesson;
-  let timingLesson;
-  let takeaway;
-  let tweak;
+  let reason = '';
+  let pattern = '';
+  let riskLesson = '';
+  let timingLesson = '';
+  let takeaway = '';
+  let tweak = '';
 
   const isWin = pnlPct >= 0;
   const isHighRisk = assetRisk > 70;

@@ -115,6 +115,11 @@ export default function Academy() {
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: isCompleted ? 'var(--text-main)' : (isLocked ? 'var(--text-muted)' : '#e2e8f0') }}>
                   {lesson.title}
                 </h3>
+                {lesson.oldTitle && (
+                  <div style={{ marginTop: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '400', opacity: 0.8 }}>
+                    {lesson.oldTitle}
+                  </div>
+                )}
               </div>
 
               {isCompleted ? (
