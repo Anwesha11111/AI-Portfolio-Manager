@@ -69,8 +69,22 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
         body: JSON.stringify({ symbol: symbol.toUpperCase(), date: currentSimulatedDate })
       });
       const data = await response.json();
+      console.log('Multi-agent API response:', data); // Debug log
       if (response.ok) {
-        setRecommendation(data);
+        // Ensure risk.score is a number
+        const normalizedData = {
+          ...data,
+          risk: {
+            ...data.risk,
+            score: typeof data.risk?.score === 'number' ? data.risk.score : parseInt(data.risk?.score, 10) || 0
+          },
+          sentiment: {
+            ...data.sentiment,
+            score: typeof data.sentiment?.score === 'number' ? data.sentiment.score : parseInt(data.sentiment?.score, 10) || 0
+          }
+        };
+        console.log('Normalized recommendation:', normalizedData); // Debug log
+        setRecommendation(normalizedData);
       } else {
         setError(data.error || 'Failed to fetch recommendations');
       }

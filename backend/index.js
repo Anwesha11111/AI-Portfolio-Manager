@@ -537,6 +537,9 @@ Respond ONLY with a valid JSON object (no markdown, no backticks, no wrap text):
         const resData = await response.json();
         const content = resData.choices[0].message.content;
         const parsed = JSON.parse(content);
+        // Ensure scores are always numbers
+        parsed.risk.score = Number(parsed.risk.score) || 0;
+        parsed.sentiment.score = Number(parsed.sentiment.score) || 0;
         return res.json(parsed);
       } else {
         console.error('Groq API error:', response.statusText);
