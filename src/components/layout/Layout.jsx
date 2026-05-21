@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LineChart, GraduationCap, Settings, LogOut, ChevronRight, Menu, X, User, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Outlet, NavLink } from 'react-router-dom';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User, TrendingUp, TrendingDown } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import { supabase } from '../../lib/supabase';
