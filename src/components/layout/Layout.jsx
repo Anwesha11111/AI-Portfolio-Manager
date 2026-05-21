@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User } from 'lucide-react';
+import { Briefcase, LineChart, BrainCircuit, GraduationCap, Settings, User, TrendingUp, TrendingDown } from 'lucide-react';
 import styles from './Layout.module.css';
 import useSimulationStore from '../../store/useSimulationStore';
 import { supabase } from '../../lib/supabase';
@@ -159,6 +159,25 @@ export default function Layout() {
     return () => clearInterval(interval);
   }, [isRunning, simulationSpeedMs, advanceTime]);
 
+  const [niftyData, setNiftyData] = useState(null);
+
+  // Fetch Global Ticker Data
+  useEffect(() => {
+    if (!currentSimulatedDate) return;
+    const fetchNifty = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/market/benchmark?date=${currentSimulatedDate}`);
+        const data = await res.json();
+        setNiftyData(data);
+      } catch (err) {
+        console.error("Failed to fetch benchmark:", err);
+      }
+    };
+    
+    const timeoutId = setTimeout(fetchNifty, 300); // Debounce to prevent spamming
+    return () => clearTimeout(timeoutId);
+  }, [currentSimulatedDate]);
+
   return (
     <div className={styles.layout}>
       {/* Top Navbar */}
@@ -219,6 +238,32 @@ export default function Layout() {
       {/* Main Content Area */}
       <main className={styles.mainContent}>
         <div className={styles.pageWrapper}>
+          {/* GLOBAL MARKET TICKER */}
+          {niftyData && niftyData.price > 0 && (
+            <div style={{
+              backgroundColor: 'rgba(0,0,0,0.4)', 
+              borderBottom: '1px solid var(--border-color)',
+              padding: '10px 24px', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px',
+              fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-muted)'
+            }}>
+              <span style={{ color: 'var(--text-main)', letterSpacing: '0.05em' }}>{niftyData.symbol}</span>
+              <span style={{ fontSize: '1.1rem', color: '#fff', fontWeight: 'bold' }}>
+                {niftyData.price.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+              </span>
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: '4px', 
+                padding: '4px 10px', borderRadius: '6px',
+                backgroundColor: niftyData.change >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                color: niftyData.change >= 0 ? 'var(--success)' : 'var(--danger)'
+              }}>
+                {niftyData.change >= 0 ? <TrendingUp size={14}/> : <TrendingDown size={14}/>}
+                {niftyData.change >= 0 ? '+' : ''}{niftyData.change.toFixed(2)}% (1D)
+              </span>
+            </div>
+          )}
+
+          {/* This is the React Router Outlet where your pages load */}
           <Outlet />
         </div>
       </main>

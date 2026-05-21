@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Clock, ArrowRight} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import { LESSONS } from '../data/lessons';
@@ -52,16 +52,14 @@ export default function LessonView() {
       
     if (!error) {
       setCompletedLessons(newCompleted);
-      // Give Supabase an extra half-second to sync before navigating
-      setTimeout(() => {
-        navigate('/academy', { state: { refresh: true } }); 
-      }, 1000);
+      // REMOVED THE setTimeout NAVIGATION SO THEY STAY ON THE PAGE
     } else {
       console.error("Error marking lesson complete:", error);
     }
     setUpdating(false);
   };
 
+  // Robust line-by-line Markdown Parser
   // Robust line-by-line Markdown Parser
   // Robust line-by-line Markdown Parser
   const renderContent = (text) => {
@@ -191,7 +189,7 @@ export default function LessonView() {
             </ResponsiveContainer>
           </div>
         );
-      } } else if (line === '[CHART:FUNDAMENTALS]') {
+      } else if (line === '[CHART:FUNDAMENTALS]') {
         flushList();
         const data = [
           { metric: 'Revenue', EliteCorp: 120, RiskyInc: 140 },
@@ -241,7 +239,8 @@ export default function LessonView() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        ); else {
+        );
+      } else {
         flushList();
         elements.push(
           <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
@@ -258,7 +257,7 @@ export default function LessonView() {
   const Icon = lesson.icon;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
       <button 
         onClick={() => navigate('/academy')}
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '32px', padding: 0, fontSize: '1rem', fontWeight: '600' }}
@@ -292,11 +291,31 @@ export default function LessonView() {
 
         <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '48px 0 32px 0' }} />
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
           {isCompleted ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--success)', background: 'rgba(16, 185, 129, 0.1)', padding: '16px 32px', borderRadius: '100px', fontWeight: 'bold', fontSize: '1.1rem' }}>
-              <CheckCircle2 size={24} /> Module Completed
-            </div>
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--success)', background: 'rgba(16, 185, 129, 0.1)', padding: '16px 32px', borderRadius: '100px', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                <CheckCircle2 size={24} /> Module Completed
+              </div>
+              
+              {/* SMART ROUTING ACTION BUTTON */}
+              {lesson.action && (
+                <button 
+                  onClick={() => navigate(lesson.action.path)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 48px',
+                    background: 'linear-gradient(135deg, #8b5cf6, #d946ef)',
+                    color: 'white', border: 'none', borderRadius: '100px', cursor: 'pointer',
+                    fontWeight: '800', fontSize: '1.15rem', boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.6)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(139, 92, 246, 0.4)'; }}
+                >
+                  {lesson.action.label} <ArrowRight size={24} />
+                </button>
+              )}
+            </>
           ) : (
             <button 
               onClick={handleMarkCompleted}
@@ -312,7 +331,7 @@ export default function LessonView() {
               onMouseOut={(e) => !updating && (e.currentTarget.style.transform = 'translateY(0)')}
             >
               <CheckCircle2 size={24} /> 
-              {updating ? 'Saving...' : 'Mark as Read & Return'}
+              {updating ? 'Saving...' : 'Mark as Read'}
             </button>
           )}
         </div>

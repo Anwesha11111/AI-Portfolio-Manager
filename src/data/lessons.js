@@ -3,8 +3,10 @@ export const LESSONS = [
   {
     id: 'indian-market-ecosystem',
     icon: ShieldCheck,
-    title: 'The Indian Market: NIFTY & SEBI',
+    title: 'How the Indian Stock Market Works',
+    oldTitle: 'The Indian Market: NIFTY & SEBI',
     readTime: '6 min read',
+    action: { label: 'Explore Indian Market Data', path: '/market' },
     content: `
       ### Understanding the NIFTY 50
       When financial news channels say "The market is up today," they are usually referring to a benchmark index. In India, the most tracked index is the **NIFTY 50** (National Stock Exchange Fifty). 
@@ -27,7 +29,8 @@ export const LESSONS = [
   {
     id: 'stock-market-basics',
     icon: Landmark,
-    title: 'The Stock Market Ecosystem',
+    title: 'Who Runs the Stock Market?',
+    oldTitle: 'The Stock Market Ecosystem',
     readTime: '6 min read',
     content: `
       ### The Core Concept of Equities
@@ -53,7 +56,8 @@ export const LESSONS = [
   {
     id: 'compounding',
     icon: TrendingUp,
-    title: 'The Math of Wealth: Compounding',
+    title: 'How Money Grows Over Time',
+    oldTitle: 'The Math of Wealth: Compounding',
     readTime: '8 min read',
     content: `
       ### The Eighth Wonder of the World
@@ -81,7 +85,8 @@ export const LESSONS = [
   {
     id: 'fundamental-analysis',
     icon: BookOpen,
-    title: 'Valuing a Business (Fundamentals)',
+    title: 'How to Identify a Good Company',
+    oldTitle: 'Valuing a Business (Fundamentals)',
     readTime: '9 min read',
     content: `
       ### Price vs Value
@@ -106,7 +111,8 @@ export const LESSONS = [
   {
     id: 'case-study-reliance-hdfc',
     icon: Search,
-    title: 'Case Study: Reliance vs HDFC Bank',
+    title: 'Comparing Two Market Giants',
+    oldTitle: 'Case Study: Reliance vs HDFC Bank',
     readTime: '7 min read',
     content: `
       ### Analyzing the Giants
@@ -131,7 +137,8 @@ export const LESSONS = [
   {
     id: 'passive-investing-etfs',
     icon: Briefcase,
-    title: 'Passive Investing & ETFs',
+    title: 'Easy Long-Term Investing',
+    oldTitle: 'Passive Investing & ETFs',
     readTime: '5 min read',
     content: `
       ### The Difficulty of Stock Picking
@@ -151,8 +158,10 @@ export const LESSONS = [
   {
     id: 'portfolio-diversification',
     icon: PieChart,
-    title: 'Diversification & Risk Management',
+    title: 'How to Reduce Investment Risk',
+    oldTitle: 'Diversification & Risk Management',
     readTime: '7 min read',
+    action: { label: 'Build Your Virtual Portfolio', path: '/dashboard' },
     content: `
       ### The Only Free Lunch in Finance
       Investing heavily in a single stock is incredibly risky. If you put all your capital into a highly touted tech startup and it goes bankrupt, your wealth is permanently destroyed. **Diversification** is the strategy of spreading your capital across different, uncorrelated assets to minimize the impact of any single failure.
@@ -180,7 +189,8 @@ export const LESSONS = [
   {
     id: 'market-cycles',
     icon: BarChart3,
-    title: 'Market Cycles: Bulls and Bears',
+    title: 'Understanding Market Ups & Downs',
+    oldTitle: 'Market Cycles: Bulls and Bears',
     readTime: '7 min read',
     content: `
       ### The Inevitable Rhythm
@@ -207,7 +217,8 @@ export const LESSONS = [
   {
     id: 'market-crashes',
     icon: TrendingDown,
-    title: 'Surviving Market Crashes',
+    title: 'What to Do During Market Crashes',
+    oldTitle: 'Surviving Market Crashes',
     readTime: '7 min read',
     content: `
       ### The Anatomy of a Market Crash
@@ -239,7 +250,8 @@ export const LESSONS = [
   {
     id: 'candlestick-charts',
     icon: BarChart3,
-    title: 'Reading Technicals: Candlestick Charts',
+    title: 'How to Read Stock Charts',
+    oldTitle: 'Reading Technicals: Candlestick Charts',
     readTime: '5 min read',
     content: `
       ### The Anatomy of a Candlestick
@@ -268,8 +280,10 @@ export const LESSONS = [
   {
     id: 'technical-indicators-rsi',
     icon: Activity,
-    title: 'Technical Indicators: RSI & Volume',
+    title: 'Understanding Market Signals',
+    oldTitle: 'Technical Indicators: RSI & Volume',
     readTime: '6 min read',
+    action: { label: 'Analyze RSI on Live Stocks', path: '/market' },
     content: `
       ### The Relative Strength Index (RSI)
       While moving averages show the direction of a trend, the **RSI** measures the speed and momentum of that price movement. It is an oscillator that fluctuates between 0 and 100.
