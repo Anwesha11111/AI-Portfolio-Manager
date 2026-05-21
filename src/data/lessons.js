@@ -5,6 +5,7 @@ export const LESSONS = [
     icon: ShieldCheck,
     title: 'The Indian Market: NIFTY & SEBI',
     readTime: '6 min read',
+    action: { label: 'Explore Indian Market Data', path: '/market' },
     content: `
       ### Understanding the NIFTY 50
       When financial news channels say "The market is up today," they are usually referring to a benchmark index. In India, the most tracked index is the **NIFTY 50** (National Stock Exchange Fifty). 
@@ -153,6 +154,7 @@ export const LESSONS = [
     icon: PieChart,
     title: 'Diversification & Risk Management',
     readTime: '7 min read',
+    action: { label: 'Build Your Virtual Portfolio', path: '/dashboard' },
     content: `
       ### The Only Free Lunch in Finance
       Investing heavily in a single stock is incredibly risky. If you put all your capital into a highly touted tech startup and it goes bankrupt, your wealth is permanently destroyed. **Diversification** is the strategy of spreading your capital across different, uncorrelated assets to minimize the impact of any single failure.
@@ -270,6 +272,7 @@ export const LESSONS = [
     icon: Activity,
     title: 'Technical Indicators: RSI & Volume',
     readTime: '6 min read',
+    action: { label: 'Analyze RSI on Live Stocks', path: '/market' },
     content: `
       ### The Relative Strength Index (RSI)
       While moving averages show the direction of a trend, the **RSI** measures the speed and momentum of that price movement. It is an oscillator that fluctuates between 0 and 100.
