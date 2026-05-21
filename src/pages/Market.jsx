@@ -6,6 +6,8 @@ import AiDisclaimer from '../components/AiDisclaimer';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 import { fetchQuote } from '../utils/finnhub';
+import ConsultationDrawer from '../components/ConsultationDrawer';
+import RatingBadges from '../components/RatingBadges';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -24,6 +26,10 @@ export default function Market() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [isTrading, setIsTrading] = useState(false);
+
+  // Multi-Agent Consultation Drawer States
+  const [isConsultationDrawerOpen, setIsConsultationDrawerOpen] = useState(false);
+  const [selectedStockForConsultation, setSelectedStockForConsultation] = useState(null);
 
   const debounceRef = useRef(null);
   const isFirstLoad = useRef(true);
@@ -167,6 +173,16 @@ export default function Market() {
         }
       }
     }
+  };
+
+  const handleConsultStock = (symbol) => {
+    setSelectedStockForConsultation(symbol);
+    setIsConsultationDrawerOpen(true);
+  };
+
+  const closeConsultationDrawer = () => {
+    setIsConsultationDrawerOpen(false);
+    setSelectedStockForConsultation(null);
   };
 
   return (
@@ -345,6 +361,17 @@ export default function Market() {
         </div>
       )}
 
+      {/* Multi-Agent Consultation Drawer */}
+      {isConsultationDrawerOpen && selectedStockForConsultation && (
+        <ConsultationDrawer 
+          isOpen={isConsultationDrawerOpen}
+          onClose={closeConsultationDrawer}
+          symbol={selectedStockForConsultation}
+          currentPrice={assets.find(a => a.symbol === selectedStockForConsultation)?.price || 0}
+          currentSimulatedDate={currentSimulatedDate}
+        />
+      )}
+
       {loading ? (
         <div className="page-loader">
           <Loader size={48} className="spin" color="var(--accent-primary)" />
@@ -389,7 +416,7 @@ export default function Market() {
               </div>
 
               {/* Right: Price & Change */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-end', flex: '0 0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', flex: '0 0 auto' }}>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</span>
                   <span style={{ fontSize: '1rem', fontWeight: '700' }}>
@@ -409,6 +436,42 @@ export default function Market() {
                     </>
                   )}
                 </div>
+                <RatingBadges 
+                  risk={asset.risk} 
+                  sentiment={asset.sentiment} 
+                  strategy={asset.strategy} 
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConsultStock(asset.symbol);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    background: 'linear-gradient(135deg, rgba(157,111,245,0.2), rgba(79,142,247,0.2))',
+                    border: '1px solid rgba(157,111,245,0.4)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.75rem',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.boxShadow = '0 0 12px rgba(157,111,245,0.4)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Sparkles size={14} />
+                  Consult
+                </button>
               </div>
             </div>
           ))}
