@@ -13,9 +13,8 @@ const PORT = process.env.PORT || 5000;
 const DATA_DIR = path.join(__dirname, 'data');
 
 // In-Memory Cache for all historical stock data
-// In-Memory Cache for all historical stock data
 let stockDataCache = {};
-let nifty50Data = null; // NEW: Store benchmark index separately
+let nifty50Data = null; // Store benchmark index separately
 
 function initializeCache() {
   if (!fs.existsSync(DATA_DIR)) return;
@@ -37,20 +36,20 @@ function initializeCache() {
       }
     }
   }
-  console.log(`Cache initialized. Stocks: ${Object.keys(stockDataCache).length}. Benchmark Loaded: ${nifty50Data ? 'Yes' : 'No'}`);
+  console.log(`Cache initialized. Benchmark Loaded: ${nifty50Data ? 'Yes' : 'No'}`);
 }
 
-// NEW: Dedicated Market Benchmark Endpoint
+// Dedicated Market Benchmark Endpoint
 app.get('/api/market/benchmark', (req, res) => {
   const simDateTimestamp = parseInt(req.query.date);
   
   if (!simDateTimestamp || !nifty50Data) {
-    return res.json({ symbol: 'NIFTY 50', price: 0, change: 0 });
+    return res.status(404).json({ error: 'Benchmark data not available' });
   }
 
   const visibleData = nifty50Data.filter(candle => candle.rawTimestamp <= simDateTimestamp);
   if (visibleData.length === 0) {
-    return res.json({ symbol: 'NIFTY 50', price: 0, change: 0 });
+    return res.status(404).json({ error: 'No benchmark data for this date' });
   }
 
   const currentPrice = visibleData[visibleData.length - 1].close;
