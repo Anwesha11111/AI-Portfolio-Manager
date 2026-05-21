@@ -226,15 +226,13 @@ export default function AssetDetails() {
             {calculatedRsi !== null && !isNaN(calculatedRsi) && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                backgroundColor: calculatedRsiSignal === 'BUY' ? 'rgba(16, 185, 129, 0.1)' : (calculatedRsiSignal === 'SELL' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)'),
-                color: calculatedRsiSignal === 'BUY' ? 'var(--success)' : (calculatedRsiSignal === 'SELL' ? 'var(--danger)' : 'var(--text-muted)'),
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                color: 'var(--text-main)',
                 padding: '6px 12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', border: '1px solid',
-                borderColor: calculatedRsiSignal === 'BUY' ? 'rgba(16, 185, 129, 0.2)' : (calculatedRsiSignal === 'SELL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.1)'),
+                borderColor: 'rgba(255,255,255,0.1)',
               }}>
-                {calculatedRsiSignal === 'BUY' && <TrendingUp size={16} />}
-                {calculatedRsiSignal === 'SELL' && <TrendingDown size={16} />}
-                {calculatedRsiSignal === 'HOLD' && <Activity size={16} />}
-                <span>RSI ({calculatedRsi.toFixed(0)}) — {calculatedRsiSignal}</span>
+                <Activity size={16} style={{ color: 'var(--accent-primary)' }} />
+                <span>RSI: {calculatedRsi.toFixed(0)}</span>
               </div>
             )}
           </div>
