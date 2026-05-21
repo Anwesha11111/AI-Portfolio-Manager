@@ -6,6 +6,8 @@ import AiDisclaimer from '../components/AiDisclaimer';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 import { fetchQuote } from '../utils/finnhub';
+import FinnhubAgent from '../agents/FinnhubAgent';
+import SimulationAgent from '../agents/SimulationAgent';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -56,6 +58,24 @@ export default function Market() {
 
     return () => clearTimeout(debounceRef.current);
   }, [currentSimulatedDate, timeframe]);
+
+  // Fetch Finnhub quotes for all assets
+  useEffect(() => {
+    if (assets.length === 0) return;
+    const fetchAll = async () => {
+      const map = {};
+      for (const asset of assets) {
+        try {
+          const q = await fetchQuote(asset.symbol);
+          map[asset.symbol] = q;
+        } catch (e) {
+          console.error('Finnhub fetch error', asset.symbol, e);
+        }
+      }
+      setQuotes(map);
+    };
+    fetchAll();
+  }, [assets]);
 
 
   const fetchAiRecommendation = async () => {
