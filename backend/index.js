@@ -301,6 +301,89 @@ Allocations MUST sum EXACTLY to investable_amount. Keep reasoning short.
   }
 });
 
+// Multi-Agent AI Recommendation Endpoint (Groq)
+app.post('/api/ai/multiagent', async (req, res) => {
+  const { date, timeHorizon, drawdownTolerance, primaryObjective, profile } = req.body;
+  const simDateTimestamp = parseInt(date);
+
+  if (!simDateTimestamp) {
+    return res.status(400).json({ error: 'Missing simulation date' });
+  }
+
+  try {
+    // 1. Gather market analysis (same as existing recommend endpoint)
+    const symbols = Object.keys(stockDataCache);
+    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+    const sixMonthsAgo = simDateTimestamp - SIX_MONTHS_MS;
+    let marketAnalysis = [];
+    for (const symbol of symbols) {
+      const fullData = stockDataCache[symbol];
+      const visibleData = fullData.filter(c => c.rawTimestamp <= simDateTimestamp && c.rawTimestamp >= sixMonthsAgo);
+      if (visibleData.length < 30) continue;
+      const currentPrice = visibleData[visibleData.length - 1].close;
+      const pastPrice = visibleData[0].close;
+      const returnPct = ((currentPrice - pastPrice) / pastPrice) * 100;
+      let sumReturns = 0;
+      let returns = [];
+      for (let i = 1; i < visibleData.length; i++) {
+        const dailyRet = (visibleData[i].close - visibleData[i-1].close) / visibleData[i-1].close;
+        returns.push(dailyRet);
+        sumReturns += dailyRet;
+      }
+      const meanReturn = sumReturns / returns.length;
+      const variance = returns.reduce((acc, val) => acc + Math.pow(val - meanReturn, 2), 0) / returns.length;
+      const volatility = Math.sqrt(variance) * Math.sqrt(252);
+      marketAnalysis.push({ symbol, currentPrice, sixMonthReturn: returnPct, annualizedVolatility: volatility * 100, algorithmicScore: returnPct / (volatility || 1) });
+    }
+    marketAnalysis.sort((a, b) => b.algorithmicScore - a.algorithmicScore);
+    const topCandidates = marketAnalysis.slice(0, 15);
+
+    // 2. Call Groq API for three specialized agents
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
+      return res.status(500).json({ error: 'Groq API key not configured' });
+    }
+    const fetch = (await import('node-fetch')).default;
+    const model = 'llama3-70b-8192'; // versatile model
+    const systemPrompt = `You are RiskAgent. Evaluate risk metrics (volatility, drawdown, beta) for each stock in the provided list and output a JSON array of objects {symbol, riskScore (0-100)}.`;
+    const riskResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+      body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
+    });
+    const riskJson = await riskResponse.json();
+    const riskData = JSON.parse(riskJson.choices[0].message.content);
+
+    const sentimentPrompt = `You are SentimentAgent. Analyze short‑term momentum, RSI and SMA crossovers for each stock and return a JSON array {symbol, sentimentScore (-1 to 1)}.`;
+    const sentimentResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+      body: JSON.stringify({ model, messages: [{ role: 'system', content: sentimentPrompt }, { role: 'user', content: JSON.stringify(topCandidates) }] })
+    });
+    const sentimentJson = await sentimentResponse.json();
+    const sentimentData = JSON.parse(sentimentJson.choices[0].message.content);
+
+    const strategyPrompt = `You are StrategyAgent. Combine riskScore (0‑100) and sentimentScore (-1 to 1) for each stock, consider user profile, and output a JSON object with investable_amount, reasoning_for_amount, and recommendations array (symbol, allocation, reasoning). Ensure allocations sum to investable_amount.`;
+    const combinedInput = topCandidates.map(c => {
+      const r = riskData.find(r => r.symbol === c.symbol) || { riskScore: 50 };
+      const s = sentimentData.find(s => s.symbol === c.symbol) || { sentimentScore: 0 };
+      return { ...c, riskScore: r.riskScore, sentimentScore: s.sentimentScore };
+    });
+    const strategyResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+      body: JSON.stringify({ model, messages: [{ role: 'system', content: strategyPrompt }, { role: 'user', content: JSON.stringify({ profile, candidates: combinedInput }) }] })
+    });
+    const strategyJson = await strategyResponse.json();
+    const strategyResult = JSON.parse(strategyJson.choices[0].message.content);
+
+    res.json(strategyResult);
+  } catch (error) {
+    console.error('Multiagent error:', error);
+    res.status(500).json({ error: 'Internal server error in multiagent processing' });
+  }
+});
+
 // AI Portfolio Analysis Endpoint
 app.post('/api/ai/analyze', async (req, res) => {
   const { holdings, balance, profile } = req.body;

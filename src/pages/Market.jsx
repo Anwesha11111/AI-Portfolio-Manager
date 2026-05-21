@@ -100,6 +100,53 @@ export default function Market() {
     setAiLoading(false);
   };
 
+  // Fetch AI Multi-Agent Recommendation (Groq)
+  const fetchMultiAgentRecommendation = async () => {
+    setAiLoading(true);
+    setAiRecommendations(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setAiLoading(false); return; }
+
+      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+      if (!userData) { setAiLoading(false); return; }
+
+      // Once-per-month check (same logic)
+      const lastRecommDate = userData.last_ai_recommendation_date || 0;
+      const lastMonth = new Date(lastRecommDate).getMonth() + '-' + new Date(lastRecommDate).getFullYear();
+      const currentMonth = new Date(currentSimulatedDate).getMonth() + '-' + new Date(currentSimulatedDate).getFullYear();
+      if (lastRecommDate > 0 && lastMonth === currentMonth) {
+        alert('You can only get AI recommendations once per simulated month. Wait for the next month.');
+        setAiLoading(false);
+        return;
+      }
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/multiagent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: currentSimulatedDate,
+          timeHorizon: userData.time_horizon,
+          drawdownTolerance: userData.drawdown_tolerance,
+          primaryObjective: userData.primary_objective,
+          profile: {
+            monthly_income: userData.monthly_income,
+            monthly_expenses: userData.monthly_expenses,
+            virtual_balance: userData.virtual_balance,
+          }
+        })
+      });
+      const data = await res.json();
+      setAiRecommendations(data);
+
+      // Mark this month as used
+      await supabase.from('users').update({ last_ai_recommendation_date: currentSimulatedDate }).eq('id', user.id);
+    } catch (err) {
+      console.error('Failed to get AI multi-agent recommendation:', err);
+    }
+    setAiLoading(false);
+  };
+
   let filteredAssets = assets.filter(asset => 
     asset.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
     asset.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -203,7 +250,7 @@ export default function Market() {
           </div>
 
           <button 
-            onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
+            onClick={() => { setIsAiPanelOpen(!isAiPanelOpen); if (!isAiPanelOpen) fetchMultiAgentRecommendation(); }}
             style={{
               background: isAiPanelOpen ? 'rgba(157,111,245,0.35)' : 'linear-gradient(135deg, rgba(157,111,245,0.2), rgba(79,142,247,0.2))',
               border: '1px solid rgba(157,111,245,0.4)',
@@ -263,7 +310,7 @@ export default function Market() {
               </p>
               
               <button 
-                onClick={fetchAiRecommendation}
+                onClick={fetchMultiAgentRecommendation}
                 style={{ padding: '16px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 <BrainCircuit size={20} /> Get Monthly AI Plan
