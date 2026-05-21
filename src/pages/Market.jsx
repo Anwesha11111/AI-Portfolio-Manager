@@ -4,6 +4,7 @@ import useSimulationStore from '../store/useSimulationStore';
 import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search, Info, X } from 'lucide-react';
 import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
+import { fetchQuote } from '../utils/finnhub';
 
 export default function Market() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function Market() {
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
   const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '3M');
   const [searchQuery, setSearchQuery] = useState('');
+  const [quotes, setQuotes] = useState({});
   const [infoModalAsset, setInfoModalAsset] = useState(null);
   
   // AI Panel States
@@ -39,6 +41,23 @@ export default function Market() {
             name: asset.symbol.replace(/_/g, ' '),
           }));
           setAssets(formattedAssets);
+    // Fetch Finnhub quotes for all assets
+    useEffect(() => {
+      if (assets.length === 0) return;
+      const fetchAll = async () => {
+        const map = {};
+        for (const asset of assets) {
+          try {
+            const q = await fetchQuote(asset.symbol);
+            map[asset.symbol] = q;
+          } catch (e) {
+            console.error('Finnhub fetch error', asset.symbol, e);
+          }
+        }
+        setQuotes(map);
+      };
+      fetchAll();
+    }, [assets]);
         } else {
           console.error("Backend returned non-array data:", data);
           setAssets([]);
@@ -478,6 +497,16 @@ export default function Market() {
             <p style={{ color: 'var(--text-main)', lineHeight: '1.5', marginBottom: '24px', fontSize: '0.95rem' }}>
               {getAssetInfo(infoModalAsset.symbol).desc}
             </p>
+{quotes[infoModalAsset?.symbol] && (
+  <div style={{ marginTop: '16px' }}>
+    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+      <strong>Current:</strong> ₹{quotes[infoModalAsset.symbol].c?.toFixed(2)} |
+      <strong>Open:</strong> ₹{quotes[infoModalAsset.symbol].o?.toFixed(2)} |
+      <strong>High:</strong> ₹{quotes[infoModalAsset.symbol].h?.toFixed(2)} |
+      <strong>Low:</strong> ₹{quotes[infoModalAsset.symbol].l?.toFixed(2)}
+    </div>
+  </div>
+)}
             
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
