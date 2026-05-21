@@ -64,6 +64,7 @@ export default function LessonView() {
 
   // Robust line-by-line Markdown Parser
   // Robust line-by-line Markdown Parser
+  // Robust line-by-line Markdown Parser
   const renderContent = (text) => {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
     const elements = [];
@@ -191,7 +192,7 @@ export default function LessonView() {
             </ResponsiveContainer>
           </div>
         );
-      } } else if (line === '[CHART:FUNDAMENTALS]') {
+      } else if (line === '[CHART:FUNDAMENTALS]') {
         flushList();
         const data = [
           { metric: 'Revenue', EliteCorp: 120, RiskyInc: 140 },
@@ -241,7 +242,8 @@ export default function LessonView() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        ); else {
+        );
+      } else {
         flushList();
         elements.push(
           <p key={`p-${idx}`} style={{ marginBottom: '28px', color: 'var(--text-main)', lineHeight: '1.85', fontSize: '1.1rem' }}>
