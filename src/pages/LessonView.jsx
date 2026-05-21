@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Clock, ArrowRight} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import { LESSONS } from '../data/lessons';
