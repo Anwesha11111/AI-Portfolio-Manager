@@ -258,7 +258,7 @@ export default function LessonView() {
   const Icon = lesson.icon;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
       <button 
         onClick={() => navigate('/academy')}
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '32px', padding: 0, fontSize: '1rem', fontWeight: '600' }}
