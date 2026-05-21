@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import useSimulationStore from '../store/useSimulationStore';
 import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
-import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity, Coins } from 'lucide-react';
+import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity, Coins, X, Info, ShieldAlert, BarChart2, Sparkles, BookOpen } from 'lucide-react';
+import { generateTradeInsights } from '../utils/insightGenerator';
 
 export default function Dashboard() {
   const { currentSimulatedDate } = useSimulationStore();
@@ -10,6 +11,10 @@ export default function Dashboard() {
   const [virtualBalance, setVirtualBalance] = useState(0);
   const [holdings, setHoldings] = useState([]);
   const [marketData, setMarketData] = useState({});
+  const [userProfile, setUserProfile] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [selectedHolding, setSelectedHolding] = useState(null);
+  const [infoModalMetric, setInfoModalMetric] = useState(null);
 
   const debounceRef = useRef(null);
   const isFirstLoad = useRef(true);
@@ -24,13 +29,18 @@ export default function Dashboard() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch User Balance
-        const { data: userData } = await supabase.from('users').select('virtual_balance').eq('id', user.id).maybeSingle();
+        // Fetch User Balance and Profile
+        const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
         setVirtualBalance(Number(userData?.virtual_balance || 0));
+        setUserProfile(userData);
 
         // Fetch Holdings
         const { data: holdingsData } = await supabase.from('holdings').select('*').eq('user_id', user.id);
         setHoldings(holdingsData || []);
+
+        // Fetch Transactions
+        const { data: txData } = await supabase.from('transactions').select('*').eq('user_id', user.id);
+        setTransactions(txData || []);
 
         // Fetch Market Prices to calculate P&L
         const marketJson = await useSimulationStore.getState().fetchMarketData('1M');
@@ -75,9 +85,9 @@ export default function Dashboard() {
       <div className="metric-grid" id="tour-metrics">
         {/* Net Worth */}
         <div className="glass-panel stat-card stat-card-blue">
-          <div className="stat-card-label">
-            <Wallet size={14} color="var(--accent-primary)" />
-            Net Worth
+          <div className="stat-card-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><Wallet size={14} color="var(--accent-primary)" style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Net Worth</span>
+            <Info size={14} color="var(--text-muted)" title="Total value of your portfolio plus your available cash balance." onClick={() => setInfoModalMetric({ title: 'Net Worth', desc: 'Total value of your portfolio plus your available cash balance.' })} style={{ cursor: 'pointer' }} />
           </div>
           <p className="stat-card-value">₹{netWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
           <span className="stat-card-sub">Portfolio + Cash</span>
@@ -85,9 +95,9 @@ export default function Dashboard() {
 
         {/* Market Value */}
         <div className="glass-panel stat-card stat-card-purple">
-          <div className="stat-card-label">
-            <PieChart size={14} color="var(--accent-secondary)" />
-            Market Value
+          <div className="stat-card-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><PieChart size={14} color="var(--accent-secondary)" style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Market Value</span>
+            <Info size={14} color="var(--text-muted)" title="The current total worth of all your active stock holdings." onClick={() => setInfoModalMetric({ title: 'Market Value', desc: 'The current total worth of all your active stock holdings.' })} style={{ cursor: 'pointer' }} />
           </div>
           <p className="stat-card-value">₹{currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
           <span className="stat-card-sub">Cost: ₹{investedValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
@@ -95,9 +105,9 @@ export default function Dashboard() {
 
         {/* Total P&L */}
         <div className={`glass-panel stat-card ${totalPandL >= 0 ? 'stat-card-green' : 'stat-card-red'}`}>
-          <div className="stat-card-label">
-            <Activity size={14} color={totalPandL >= 0 ? 'var(--success)' : 'var(--danger)'} />
-            Total P&L
+          <div className="stat-card-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><Activity size={14} color={totalPandL >= 0 ? 'var(--success)' : 'var(--danger)'} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Total P&L</span>
+            <Info size={14} color="var(--text-muted)" title="Total Profit or Loss calculated as (Current Market Value - Total Invested Amount)." onClick={() => setInfoModalMetric({ title: 'Total P&L', desc: 'Total Profit or Loss calculated as (Current Market Value - Total Invested Amount).' })} style={{ cursor: 'pointer' }} />
           </div>
           <p className="stat-card-value" style={{ color: totalPandL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
             {totalPandL >= 0 ? '+' : ''}₹{totalPandL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
@@ -110,9 +120,9 @@ export default function Dashboard() {
 
         {/* Available Capital */}
         <div className="glass-panel stat-card stat-card-green">
-          <div className="stat-card-label">
-            <Coins size={14} color="var(--success)" />
-            Available Capital
+          <div className="stat-card-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><Coins size={14} color="var(--success)" style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Available Capital</span>
+            <Info size={14} color="var(--text-muted)" title="Your uninvested cash that is available to buy more stocks." onClick={() => setInfoModalMetric({ title: 'Available Capital', desc: 'Your uninvested cash that is available to buy more stocks.' })} style={{ cursor: 'pointer' }} />
           </div>
           <p className="stat-card-value">₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
           <span className="stat-card-sub">Cash to invest</span>
@@ -120,9 +130,9 @@ export default function Dashboard() {
 
         {/* Holdings count */}
         <div className="glass-panel stat-card">
-          <div className="stat-card-label">
-            <PieChart size={14} color="var(--text-muted)" />
-            Holdings
+          <div className="stat-card-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><PieChart size={14} color="var(--text-muted)" style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Holdings</span>
+            <Info size={14} color="var(--text-muted)" title="The total number of distinct companies you currently own shares in." onClick={() => setInfoModalMetric({ title: 'Holdings', desc: 'The total number of distinct companies you currently own shares in.' })} style={{ cursor: 'pointer' }} />
           </div>
           <p className="stat-card-value">{holdings.length}</p>
           <span className="stat-card-sub">Active positions</span>
@@ -238,7 +248,8 @@ export default function Dashboard() {
               <div 
                 key={asset.id}
                 className="glass-panel asset-row"
-                style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}
+                style={{ justifyContent: 'space-between', flexWrap: 'wrap', cursor: 'pointer' }}
+                onClick={() => setSelectedHolding(asset)}
                 onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(79,142,247,0.25)'; e.currentTarget.style.background = 'var(--bg-card-hover)'; }}
                 onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
               >
@@ -286,6 +297,120 @@ export default function Dashboard() {
           })}
         </div>
       )}
+
+      {selectedHolding && (
+        <InsightModal 
+          holding={selectedHolding}
+          marketPrice={marketData[selectedHolding.symbol] || selectedHolding.average_buy_price}
+          transactions={transactions}
+          userProfile={userProfile}
+          currentSimulatedDate={currentSimulatedDate}
+          onClose={() => setSelectedHolding(null)}
+        />
+      )}
+
+      {infoModalMetric && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-panel animate-fade-in-up" style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', padding: '24px', position: 'relative', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+            <button onClick={() => setInfoModalMetric(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20}/></button>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Info size={20} color="var(--accent-primary)" />
+              {infoModalMetric.title}
+            </h3>
+            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', margin: 0, fontSize: '0.95rem' }}>
+              {infoModalMetric.desc}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InsightModal({ holding, marketPrice, transactions, userProfile, currentSimulatedDate, onClose }) {
+  const symbolTxs = transactions.filter(t => t.symbol === holding.symbol).sort((a,b) => a.simulated_date - b.simulated_date);
+  const firstTxDate = symbolTxs.length > 0 ? symbolTxs[0].simulated_date : currentSimulatedDate;
+  
+  const insights = generateTradeInsights(holding, marketPrice, currentSimulatedDate, firstTxDate, userProfile);
+  
+  const assetValue = marketPrice * holding.quantity;
+  const invested = holding.average_buy_price * holding.quantity;
+  const pnl = assetValue - invested;
+  const pnlPct = ((marketPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div className="glass-panel animate-fade-in-up" style={{ width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', padding: '32px', position: 'relative', background: 'var(--bg-card)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={24}/></button>
+        
+        <h2 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Sparkles color="var(--accent-primary)" /> 
+          Trade Post-Mortem: {holding.symbol}
+        </h2>
+        <p style={{ color: 'var(--text-muted)', margin: '0 0 24px 0' }}>AI-driven analysis and insights for your position.</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}><Info size={16}/> Core Details</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Ticker</span> <strong>{holding.symbol}</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>First Purchase</span> <strong>{new Date(firstTxDate).toLocaleDateString()}</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Quantity</span> <strong>{holding.quantity} shares</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Avg Price</span> <strong>₹{holding.average_buy_price.toFixed(2)}</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Total Invested</span> <strong>₹{invested.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</strong></div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}><BarChart2 size={16}/> Performance Metrics</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Current Value</span> <strong>₹{assetValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Profit/Loss</span> <strong style={{ color: pnl >= 0 ? 'var(--success)' : 'var(--danger)' }}>{pnl >= 0 ? '+' : ''}₹{pnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })} ({pnlPct.toFixed(2)}%)</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Holding Period</span> <strong>{insights.holdingDays} days</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Est. Benchmark</span> <strong style={{ color: insights.outperforming ? 'var(--success)' : 'var(--danger)' }}>{insights.outperforming ? 'Outperforming' : 'Underperforming'} ({insights.benchmarkPct.toFixed(2)}%)</strong></div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>Stock Risk Score</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: insights.assetRisk > 70 ? 'var(--danger)' : (insights.assetRisk < 40 ? 'var(--success)' : 'var(--accent-secondary)') }}>{insights.assetRisk}/100</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>Profile Suitability</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: insights.suitability > 70 ? 'var(--success)' : (insights.suitability < 40 ? 'var(--danger)' : 'var(--accent-primary)') }}>{insights.suitability}% Match</div>
+          </div>
+        </div>
+
+        <h3 style={{ margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldAlert size={20} color="var(--accent-secondary)" /> Learning Insights</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', borderLeft: '4px solid #8b5cf6' }}>
+            <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Outcome Reason</strong>
+            <span>{insights.reason}</span>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', borderLeft: '4px solid #3b82f6' }}>
+            <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pattern Recognition</strong>
+            <span>{insights.pattern}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '200px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', borderLeft: '4px solid #ef4444' }}>
+              <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Risk Lesson</strong>
+              <span>{insights.riskLesson}</span>
+            </div>
+            <div style={{ flex: 1, minWidth: '200px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', borderLeft: '4px solid #10b981' }}>
+              <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Timing Lesson</strong>
+              <span>{insights.timingLesson}</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style={{ margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><BookOpen size={20} color="var(--accent-primary)" /> Educational Takeaways</h3>
+        <div style={{ background: 'rgba(79, 142, 247, 0.05)', border: '1px solid rgba(79, 142, 247, 0.2)', padding: '20px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ fontWeight: 'bold', color: 'var(--accent-primary)' }}>Key Takeaway:</span> {insights.takeaway}
+          </div>
+          <div>
+            <span style={{ fontWeight: 'bold', color: '#c084fc' }}>Strategy Tweak:</span> {insights.tweak}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSimulationStore from '../store/useSimulationStore';
-import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search } from 'lucide-react';
-import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
+import { Loader, TrendingUp, TrendingDown, Sparkles, BrainCircuit, Search, Info, X } from 'lucide-react';
+import { getGradientForSymbol, getLogoUrl, getAssetInfo } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 
 export default function Market() {
@@ -14,6 +14,7 @@ export default function Market() {
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('market_sortBy') || 'gainers');
   const [timeframe, setTimeframe] = useState(() => localStorage.getItem('market_timeframe') || '3M');
   const [searchQuery, setSearchQuery] = useState('');
+  const [infoModalAsset, setInfoModalAsset] = useState(null);
   
   // AI Panel States
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
@@ -369,8 +370,17 @@ export default function Market() {
                   ) : null}
                   <span style={{ display: getLogoUrl(asset.symbol) ? 'none' : 'block' }}>{asset.symbol[0]}</span>
                 </div>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.name}</h3>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setInfoModalAsset(asset); }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--text-muted)', transition: 'color 0.2s' }}
+                    onMouseOver={(e) => e.currentTarget.style.color = 'var(--accent-primary)'}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                    title="Company Information"
+                  >
+                    <Info size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -398,6 +408,41 @@ export default function Market() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {infoModalAsset && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-panel animate-fade-in-up" style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', padding: '24px', position: 'relative', background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+            <button onClick={() => setInfoModalAsset(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20}/></button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+              <div className="asset-logo" style={{ background: getGradientForSymbol(infoModalAsset.symbol), width: '48px', height: '48px', fontSize: '1.2rem', flexShrink: 0 }}>
+                {getLogoUrl(infoModalAsset.symbol) ? (
+                    <img src={getLogoUrl(infoModalAsset.symbol)} alt={infoModalAsset.symbol} style={{ width: '100%', height: '100%', borderRadius: '50%' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                ) : null}
+                <span style={{ display: getLogoUrl(infoModalAsset.symbol) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{infoModalAsset.symbol[0]}</span>
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{infoModalAsset.name}</h3>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{infoModalAsset.symbol}</span>
+              </div>
+            </div>
+            
+            <p style={{ color: 'var(--text-main)', lineHeight: '1.5', marginBottom: '24px', fontSize: '0.95rem' }}>
+              {getAssetInfo(infoModalAsset.symbol).desc}
+            </p>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Market Cap</div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 'bold' }}>{getAssetInfo(infoModalAsset.symbol).marketCap}</div>
+              </div>
+              <div style={{ flex: 1, background: 'var(--bg-card-hover)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>P/E Ratio</div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 'bold' }}>{getAssetInfo(infoModalAsset.symbol).pe}</div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
