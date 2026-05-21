@@ -4,6 +4,7 @@ import useSimulationStore from '../store/useSimulationStore';
 import { getGradientForSymbol, getLogoUrl } from '../utils/assetMap';
 import { Loader, TrendingUp, TrendingDown, Wallet, PieChart, Activity, Coins, X, Info, ShieldAlert, BarChart2, Sparkles, BookOpen } from 'lucide-react';
 import { generateTradeInsights } from '../utils/insightGenerator';
+import AssetClassRadar from '../components/AssetClassRadar';
 
 export default function Dashboard() {
   const { currentSimulatedDate } = useSimulationStore();
@@ -27,20 +28,48 @@ export default function Dashboard() {
       if (isFirstLoad.current) setLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
 
         // Fetch User Balance and Profile
-        const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
-        setVirtualBalance(Number(userData?.virtual_balance || 0));
-        setUserProfile(userData);
+        const { data: userData, error: userError } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
+        
+        if (userError) {
+          console.error("Error fetching user data:", userError);
+          // Use default values if fetch fails
+          setVirtualBalance(1000000);
+          setUserProfile({
+            monthly_income: 0,
+            monthly_expenses: 0,
+            virtual_balance: 1000000,
+            time_horizon: 'long',
+            drawdown_tolerance: 'medium',
+            primary_objective: 'growth'
+          });
+        } else if (userData) {
+          setVirtualBalance(Number(userData.virtual_balance || 0));
+          setUserProfile(userData);
+        }
 
         // Fetch Holdings
-        const { data: holdingsData } = await supabase.from('holdings').select('*').eq('user_id', user.id);
-        setHoldings(holdingsData || []);
+        const { data: holdingsData, error: holdingsError } = await supabase.from('holdings').select('*').eq('user_id', user.id);
+        if (holdingsError) {
+          console.error("Error fetching holdings:", holdingsError);
+          setHoldings([]);
+        } else {
+          setHoldings(holdingsData || []);
+        }
 
         // Fetch Transactions
-        const { data: txData } = await supabase.from('transactions').select('*').eq('user_id', user.id);
-        setTransactions(txData || []);
+        const { data: txData, error: txError } = await supabase.from('transactions').select('*').eq('user_id', user.id);
+        if (txError) {
+          console.error("Error fetching transactions:", txError);
+          setTransactions([]);
+        } else {
+          setTransactions(txData || []);
+        }
 
         // Fetch Market Prices to calculate P&L
         const marketJson = await useSimulationStore.getState().fetchMarketData('1M');
@@ -74,6 +103,9 @@ export default function Dashboard() {
   const totalPandL = currentValue - investedValue;
   const totalPandLPct = investedValue > 0 ? (totalPandL / investedValue) * 100 : 0;
   const netWorth = virtualBalance + currentValue;
+  
+  // Debug: Log values to verify data is being fetched
+  console.log('Dashboard Data:', { virtualBalance, holdingsCount: holdings.length, currentValue, investedValue, netWorth });
 
   return (
     <div className="page-container">
@@ -228,6 +260,8 @@ export default function Dashboard() {
           </div>
         );
       })()}
+
+      <AssetClassRadar holdings={holdings} marketData={marketData} userProfile={userProfile} simulatedTimestamp={currentSimulatedDate} />
 
       <h3 className="section-heading">Current Holdings</h3>
       
