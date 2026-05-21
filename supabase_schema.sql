@@ -14,6 +14,8 @@ create table public.users (
   id uuid primary key references auth.users(id),
   email text not null,
   username text,
+  country text,
+  document_number text,
   virtual_balance numeric not null default 1000000.00,
   current_simulated_date bigint not null default 1104537600000, -- Default: Jan 1, 2005 in milliseconds
   monthly_income numeric default 0,
@@ -82,8 +84,8 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.users (id, email, username)
-  values (new.id, new.email, new.raw_user_meta_data->>'username');
+  insert into public.users (id, email, username, country, document_number)
+  values (new.id, new.email, new.raw_user_meta_data->>'username', new.raw_user_meta_data->>'country', new.raw_user_meta_data->>'documentNumber');
   return new;
 end;
 $$;

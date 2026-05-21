@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 
 export default function Auth() {
@@ -8,6 +9,11 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [country, setCountry] = useState('IN');
+  const [documentNumber, setDocumentNumber] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
   const { signIn, signUp, loading } = useAuthStore();
@@ -20,6 +26,45 @@ export default function Auth() {
     }
   }, [state]);
 
+  const isPasswordValid = (pw) => {
+    const minLength = pw.length >= 8;
+    const hasUpper = /[A-Z]/.test(pw);
+    const hasLower = /[a-z]/.test(pw);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pw);
+    return minLength && hasUpper && hasLower && hasSpecial;
+  };
+
+  const isDocumentValid = () => {
+    if (isLogin) return true;
+    if (country === 'IN') return /^\d{12}$/.test(documentNumber);
+    if (country === 'US') return /^(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}$/.test(documentNumber);
+    if (country === 'UK') return /^[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D\s]$/i.test(documentNumber);
+    return documentNumber.length >= 4;
+  };
+
+  const getDocPlaceholder = () => {
+    if (country === 'IN') return '12-digit Aadhaar Number';
+    if (country === 'US') return 'XXX-XX-XXXX (SSN)';
+    if (country === 'UK') return 'National Insurance Number';
+    return 'Document ID';
+  };
+
+  const getDocLabel = () => {
+    if (country === 'IN') return 'AADHAAR NUMBER';
+    if (country === 'US') return 'SOCIAL SECURITY NUMBER';
+    if (country === 'UK') return 'NATIONAL INSURANCE NUMBER';
+    return 'DOCUMENT NUMBER';
+  };
+
+  const getDocRequirement = () => {
+    if (country === 'IN') return 'Must be exactly 12 digits';
+    if (country === 'US') return 'Format: XXX-XX-XXXX';
+    if (country === 'UK') return 'Format: AB123456C';
+    return 'Must be at least 4 characters';
+  };
+
+  const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em', textTransform: 'uppercase' };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -29,7 +74,19 @@ export default function Auth() {
         await signIn(email, password);
         navigate('/dashboard');
       } else {
-        await signUp(email, password, username);
+        if (password !== confirmPassword) {
+          setErrorMsg("Passwords do not match");
+          return;
+        }
+        if (!isPasswordValid(password)) {
+          setErrorMsg("Password does not meet the security requirements.");
+          return;
+        }
+        if (!isDocumentValid()) {
+          setErrorMsg(`Invalid document format for ${country}. Please check and try again.`);
+          return;
+        }
+        await signUp(email, password, username, country, documentNumber);
         navigate('/onboarding');
       }
     } catch (err) {
@@ -116,20 +173,59 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {!isLogin && (
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>USERNAME</label>
-              <input
-                type="text"
-                placeholder="e.g. investor_pro"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            </div>
+            <>
+              <div>
+                <label style={labelStyle}>USERNAME</label>
+                <input
+                  type="text"
+                  placeholder="e.g. investor_pro"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: '1' }}>
+                  <label style={labelStyle}>COUNTRY</label>
+                  <select 
+                    value={country} 
+                    onChange={(e) => { setCountry(e.target.value); setDocumentNumber(''); }}
+                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                  >
+                    <option value="IN" style={{ background: '#1a1a2e', color: '#fff' }}>🇮🇳 India</option>
+                    <option value="US" style={{ background: '#1a1a2e', color: '#fff' }}>🇺🇸 USA</option>
+                    <option value="UK" style={{ background: '#1a1a2e', color: '#fff' }}>🇬🇧 UK</option>
+                    <option value="CA" style={{ background: '#1a1a2e', color: '#fff' }}>🇨🇦 Canada</option>
+                    <option value="AU" style={{ background: '#1a1a2e', color: '#fff' }}>🇦🇺 Australia</option>
+                  </select>
+                </div>
+                <div style={{ flex: '2' }}>
+                  <label style={labelStyle}>{getDocLabel()}</label>
+                  <input
+                    type="text"
+                    placeholder={getDocPlaceholder()}
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                  {!isLogin && documentNumber && (
+                    <div style={{ marginTop: '6px', fontSize: '0.75rem' }}>
+                      {isDocumentValid() ? (
+                        <span style={{ color: 'var(--success)' }}>✓ Valid format</span>
+                      ) : (
+                        <span style={{ color: 'var(--danger)' }}>✗ {getDocRequirement()}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
           )}
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>EMAIL</label>
+            <label style={labelStyle}>EMAIL</label>
             <input
               type="email"
               placeholder="you@example.com"
@@ -140,16 +236,57 @@ export default function Auth() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500', letterSpacing: '0.02em' }}>PASSWORD</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={inputStyle}
-            />
+            <label style={labelStyle}>PASSWORD</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ ...inputStyle, paddingRight: '40px' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex' }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            
+            {!isLogin && password && (
+              <div style={{ marginTop: '8px', fontSize: '0.75rem', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ color: password.length >= 8 ? 'var(--success)' : 'var(--text-muted)' }}>✓ 8+ chars</span>
+                <span style={{ color: /[A-Z]/.test(password) ? 'var(--success)' : 'var(--text-muted)' }}>✓ Uppercase</span>
+                <span style={{ color: /[a-z]/.test(password) ? 'var(--success)' : 'var(--text-muted)' }}>✓ Lowercase</span>
+                <span style={{ color: /[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'var(--success)' : 'var(--text-muted)' }}>✓ Special</span>
+              </div>
+            )}
           </div>
+
+          {!isLogin && (
+            <div>
+              <label style={labelStyle}>CONFIRM PASSWORD</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  style={{ ...inputStyle, paddingRight: '40px' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex' }}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+          )}
           <button type="submit" disabled={loading} style={{
             marginTop: '8px',
             padding: '13px',

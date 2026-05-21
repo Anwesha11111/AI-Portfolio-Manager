@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { GraduationCap, ChevronRight, CheckCircle2, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuthStore from '../store/useAuthStore';
 import { LESSONS } from '../data/lessons';
 
 export default function Academy() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
   const [completedLessons, setCompletedLessons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,13 +16,16 @@ export default function Academy() {
     const fetchProgress = async () => {
       if (!user) return;
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('users')
           .select('completed_lessons')
           .eq('id', user.id)
           .single();
         
-        if (data && data.completed_lessons) {
+        if (error) throw error;
+
+        // Ensure we always set a flat array
+        if (data && Array.isArray(data.completed_lessons)) {
           setCompletedLessons(data.completed_lessons);
         }
       } catch (err) {
@@ -30,8 +34,9 @@ export default function Academy() {
         setLoading(false);
       }
     };
+    
     fetchProgress();
-  }, [user]);
+  }, [user, location.state]); // Re-run if we pass refresh state from LessonView
 
   const progressPercentage = Math.round((completedLessons.length / LESSONS.length) * 100) || 0;
 
@@ -66,11 +71,16 @@ export default function Academy() {
         {LESSONS.map((lesson, index) => {
           const Icon = lesson.icon;
           const isCompleted = completedLessons.includes(lesson.id);
+          
+          // STRICT GAMIFICATION LOGIC: 
+          // If loading, don't lock. Otherwise, check if previous lesson ID exists in the array.
+          const previousLessonId = index > 0 ? LESSONS[index - 1].id : null;
+          const isLocked = !loading && index > 0 && !completedLessons.includes(previousLessonId);
 
           return (
             <div 
               key={lesson.id}
-              onClick={() => navigate(`/academy/${lesson.id}`)}
+              onClick={() => { if (!isLocked) navigate(`/academy/${lesson.id}`); }}
               className="glass-panel"
               style={{ 
                 padding: '24px', 
@@ -78,18 +88,11 @@ export default function Academy() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '20px',
-                cursor: 'pointer',
+                cursor: isLocked ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 border: isCompleted ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)',
-                backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.02)' : 'var(--bg-card)'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.6)' : 'rgba(255,255,255,0.2)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-color)';
+                backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.02)' : 'var(--bg-card)',
+                opacity: isLocked ? 0.5 : 1
               }}
             >
               <div style={{
@@ -109,7 +112,7 @@ export default function Academy() {
                     {lesson.readTime}
                   </span>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: isCompleted ? 'var(--text-main)' : (isLocked ? 'var(--text-muted)' : '#e2e8f0') }}>
                   {lesson.title}
                 </h3>
               </div>
@@ -117,10 +120,11 @@ export default function Academy() {
               {isCompleted ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
                   <CheckCircle2 size={20} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 'bold', display: 'none', '@media(minWidth: 600px)': { display: 'block' } }}>Done</span>
                 </div>
+              ) : isLocked ? (
+                <Lock size={20} color="var(--text-muted)" />
               ) : (
-                <ChevronRight size={24} color="var(--text-muted)" />
+                <ChevronRight size={24} color="var(--accent-primary)" />
               )}
             </div>
           );

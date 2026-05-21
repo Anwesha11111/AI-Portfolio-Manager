@@ -1,6 +1,29 @@
-import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown, ShieldCheck, Briefcase, Search } from 'lucide-react';
-
+import { Landmark, BookOpen, PieChart, BarChart3, TrendingUp, TrendingDown, ShieldCheck, Briefcase, Search, Activity, Lock } from 'lucide-react';
 export const LESSONS = [
+  {
+    id: 'indian-market-ecosystem',
+    icon: ShieldCheck,
+    title: 'The Indian Market: NIFTY & SEBI',
+    readTime: '6 min read',
+    content: `
+      ### Understanding the NIFTY 50
+      When financial news channels say "The market is up today," they are usually referring to a benchmark index. In India, the most tracked index is the **NIFTY 50** (National Stock Exchange Fifty). 
+      
+      The NIFTY 50 tracks the behavior of the 50 largest and most liquid Indian companies. It is a "market-capitalization weighted" index. This means a massive company like Reliance Industries has a much higher impact on the index's movement than a smaller company like Apollo Hospitals. If the top 5 companies in the NIFTY 50 are doing well, the entire index will likely be green, even if the bottom 20 companies are falling.
+
+      ### The Role of SEBI
+      The stock market involves trillions of rupees, which naturally attracts manipulation and fraud. The **Securities and Exchange Board of India (SEBI)** is the regulatory body tasked with protecting retail investors. 
+      
+      SEBI enforces strict rules against:
+      - **Insider Trading:** Buying or selling stock based on confidential company information before it is released to the public.
+      - **Price Rigging:** Groups of operators artificially inflating a stock's price to trap retail investors (often called "Pump and Dump" schemes).
+      
+      Before trusting any broker, portfolio manager, or research analyst, you must ensure they are SEBI-registered.
+
+      ### BSE SENSEX
+      While NIFTY represents the National Stock Exchange, the **SENSEX** (Sensitivity Index) represents the Bombay Stock Exchange (BSE). The SENSEX tracks the 30 largest companies. Because the top companies in both indices overlap significantly, NIFTY and SENSEX generally move in the exact same direction.
+    `
+  },
   {
     id: 'stock-market-basics',
     icon: Landmark,
@@ -25,6 +48,34 @@ export const LESSONS = [
       Benjamin Graham, the father of value investing, famously stated: *"In the short run, the market is a voting machine but in the long run, it is a weighing machine."*
       
       On any given day, a stock's price is driven by human emotion, news headlines, fear, and greed. But over a 10-year period, the stock's price is driven almost entirely by the company's ability to generate cash and grow its earnings. Your job as an investor is to ignore the voting and focus on the weighing.
+    `
+  },
+  {
+    id: 'compounding',
+    icon: TrendingUp,
+    title: 'The Math of Wealth: Compounding',
+    readTime: '8 min read',
+    content: `
+      ### The Eighth Wonder of the World
+      Albert Einstein supposedly called compound interest *"the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."*
+      
+      Simple interest pays you returns only on your principal amount. **Compounding** happens when the returns on your investments start generating their own returns. It is the snowball effect applied to money.
+
+      > 💡 PRO-TIP: Warren Buffett made 99% of his wealth AFTER his 50th birthday. That is not because he suddenly became a better investor, but because his capital base had compounded for 40 years prior.
+
+      ### The Exponential Curve (Interactive)
+      Let's look at the math. If you invest a lump sum of ₹1,00,000 in a NIFTY 50 ETF at a realistic 15% annual return, hover over the chart below to see the exponential growth:
+
+      [CHART:COMPOUNDING]
+
+      Notice the exponential nature of the curve. It took 10 years to make the first ₹3 Lakh in profit, but between Year 20 and Year 30, the portfolio grew by nearly ₹50 Lakhs doing absolutely nothing new. 
+
+      > ⚠️ WARNING: Compounding works both ways. If you are paying 36% annual interest on credit card debt, compounding is working aggressively against you, destroying your wealth at the exact same exponential rate.
+
+      ### The Ultimate Weapon: Time
+      Because compounding is an exponential function, **time** is the most powerful weapon an investor possesses—far more powerful than a high salary. 
+      
+      A 25-year-old investing just ₹5,000 a month will end up with significantly more wealth by age 60 than a 40-year-old investing ₹25,000 a month, assuming identical returns. The 40-year-old can never buy back those 15 lost years of compounding.
     `
   },
   {
@@ -53,6 +104,51 @@ export const LESSONS = [
       - **Switching Costs:** Once an enterprise integrates Microsoft Azure or AWS into its infrastructure, the cost and headache of switching to a competitor is astronomically high.
 
       Before buying a stock, ask yourself: *Does this company have a moat? Is revenue growing? Is debt manageable? Is the P/E ratio reasonable compared to its peers?* If you cannot answer these questions, you are gambling, not investing.
+    `
+  },
+  {
+    id: 'case-study-reliance-hdfc',
+    icon: Search,
+    title: 'Case Study: Reliance vs HDFC Bank',
+    readTime: '7 min read',
+    content: `
+      ### Analyzing the Giants
+      To understand how different businesses behave in a portfolio, let's look at two of the heaviest lifters in the Indian stock market: Reliance Industries and HDFC Bank.
+
+      ### Reliance Industries (The Growth Conglomerate)
+      Reliance is not just an oil refinery company anymore. It is a massive conglomerate heavily invested in retail (Reliance Retail) and telecom (Jio). 
+      
+      - **The Catalyst:** When Reliance launched Jio in 2016, it disrupted the entire telecom sector, absorbing massive upfront capital costs but eventually capturing hundreds of millions of users.
+      - **Stock Behavior:** Reliance often trades based on future growth expectations (like the expansion of Jio Financial Services or green energy). Its stock can remain stagnant for years while building infrastructure, followed by massive, rapid price breakouts when those investments start generating cash.
+
+      ### HDFC Bank (The Stable Compounder)
+      HDFC Bank operates in a completely different paradigm. As India's largest private sector bank, its business model revolves around borrowing money at low interest rates (from your savings accounts) and lending it out at higher rates (for home loans and credit cards).
+      
+      - **The Catalyst:** HDFC Bank's growth is directly tied to the growth of the Indian middle class and overall credit expansion in the country.
+      - **Stock Behavior:** Unlike tech startups or conglomerates, HDFC Bank is valued for its strict asset quality and consistent 15-20% annual profit growth. It is often viewed as a "defensive" stock. During market panics, investors flock to HDFC Bank because of its massive cash reserves and stable dividend payouts.
+
+      ### The Portfolio Lesson
+      Holding both in a portfolio provides balance. Reliance offers aggressive capital appreciation through sector disruption, while HDFC Bank acts as a resilient anchor that steadily compounds wealth regardless of global economic shocks.
+    `
+  },
+  {
+    id: 'passive-investing-etfs',
+    icon: Briefcase,
+    title: 'Passive Investing & ETFs',
+    readTime: '5 min read',
+    content: `
+      ### The Difficulty of Stock Picking
+      Actively picking individual stocks is notoriously difficult. Statistics show that over a 10-year period, a vast majority of professional mutual fund managers fail to beat the benchmark index (like the NIFTY 50). If highly paid professionals struggle to win consistently, retail investors face a massive uphill battle.
+
+      ### Enter the ETF
+      An **Exchange Traded Fund (ETF)** solves this problem. Instead of trying to find the needle in the haystack, an ETF allows you to simply buy the entire haystack. 
+      
+      When you buy a single unit of a NIFTY 50 ETF (such as Nippon India Nifty BeES or SBI Nifty ETF), your money is automatically distributed across the top 50 largest companies in India in the exact proportion of their market weight.
+
+      ### Why Indexing Wins
+      - **Self-Cleansing:** The index automatically kicks out failing companies (e.g., Yes Bank in 2020) and replaces them with growing ones. You never have to manually monitor and rebalance your portfolio.
+      - **Ultra-Low Cost:** Because ETFs are managed by algorithms rather than highly paid fund managers, the expense ratio is a fraction of a percent (often 0.05% vs 1.5% for active mutual funds).
+      - **Guaranteed Market Returns:** While you will never "beat" the market with an index fund, you are mathematically guaranteed to earn the market's return, which historically doubles your money every 5 to 7 years in growing economies.
     `
   },
   {
@@ -115,66 +211,6 @@ export const LESSONS = [
     `
   },
   {
-    id: 'compounding',
-    icon: TrendingUp,
-    title: 'The Math of Wealth: Compounding',
-    readTime: '5 min read',
-    content: `
-      ### The Eighth Wonder of the World
-      Albert Einstein supposedly called compound interest *"the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."*
-      
-      Simple interest pays you returns only on your principal amount. **Compounding** happens when the returns on your investments start generating their own returns. It is the snowball effect applied to money.
-
-      ### The Exponential Curve
-      Let's look at the math. If you invest a lump sum of ₹1,00,000 at a realistic 15% annual return:
-      
-      - **Year 1:** You make ₹15,000 in profit. Your total portfolio is now ₹1,15,000.
-      - **Year 2:** You don't just make 15% on your initial ₹1 Lakh. You make 15% on the new ₹1.15 Lakh. That's ₹17,250 in profit. Your total is ₹1,32,250.
-      - **Year 10:** Your investment is worth ₹4,04,555.
-      - **Year 20:** Your investment is worth ₹16,36,653.
-      - **Year 30:** Your investment is worth ₹66,21,177.
-      
-      Notice the exponential nature of the curve. It took 10 years to make the first ₹3 Lakh in profit, but between Year 20 and Year 30, the portfolio grew by nearly ₹50 Lakhs doing absolutely nothing new. The vast majority of wealth is generated in the later years of compounding.
-
-      ### The Ultimate Weapon: Time
-      Because compounding is an exponential function, **time** is the most powerful weapon an investor possesses—far more powerful than a high salary. 
-      
-      A 25-year-old investing just ₹5,000 a month will end up with significantly more wealth by age 60 than a 40-year-old investing ₹25,000 a month, assuming identical returns. The 40-year-old can never buy back those 15 lost years of compounding.
-
-      ### Dividend Reinvestment Programs (DRIP)
-      When a company pays you a dividend, you have a choice: spend it on a nice dinner, or use it to buy more shares of that company. Reinvesting your dividends accelerates the compounding process drastically because you are constantly increasing the base number of shares that will generate future dividends. Over a multi-decade period, reinvested dividends can account for more than 50% of a portfolio's total return.
-    `
-  },
-  {
-    id: 'candlestick-charts',
-    icon: BarChart3,
-    title: 'Reading Technicals: Candlestick Charts',
-    readTime: '5 min read',
-    content: `
-      ### The Anatomy of a Candlestick
-      While fundamental analysis tells you *what* to buy, technical analysis and charts tell you *when* to buy. The most common and powerful way to view stock price action is through a **Japanese Candlestick Chart**.
-      
-      Unlike a simple line graph that only shows the closing price, a single candlestick packs four critical pieces of information for a given timeframe (like one day): the **Open, High, Low,** and **Close** (OHLC).
-
-      ![Candlestick Anatomy](/images/candlestick_anatomy.png)
-
-      ### The Real Body
-      The thick, colored part of the candle is called the **Real Body**. It represents the price difference between the opening and closing bell of the market.
-      
-      - **Bullish Candle (Green):** If the closing price is *higher* than the opening price, the bulls (buyers) won the day. The bottom of the body is the Open, and the top is the Close.
-      - **Bearish Candle (Red):** If the closing price is *lower* than the opening price, the bears (sellers) won the day. The top of the body is the Open, and the bottom is the Close.
-
-      ### The Wicks (Shadows)
-      The thin lines extending above and below the body are called **Wicks** or **Shadows**. They show the extreme highs and lows the price reached during that day, regardless of where it eventually closed.
-      
-      - A long upper wick indicates that buyers pushed the price incredibly high, but sellers overwhelmed them and forced the price back down before the close.
-      - A long lower wick indicates that sellers hammered the price down, but strong buyers stepped in at the bottom to rescue the stock, pushing it back up.
-
-      ### Why Candlesticks Matter
-      Candlesticks visualize the battle between buyers and sellers. By looking at the size of the body and the length of the wicks over consecutive days, experienced traders can identify momentum shifts, panic selling, or aggressive institutional buying before the fundamentals even change.
-    `
-  },
-  {
     id: 'market-crashes',
     icon: TrendingDown,
     title: 'Surviving Market Crashes',
@@ -207,72 +243,61 @@ export const LESSONS = [
     `
   },
   {
-    id: 'indian-market-ecosystem',
-    icon: ShieldCheck,
-    title: 'The Indian Market: NIFTY & SEBI',
-    readTime: '6 min read',
-    content: `
-      ### Understanding the NIFTY 50
-      When financial news channels say "The market is up today," they are usually referring to a benchmark index. In India, the most tracked index is the **NIFTY 50** (National Stock Exchange Fifty). 
-      
-      The NIFTY 50 tracks the behavior of the 50 largest and most liquid Indian companies. It is a "market-capitalization weighted" index. This means a massive company like Reliance Industries has a much higher impact on the index's movement than a smaller company like Apollo Hospitals. If the top 5 companies in the NIFTY 50 are doing well, the entire index will likely be green, even if the bottom 20 companies are falling.
-
-      ### The Role of SEBI
-      The stock market involves trillions of rupees, which naturally attracts manipulation and fraud. The **Securities and Exchange Board of India (SEBI)** is the regulatory body tasked with protecting retail investors. 
-      
-      SEBI enforces strict rules against:
-      - **Insider Trading:** Buying or selling stock based on confidential company information before it is released to the public.
-      - **Price Rigging:** Groups of operators artificially inflating a stock's price to trap retail investors (often called "Pump and Dump" schemes).
-      
-      Before trusting any broker, portfolio manager, or research analyst, you must ensure they are SEBI-registered.
-
-      ### BSE SENSEX
-      While NIFTY represents the National Stock Exchange, the **SENSEX** (Sensitivity Index) represents the Bombay Stock Exchange (BSE). The SENSEX tracks the 30 largest companies. Because the top companies in both indices overlap significantly, NIFTY and SENSEX generally move in the exact same direction.
-    `
-  },
-  {
-    id: 'case-study-reliance-hdfc',
-    icon: Search,
-    title: 'Case Study: Reliance vs HDFC Bank',
-    readTime: '7 min read',
-    content: `
-      ### Analyzing the Giants
-      To understand how different businesses behave in a portfolio, let's look at two of the heaviest lifters in the Indian stock market: Reliance Industries and HDFC Bank.
-
-      ### Reliance Industries (The Growth Conglomerate)
-      Reliance is not just an oil refinery company anymore. It is a massive conglomerate heavily invested in retail (Reliance Retail) and telecom (Jio). 
-      
-      - **The Catalyst:** When Reliance launched Jio in 2016, it disrupted the entire telecom sector, absorbing massive upfront capital costs but eventually capturing hundreds of millions of users.
-      - **Stock Behavior:** Reliance often trades based on future growth expectations (like the expansion of Jio Financial Services or green energy). Its stock can remain stagnant for years while building infrastructure, followed by massive, rapid price breakouts when those investments start generating cash.
-
-      ### HDFC Bank (The Stable Compounder)
-      HDFC Bank operates in a completely different paradigm. As India's largest private sector bank, its business model revolves around borrowing money at low interest rates (from your savings accounts) and lending it out at higher rates (for home loans and credit cards).
-      
-      - **The Catalyst:** HDFC Bank's growth is directly tied to the growth of the Indian middle class and overall credit expansion in the country.
-      - **Stock Behavior:** Unlike tech startups or conglomerates, HDFC Bank is valued for its strict asset quality and consistent 15-20% annual profit growth. It is often viewed as a "defensive" stock. During market panics, investors flock to HDFC Bank because of its massive cash reserves and stable dividend payouts.
-
-      ### The Portfolio Lesson
-      Holding both in a portfolio provides balance. Reliance offers aggressive capital appreciation through sector disruption, while HDFC Bank acts as a resilient anchor that steadily compounds wealth regardless of global economic shocks.
-    `
-  },
-  {
-    id: 'passive-investing-etfs',
-    icon: Briefcase,
-    title: 'Passive Investing & ETFs',
+    id: 'candlestick-charts',
+    icon: BarChart3,
+    title: 'Reading Technicals: Candlestick Charts',
     readTime: '5 min read',
     content: `
-      ### The Difficulty of Stock Picking
-      Actively picking individual stocks is notoriously difficult. Statistics show that over a 10-year period, a vast majority of professional mutual fund managers fail to beat the benchmark index (like the NIFTY 50). If highly paid professionals struggle to win consistently, retail investors face a massive uphill battle.
-
-      ### Enter the ETF
-      An **Exchange Traded Fund (ETF)** solves this problem. Instead of trying to find the needle in the haystack, an ETF allows you to simply buy the entire haystack. 
+      ### The Anatomy of a Candlestick
+      While fundamental analysis tells you *what* to buy, technical analysis and charts tell you *when* to buy. The most common and powerful way to view stock price action is through a **Japanese Candlestick Chart**.
       
-      When you buy a single unit of a NIFTY 50 ETF (such as Nippon India Nifty BeES or SBI Nifty ETF), your money is automatically distributed across the top 50 largest companies in India in the exact proportion of their market weight.
+      Unlike a simple line graph that only shows the closing price, a single candlestick packs four critical pieces of information for a given timeframe (like one day): the **Open, High, Low,** and **Close** (OHLC).
 
-      ### Why Indexing Wins
-      - **Self-Cleansing:** The index automatically kicks out failing companies (e.g., Yes Bank in 2020) and replaces them with growing ones. You never have to manually monitor and rebalance your portfolio.
-      - **Ultra-Low Cost:** Because ETFs are managed by algorithms rather than highly paid fund managers, the expense ratio is a fraction of a percent (often 0.05% vs 1.5% for active mutual funds).
-      - **Guaranteed Market Returns:** While you will never "beat" the market with an index fund, you are mathematically guaranteed to earn the market's return, which historically doubles your money every 5 to 7 years in growing economies.
+      ![Candlestick Anatomy](/images/candlestick_anatomy.png)
+
+      ### The Real Body
+      The thick, colored part of the candle is called the **Real Body**. It represents the price difference between the opening and closing bell of the market.
+      
+      - **Bullish Candle (Green):** If the closing price is *higher* than the opening price, the bulls (buyers) won the day. The bottom of the body is the Open, and the top is the Close.
+      - **Bearish Candle (Red):** If the closing price is *lower* than the opening price, the bears (sellers) won the day. The top of the body is the Open, and the bottom is the Close.
+
+      ### The Wicks (Shadows)
+      The thin lines extending above and below the body are called **Wicks** or **Shadows**. They show the extreme highs and lows the price reached during that day, regardless of where it eventually closed.
+      
+      - A long upper wick indicates that buyers pushed the price incredibly high, but sellers overwhelmed them and forced the price back down before the close.
+      - A long lower wick indicates that sellers hammered the price down, but strong buyers stepped in at the bottom to rescue the stock, pushing it back up.
+
+      ### Why Candlesticks Matter
+      Candlesticks visualize the battle between buyers and sellers. By looking at the size of the body and the length of the wicks over consecutive days, experienced traders can identify momentum shifts, panic selling, or aggressive institutional buying before the fundamentals even change.
+    `
+  },
+  {
+    id: 'technical-indicators-rsi',
+    icon: Activity,
+    title: 'Technical Indicators: RSI & Volume',
+    readTime: '6 min read',
+    content: `
+      ### The Relative Strength Index (RSI)
+      While moving averages show the direction of a trend, the **RSI** measures the speed and momentum of that price movement. It is an oscillator that fluctuates between 0 and 100.
+
+      - **Overbought (Above 70):** When the RSI crosses above 70, it suggests the stock has been bought too aggressively. It is considered "overbought" and may be due for a short-term pullback or correction. 
+      - **Oversold (Below 30):** When the RSI drops below 30, the stock has been heavily dumped. This indicates panic selling and is often viewed by traders as a potential buying opportunity.
+      - **The 50 Line:** The midpoint (50) is often used as a trend confirmation tool. An RSI consistently above 50 indicates a bullish trend, while below 50 indicates a bearish trend.
+
+      ![RSI Indicator Chart](/images/rsi_chart.png)
+
+      ### RSI Divergence
+      The most powerful signal the RSI generates is **Divergence**. 
+      - **Bullish Divergence** occurs when the stock price makes a *lower low*, but the RSI makes a *higher low*. This means the downward momentum is dying, even though the price is falling. A reversal to the upside is likely.
+      - **Bearish Divergence** occurs when the price makes a *higher high*, but the RSI makes a *lower high*. The upward momentum is fading, signaling a potential drop.
+
+      ### The Importance of Volume
+      Indicators like RSI are useless without **Volume** (the number of shares traded during a given period). Volume acts as the lie detector of the stock market.
+      
+      - If a stock breaks out to a new high, but the volume is incredibly low, it is likely a "fakeout." There is no institutional conviction behind the move.
+      - If a stock breaks out on massive, higher-than-average volume, the move is validated. Large funds and institutions are actively buying the asset.
+      
+      Always use volume to confirm the signals generated by your RSI and candlestick charts.
     `
   }
 ];
