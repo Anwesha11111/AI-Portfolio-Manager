@@ -107,3 +107,32 @@ begin
   delete from auth.users where id = auth.uid();
 end;
 $$;
+
+-- 6. Stock Fundamentals Table
+CREATE TABLE stock_fundamentals (
+  ticker_symbol TEXT,
+  fiscal_year INT,
+  fiscal_quarter INT,
+  record_type TEXT CHECK (record_type IN ('yearly', 'quarterly')),
+  revenue_cr NUMERIC,
+  operating_profit_cr NUMERIC,
+  net_profit_cr NUMERIC,
+  eps NUMERIC,
+  pe_ratio NUMERIC,
+  roe_percent NUMERIC,
+  dividend_yield_percent NUMERIC,
+  sector_pe_avg NUMERIC,
+  as_of_date DATE,
+  PRIMARY KEY (ticker_symbol, fiscal_year, fiscal_quarter, record_type)
+);
+
+-- 7. Market News Table
+CREATE TABLE market_news (
+  news_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  news_date DATE NOT NULL,
+  headline TEXT NOT NULL,
+  summary TEXT,
+  ticker_symbol TEXT,
+  sentiment TEXT CHECK (sentiment IN ('bullish', 'bearish', 'neutral')),
+  event_type TEXT
+);

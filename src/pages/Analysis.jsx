@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import useAuthStore from '../store/useAuthStore';
 import useSimulationStore from '../store/useSimulationStore';
 import { BrainCircuit, AlertTriangle, Loader, Layers, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
+import AiDisclaimer from '../components/AiDisclaimer';
 import { supabase } from '../lib/supabase';
 import { getGradientForSymbol } from '../utils/assetMap';
 
@@ -187,6 +188,7 @@ export default function Analysis() {
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: '1.4' }}>{suggestion}</span>
                 </div>
               )}
+              <AiDisclaimer />
             </>
           ) : (
             <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>

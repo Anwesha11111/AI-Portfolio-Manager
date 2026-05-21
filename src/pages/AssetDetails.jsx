@@ -5,6 +5,9 @@ import { createChart, CandlestickSeries } from 'lightweight-charts';
 import useSimulationStore from '../store/useSimulationStore';
 import { getLogoUrl } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
+import FundamentalsPanel from '../components/FundamentalsPanel';
+import FinancialsTab from '../components/FinancialsTab';
+import { StockNewsFeed } from '../components/NewsFeed';
 
 export default function AssetDetails() {
   const rawSymbol = useParams().symbol;
@@ -19,6 +22,7 @@ export default function AssetDetails() {
   const [assetData, setAssetData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState(() => localStorage.getItem('asset_timeframe') || '3M');
+  const [activeTab, setActiveTab] = useState('chart');
   
   // Trading States
   const [quantity, setQuantity] = useState('');
@@ -338,6 +342,28 @@ export default function AssetDetails() {
               <span style={{ fontWeight: 'bold', fontSize: '1.4rem' }}>{latestCandle.volume ? (latestCandle.volume / 1000000).toFixed(2) + 'M' : '0'}</span>
             </div>
           </div>
+
+          {/* Tab Bar */}
+          <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '4px' }}>
+            {['chart', 'fundamentals', 'financials', 'news'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: 1, padding: '10px 16px', border: 'none', borderRadius: '10px', cursor: 'pointer',
+                  fontWeight: '600', fontSize: '0.9rem', transition: 'all 0.2s',
+                  background: activeTab === tab ? 'var(--accent-primary)' : 'transparent',
+                  color: activeTab === tab ? '#fff' : 'var(--text-muted)',
+                  textTransform: 'capitalize'
+                }}
+              >{tab}</button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'fundamentals' && <FundamentalsPanel symbol={symbol} simulatedTimestamp={currentSimulatedDate} />}
+          {activeTab === 'financials' && <FinancialsTab symbol={symbol} simulatedTimestamp={currentSimulatedDate} />}
+          {activeTab === 'news' && <StockNewsFeed ticker={symbol} simulatedTimestamp={currentSimulatedDate} />}
         </div>
 
         {/* Right: Order Ticket */}
