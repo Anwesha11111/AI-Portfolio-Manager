@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, LineChart, GraduationCap, Settings, LogOut, ChevronRight, Menu, X, User, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
 import styles from './Layout.module.css';
