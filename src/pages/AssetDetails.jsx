@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader } from 'lucide-react';
+import { ArrowLeft, Loader, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import useSimulationStore from '../store/useSimulationStore';
 import { getLogoUrl } from '../utils/assetMap';
@@ -266,17 +266,34 @@ export default function AssetDetails() {
           </div>
         </div>
 
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
           <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '800', tabularNums: 'tabular-nums' }}>₹{currentPrice.toFixed(2)}</h2>
-          <span style={{ 
-            color: changePct >= 0 ? 'var(--success)' : 'var(--danger)', 
-            fontWeight: '600', fontSize: '1.1rem',
-            display: 'inline-block', marginTop: '4px',
-            padding: '4px 12px', borderRadius: '20px',
-            backgroundColor: changePct >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
-          }}>
-            {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}% (2M Change)
-          </span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <span style={{ 
+              color: changePct >= 0 ? 'var(--success)' : 'var(--danger)', 
+              fontWeight: '600', fontSize: '1rem',
+              padding: '6px 12px', borderRadius: '8px',
+              backgroundColor: changePct >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+            }}>
+              {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}% (2M Change)
+            </span>
+
+            {/* DYNAMIC RSI TECHNICAL RADAR WIDGET */}
+            {assetData.rsi !== null && assetData.rsi !== undefined && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                backgroundColor: assetData.rsiSignal === 'BUY' ? 'rgba(16, 185, 129, 0.1)' : (assetData.rsiSignal === 'SELL' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)'),
+                color: assetData.rsiSignal === 'BUY' ? 'var(--success)' : (assetData.rsiSignal === 'SELL' ? 'var(--danger)' : 'var(--text-muted)'),
+                padding: '6px 12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', border: '1px solid',
+                borderColor: assetData.rsiSignal === 'BUY' ? 'rgba(16, 185, 129, 0.2)' : (assetData.rsiSignal === 'SELL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.1)'),
+              }}>
+                {assetData.rsiSignal === 'BUY' && <TrendingUp size={16} />}
+                {assetData.rsiSignal === 'SELL' && <TrendingDown size={16} />}
+                {assetData.rsiSignal === 'HOLD' && <Activity size={16} />}
+                <span>RSI ({assetData.rsi.toFixed(0)}) — {assetData.rsiSignal}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
