@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, TrendingUp, Activity, Shield, MessageSquare, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import { X, TrendingUp, Activity, Shield, MessageSquare, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react';
 
 const S = {
   overlay: { position: 'fixed', inset: 0, zIndex: 50, display: 'flex', justifyContent: 'flex-end' },
@@ -25,7 +25,6 @@ const S = {
   agentName: { fontWeight: '600', color: '#e2e8f0', fontSize: '0.9rem' },
   agentSub: { fontSize: '0.75rem', color: '#64748b', marginBottom: '6px' },
   agentText: { color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.6' },
-  input: { width: '100%', background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' },
   footer: { position: 'sticky', bottom: 0, background: '#0f172a', borderTop: '1px solid rgba(255,255,255,0.08)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   footerText: { fontSize: '0.8rem', color: '#64748b' },
 };
@@ -46,22 +45,18 @@ function getStrategyColor(action) {
   return '#f59e0b';
 }
 
-export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPrice, currentSimulatedDate }) {
+export default function ConsultationDrawer({ isOpen, onClose, symbol, currentSimulatedDate }) {
   const [loading, setLoading] = useState(false);
   const [recommendation, setRecommendation] = useState(null);
   const [error, setError] = useState(null);
-  const [isTrading, setIsTrading] = useState(false);
-  const [tradeQuantity, setTradeQuantity] = useState('');
-  const [tradeError, setTradeError] = useState('');
-  const [tradeSuccess, setTradeSuccess] = useState(false);
+  const [simQty, setSimQty] = useState('');
+  const navigate = useNavigate();
 
   const fetchRecommendation = useCallback(async () => {
     if (!symbol || !currentSimulatedDate) return;
     setLoading(true);
     setError(null);
     setRecommendation(null);
-    setTradeError('');
-    setTradeSuccess(false);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/multiagent`, {
         method: 'POST',
@@ -69,22 +64,13 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
         body: JSON.stringify({ symbol: symbol.toUpperCase(), date: currentSimulatedDate })
       });
       const data = await response.json();
-      console.log('Multi-agent API response:', data); // Debug log
       if (response.ok) {
-        // Ensure risk.score is a number
-        const normalizedData = {
+        setRecommendation({
           ...data,
-          risk: {
-            ...data.risk,
-            score: typeof data.risk?.score === 'number' ? data.risk.score : parseInt(data.risk?.score, 10) || 0
-          },
-          sentiment: {
-            ...data.sentiment,
-            score: typeof data.sentiment?.score === 'number' ? data.sentiment.score : parseInt(data.sentiment?.score, 10) || 0
-          }
-        };
-        console.log('Normalized recommendation:', normalizedData); // Debug log
-        setRecommendation(normalizedData);
+          currentPrice: data.currentPrice || 0,
+          risk: { ...data.risk, score: typeof data.risk?.score === 'number' ? data.risk.score : parseInt(data.risk?.score, 10) || 0 },
+          sentiment: { ...data.sentiment, score: typeof data.sentiment?.score === 'number' ? data.sentiment.score : parseInt(data.sentiment?.score, 10) || 0 }
+        });
       } else {
         setError(data.error || 'Failed to fetch recommendations');
       }
@@ -102,86 +88,30 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
     }
   }, [isOpen, symbol, currentSimulatedDate, fetchRecommendation]);
 
-  const executeTrade = async (action) => {
-    if (!symbol || !currentSimulatedDate) return;
-    setIsTrading(true);
-    setTradeError('');
-    setTradeSuccess(false);
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      if (!user) { setTradeError('Must be logged in to execute trades.'); setIsTrading(false); return; }
-      const { data: userData, error: userError } = await supabase.from('users').select('virtual_balance').eq('id', user.id).maybeSingle();
-      if (userError) throw userError;
-      if (!userData) { setTradeError('Unable to load account balance.'); setIsTrading(false); return; }
-      let balance = Number(userData.virtual_balance || 0);
-      const qty = parseInt(tradeQuantity, 10);
-      if (!qty || qty <= 0 || Number.isNaN(qty)) { setTradeError('Please enter a valid quantity.'); setIsTrading(false); return; }
-      const cost = qty * currentPrice;
-      const upperSymbol = symbol.toUpperCase();
-      if (action === 'BUY') {
-        if (cost > balance) { setTradeError(`Insufficient funds. Need ₹${cost.toLocaleString()}, have ₹${balance.toLocaleString()}.`); setIsTrading(false); return; }
-        const { error: e1 } = await supabase.from('users').update({ virtual_balance: balance - cost }).eq('id', user.id);
-        if (e1) throw e1;
-        const { error: e2 } = await supabase.from('transactions').insert({ user_id: user.id, symbol: upperSymbol, type: action, quantity: qty, price_per_unit: currentPrice, simulated_date: currentSimulatedDate });
-        if (e2) throw e2;
-        const { data: holding, error: e3 } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', upperSymbol).maybeSingle();
-        if (e3) throw e3;
-        if (holding) {
-          const newQty = holding.quantity + qty;
-          const newAvg = ((holding.quantity * holding.average_buy_price) + cost) / newQty;
-          const { error: e4 } = await supabase.from('holdings').update({ quantity: newQty, average_buy_price: newAvg }).eq('id', holding.id);
-          if (e4) throw e4;
-        } else {
-          const { error: e5 } = await supabase.from('holdings').insert({ user_id: user.id, symbol: upperSymbol, quantity: qty, average_buy_price: currentPrice });
-          if (e5) throw e5;
-        }
-        setTradeSuccess(true);
-        setTradeQuantity('');
-      } else if (action === 'SELL') {
-        const { data: holding, error: e1 } = await supabase.from('holdings').select('*').eq('user_id', user.id).eq('symbol', upperSymbol).maybeSingle();
-        if (e1) throw e1;
-        if (!holding || holding.quantity < qty) { setTradeError(`Insufficient shares. You own ${holding?.quantity || 0}.`); setIsTrading(false); return; }
-        const { error: e2 } = await supabase.from('users').update({ virtual_balance: balance + cost }).eq('id', user.id);
-        if (e2) throw e2;
-        const { error: e3 } = await supabase.from('transactions').insert({ user_id: user.id, symbol: upperSymbol, type: action, quantity: qty, price_per_unit: currentPrice, simulated_date: currentSimulatedDate });
-        if (e3) throw e3;
-        const remainingQty = holding.quantity - qty;
-        if (remainingQty <= 0) {
-          const { error: e4 } = await supabase.from('holdings').delete().eq('id', holding.id);
-          if (e4) throw e4;
-        } else {
-          const { error: e5 } = await supabase.from('holdings').update({ quantity: remainingQty }).eq('id', holding.id);
-          if (e5) throw e5;
-        }
-        setTradeSuccess(true);
-        setTradeQuantity('');
-      }
-    } catch (err) {
-      console.error('Trade failed:', err);
-      setTradeError('Trade failed due to an error. Please try again.');
-    } finally {
-      setIsTrading(false);
-    }
-  };
-
   if (!isOpen) return null;
+
+  const handleGoToStock = () => {
+    onClose();
+    navigate(`/market/${encodeURIComponent(symbol)}`);
+  };
 
   return (
     <div style={S.overlay}>
       <div style={S.backdrop} onClick={onClose} />
       <div style={S.drawer}>
+
         {/* Header */}
         <div style={S.header}>
           <div>
             <h2 style={S.headerTitle}><Activity size={22} color="#a78bfa" /> AI Multi-Agent Consultation</h2>
-            <p style={S.headerSub}>Analyzing {symbol || 'selected stock'} with Risk, Sentiment, and Strategy agents</p>
+            <p style={S.headerSub}>Advisory analysis for {symbol || 'selected stock'} — no trades are executed here</p>
           </div>
           <button style={S.closeBtn} onClick={onClose}><X size={22} /></button>
         </div>
 
         {/* Content */}
         <div style={S.content}>
+
           {loading && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '64px 0', gap: '16px' }}>
               <div style={{ width: '56px', height: '56px', border: '4px solid rgba(139,92,246,0.2)', borderTopColor: '#a78bfa', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -236,41 +166,95 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
                 </div>
               )}
 
-              {/* Trade Execution */}
-              <div style={S.card}>
-                <div style={S.cardTitle}><TrendingUp size={18} color="#a78bfa" /> Execute Trade</div>
-                {tradeSuccess ? (
-                  <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
-                    <CheckCircle size={28} color="#10b981" style={{ margin: '0 auto 8px' }} />
-                    <p style={{ color: '#34d399', fontWeight: '600', margin: 0 }}>Trade executed successfully!</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>Quantity</label>
-                      <input type="number" min="1" value={tradeQuantity} onChange={(e) => setTradeQuantity(e.target.value)} placeholder="Enter quantity" style={S.input} />
+              {/* ── What If Simulator ── */}
+              {recommendation.strategy?.targetPrice != null && (
+                (() => {
+                  const qty = parseInt(simQty) || 0;
+                  const entryPrice = recommendation.currentPrice || 0;
+                  const targetPrice = recommendation.strategy.targetPrice;
+                  const stopLoss = recommendation.strategy.stopLoss;
+                  const profitIfTarget = qty * (targetPrice - entryPrice);
+                  const lossIfStop = qty * (stopLoss - entryPrice);
+                  const pctTarget = entryPrice > 0 ? ((targetPrice - entryPrice) / entryPrice * 100) : 0;
+                  const pctStop = entryPrice > 0 ? ((stopLoss - entryPrice) / entryPrice * 100) : 0;
+
+                  return (
+                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.72rem', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)', padding: '2px 10px', borderRadius: '999px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Simulation Only</span>
+                      </div>
+                      <h3 style={{ margin: '8px 0 4px', color: '#e2e8f0', fontSize: '1rem', fontWeight: '700' }}>What If I {recommendation.strategy.action === 'SELL' ? 'Sold' : 'Bought'} This?</h3>
+                      <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: '#64748b' }}>Enter a quantity to see projected outcomes. No real trade is placed.</p>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Quantity of shares</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={simQty}
+                          onChange={e => setSimQty(e.target.value)}
+                          placeholder="e.g. 10"
+                          style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+
+                      {qty > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+                          {/* If target hit */}
+                          <div style={{ padding: '14px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                              🎯 If Target Hit (₹{targetPrice.toLocaleString()})
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Projected Profit</span>
+                              <span style={{ fontWeight: '800', fontSize: '1.1rem', color: '#10b981' }}>+₹{Math.abs(profitIfTarget).toLocaleString('en-IN', { maximumFractionDigits: 0 })} (+{Math.abs(pctTarget).toFixed(1)}%)</span>
+                            </div>
+                          </div>
+
+                          {/* If stop-loss hit */}
+                          <div style={{ padding: '14px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                              🛑 If Stop-Loss Hit (₹{stopLoss?.toLocaleString()})
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Max Loss</span>
+                              <span style={{ fontWeight: '800', fontSize: '1.1rem', color: '#ef4444' }}>-₹{Math.abs(lossIfStop).toLocaleString('en-IN', { maximumFractionDigits: 0 })} ({pctStop.toFixed(1)}%)</span>
+                            </div>
+                          </div>
+
+                          {/* Risk/Reward ratio */}
+                          {lossIfStop !== 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: '8px' }}>
+                              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Risk / Reward Ratio</span>
+                              <span style={{ fontWeight: '700', color: '#a78bfa' }}>
+                                1 : {Math.abs(profitIfTarget / lossIfStop).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+
+                          <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569', fontStyle: 'italic', textAlign: 'center' }}>
+                            These are projections only. No trade has been placed.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                      <span style={{ color: '#94a3b8' }}>Current Price:</span>
-                      <span style={{ color: '#fff', fontWeight: '600' }}>₹{currentPrice?.toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                      <span style={{ color: '#94a3b8' }}>Estimated Cost:</span>
-                      <span style={{ color: '#fff', fontWeight: '600' }}>₹{((parseInt(tradeQuantity) || 0) * currentPrice).toLocaleString()}</span>
-                    </div>
-                    {tradeError && (
-                      <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '10px 14px', color: '#f87171', fontSize: '0.85rem' }}>{tradeError}</div>
-                    )}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <button onClick={() => executeTrade('BUY')} disabled={isTrading || !tradeQuantity} style={{ padding: '10px', background: isTrading || !tradeQuantity ? '#064e3b' : '#059669', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: isTrading || !tradeQuantity ? 'not-allowed' : 'pointer', opacity: isTrading || !tradeQuantity ? 0.6 : 1 }}>
-                        {isTrading ? 'Executing...' : 'Buy'}
-                      </button>
-                      <button onClick={() => executeTrade('SELL')} disabled={isTrading || !tradeQuantity} style={{ padding: '10px', background: isTrading || !tradeQuantity ? '#7f1d1d' : '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: isTrading || !tradeQuantity ? 'not-allowed' : 'pointer', opacity: isTrading || !tradeQuantity ? 0.6 : 1 }}>
-                        {isTrading ? 'Executing...' : 'Sell'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()
+              )}
+
+              {/* CTA — go to stock page to trade */}
+              <div style={{ background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ margin: '0 0 4px', fontWeight: '600', color: '#e2e8f0', fontSize: '0.95rem' }}>Ready to act on this analysis?</p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>Head to the stock page to execute a buy or sell order.</p>
+                </div>
+                <button
+                  onClick={handleGoToStock}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'var(--accent-primary, #4f8ef7)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  <ExternalLink size={15} /> Go to {symbol}
+                </button>
               </div>
 
               {/* Agent Dialogue */}
@@ -321,7 +305,7 @@ export default function ConsultationDrawer({ isOpen, onClose, symbol, currentPri
         <div style={S.footer}>
           <div style={S.footerText}>
             <p style={{ margin: '0 0 2px 0' }}>Based on analysis up to {new Date(currentSimulatedDate).toLocaleDateString()}</p>
-            <p style={{ margin: 0, fontSize: '0.72rem' }}>AI recommendations are for informational purposes only</p>
+            <p style={{ margin: 0, fontSize: '0.72rem' }}>AI recommendations are for informational purposes only. Not financial advice.</p>
           </div>
           <button onClick={onClose} style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
         </div>

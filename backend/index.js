@@ -515,38 +515,41 @@ Respond ONLY with a valid JSON object (no markdown, no backticks, no wrap text):
 }
 `;
 
-      const fetch = (await import('node-fetch')).default;
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${groqKey}`
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: 'You are a financial analyst system returning JSON.' },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.2
-        })
-      });
+      try {
+        const fetch = (await import('node-fetch')).default;
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${groqKey}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            response_format: { type: 'json_object' },
+            messages: [
+              { role: 'system', content: 'You are a financial analyst system returning JSON.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.2
+          })
+        });
 
-      if (response.ok) {
-        const resData = await response.json();
-        const content = resData.choices[0].message.content;
-        const parsed = JSON.parse(content);
-        // Ensure scores are always numbers
-        parsed.risk.score = Number(parsed.risk.score) || 0;
-        parsed.sentiment.score = Number(parsed.sentiment.score) || 0;
-        return res.json(parsed);
-      } else {
-        console.error('Groq API error:', response.statusText);
+        if (response.ok) {
+          const resData = await response.json();
+          const content = resData.choices[0].message.content;
+          const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, '').trim());
+          parsed.risk.score = Number(parsed.risk.score) || 0;
+          parsed.sentiment.score = Number(parsed.sentiment.score) || 0;
+          return res.json(parsed);
+        } else {
+          console.warn('Groq API returned non-OK status:', response.status, '— using algorithmic fallback.');
+        }
+      } catch (groqErr) {
+        console.warn('Groq API call failed:', groqErr.message, '— using algorithmic fallback.');
       }
     }
 
-    // Fallback Mock Multi-Agent Dialogue if Groq is unconfigured or fails
+    // Fallback: Groq unconfigured, key invalid, or API error — use algorithmic engine
     const simulatedDateStr = new Date(simDateTimestamp).toLocaleDateString('en-GB');
     const targetPrice = action === 'BUY' ? Math.round(currentPrice * 1.15) : action === 'SELL' ? Math.round(currentPrice * 0.85) : Math.round(currentPrice);
     const stopLoss = action === 'BUY' ? Math.round(currentPrice * 0.95) : action === 'SELL' ? Math.round(currentPrice * 1.05) : Math.round(currentPrice * 0.9);
@@ -554,6 +557,7 @@ Respond ONLY with a valid JSON object (no markdown, no backticks, no wrap text):
     const fallbackResponse = {
       symbol: symbol.toUpperCase(),
       date: simDateTimestamp,
+      currentPrice,
       risk: {
         score: volatilityScore,
         rating: riskRating,

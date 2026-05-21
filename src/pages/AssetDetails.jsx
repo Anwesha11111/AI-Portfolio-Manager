@@ -519,7 +519,6 @@ export default function AssetDetails() {
         isOpen={isConsultationOpen}
         onClose={() => setIsConsultationOpen(false)}
         symbol={symbol}
-        currentPrice={currentPrice}
         currentSimulatedDate={currentSimulatedDate}
       />
     </div>
