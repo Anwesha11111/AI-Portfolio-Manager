@@ -41,7 +41,7 @@ export default function Academy() {
   const progressPercentage = Math.round((completedLessons.length / LESSONS.length) * 100) || 0;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', width: '100%', paddingBottom: '64px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingBottom: '64px' }}>
       <div style={{ marginBottom: '40px' }} id="tour-academy">
         <h2 style={{ marginBottom: '8px', fontSize: '2.2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <GraduationCap size={36} color="var(--accent-primary)" /> Academy
