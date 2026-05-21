@@ -7,7 +7,6 @@ import { getLogoUrl } from '../utils/assetMap';
 import { supabase } from '../lib/supabase';
 import FundamentalsPanel from '../components/FundamentalsPanel';
 import FinancialsTab from '../components/FinancialsTab';
-import { StockNewsFeed } from '../components/NewsFeed';
 import ConsultationDrawer from '../components/ConsultationDrawer';
 
 export default function AssetDetails() {
@@ -417,7 +416,7 @@ export default function AssetDetails() {
 
           {/* Tab Bar */}
           <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '4px' }}>
-            {['chart', 'fundamentals', 'financials', 'news'].map(tab => (
+            {['chart', 'fundamentals', 'financials'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -435,7 +434,6 @@ export default function AssetDetails() {
           {/* Tab Content */}
           {activeTab === 'fundamentals' && <FundamentalsPanel symbol={symbol} simulatedTimestamp={currentSimulatedDate} />}
           {activeTab === 'financials' && <FinancialsTab symbol={symbol} simulatedTimestamp={currentSimulatedDate} />}
-          {activeTab === 'news' && <StockNewsFeed ticker={symbol} simulatedTimestamp={currentSimulatedDate} />}
         </div>
 
         {/* Right: Order Ticket */}
